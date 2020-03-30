@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
-import com.vasten.cli.repository.ClientsRepository;
+import com.vasten.cli.repository.UserRepository;
 
 @Component
 public class SecurityUtil {
@@ -17,7 +17,7 @@ public class SecurityUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SecurityUtil.class);
 
 	@Autowired
-	private ClientsRepository clientsRepository;
+	private UserRepository userRepository;
 
 	public static User loggedInUser() throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -26,18 +26,18 @@ public class SecurityUtil {
 			throw new Exception("No user session available.");
 		}
 
-		LOGGER.info("Authentication : "+(User) authentication.getPrincipal());
+		LOGGER.info("Authentication : " + (User) authentication.getPrincipal());
 		return (User) authentication.getPrincipal();
 	}
 
-	public com.vasten.cli.entity.Clients getLoggedInUser() {
+	public com.vasten.cli.entity.User getLoggedInUser() {
 		try {
 			User userFound = loggedInUser();
 			String email = userFound.getUsername();
-			LOGGER.info("Client Email: " + email);
-			LOGGER.info("Client : " + userFound);
-			com.vasten.cli.entity.Clients client = clientsRepository.findByEmail(email);
-			return client;
+			LOGGER.info("User Email: " + email);
+			LOGGER.info("User : " + userFound);
+			com.vasten.cli.entity.User user = userRepository.findByEmail(email);
+			return user;
 		} catch (Exception e) {
 			LOGGER.error("Exception occured while getting the logged in user: ", e);
 

@@ -24,7 +24,7 @@ import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-	@Resource(name = "clientsService")
+	@Resource(name = "userService")
 	private UserDetailsService userDetailsService;
 
 	@Autowired

@@ -6,8 +6,12 @@ import com.vasten.cli.entity.Deployments;
 
 public interface DeploymentsService {
 
-	public Deployments createDeployment(Deployments provisionData);
+	public Deployments createDeployment(int id, Deployments provisionData);
 
 	public List<Deployments> getAll(int clientId, String name);
+
+	public Deployments getStatus(String name);
+
+	public float getCost(String name);
 
 }

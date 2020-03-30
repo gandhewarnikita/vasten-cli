@@ -8,8 +8,8 @@ import com.vasten.cli.entity.Clients;
 @Repository
 public interface ClientsRepository extends JpaRepository<Clients, Integer> {
 
-	public Clients findByEmail(String email);
-
 	public Clients findOneById(int id);
+
+	public Clients findByName(String name);
 
 }

@@ -19,15 +19,7 @@ public class ClientsController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClientsController.class);
 	
 	@Autowired
-	private SecurityUtil securityUtil;
-	
-	@Autowired
 	private ClientsService clientsService;
-
-	@RequestMapping(value = "/loggedIn", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Clients getLoggedInUser() {
-		return securityUtil.getLoggedInUser();
-	}
 	
 	@RequestMapping(value = "/api/client", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public Clients createClient(@RequestBody Clients clientData) {

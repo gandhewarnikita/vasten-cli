@@ -10,10 +10,12 @@ import org.springframework.stereotype.Component;
 
 import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
 import com.vasten.cli.repository.ClientsRepository;
 import com.vasten.cli.repository.DeploymentsRepository;
+import com.vasten.cli.repository.UserRepository;
 
 @Component
 public class ValidationUtility {
@@ -25,21 +27,24 @@ public class ValidationUtility {
 
 	@Autowired
 	private DeploymentsRepository deploymentsRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
 
-	public void validateDeploymentData(Deployments provisionData) {
+	public void validateDeploymentData(int id, Deployments provisionData) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
-		if (provisionData.getClients() == null) {
-			LOGGER.error("Client id is mandatory");
-			validationErrorList.add(new ValidationError("clients", "Client id is mandatory"));
-		} else {
-			Clients dbClient = clientsRepository.findOneById(provisionData.getClients().getId());
+//		if (provisionData.getClients() == null) {
+//			LOGGER.error("Client id is mandatory");
+//			validationErrorList.add(new ValidationError("clients", "Client id is mandatory"));
+//		} else {
+		User dbUser = userRepository.findOneById(id);
 
-			if (dbClient == null) {
-				LOGGER.error("Client does not exist");
-				validationErrorList.add(new ValidationError("client", "Client does not exist"));
-			}
+		if (dbUser == null) {
+			LOGGER.error("Client does not exist");
+			validationErrorList.add(new ValidationError("client", "Client does not exist"));
 		}
+//		}
 
 		if (provisionData.getName() == null || provisionData.getName().isEmpty()) {
 			LOGGER.info("Deployment name is mandatory");
@@ -79,18 +84,39 @@ public class ValidationUtility {
 
 	public void validateDeploymentName(String name) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
-		
+
 		Deployments dbDeployment = deploymentsRepository.findByName(name);
-		
-		if(dbDeployment == null) {
+
+		if (dbDeployment == null) {
 			LOGGER.error("Deployment does not exist with this name");
 			validationErrorList.add(new ValidationError("name", "Deployment does not exist with this name"));
 		}
-		
-		if(validationErrorList != null && !validationErrorList.isEmpty()) {
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
 			throw new CliBadRequestException("Bad Request", validationErrorList);
 		}
-		
+
+	}
+
+	public void validateClientData(Clients clientData) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		if (clientData.getName() == null || clientData.getName().isEmpty()) {
+			LOGGER.error("Client name is mandatory");
+			validationErrorList.add(new ValidationError("name", "Client name is mandatory"));
+		} else {
+			Clients dbClient = clientsRepository.findByName(clientData.getName());
+
+			if (dbClient != null) {
+				LOGGER.error("Client already exists");
+				validationErrorList.add(new ValidationError("name", "Client already exists"));
+			}
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
 	}
 
 }

@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.User;
+import com.vasten.cli.security.config.SecurityUtil;
 import com.vasten.cli.service.DeploymentsService;
 
 @RestController
@@ -27,6 +30,9 @@ public class DeploymentsController {
 	@Autowired
 	private DeploymentsService deploymentsService;
 	
+	@Autowired
+	private SecurityUtil securityUtil;
+	
 	/**
 	 * Create deployment of client
 	 * 
@@ -37,7 +43,9 @@ public class DeploymentsController {
 	public Deployments create(@RequestBody Deployments provisionData) {
 		LOGGER.info("Api receives to create deployments");
 		
-		Deployments newDeployment = deploymentsService.createDeployment(provisionData);
+		User user = securityUtil.getLoggedInUser();
+		
+		Deployments newDeployment = deploymentsService.createDeployment(user.getId(), provisionData);
 		
 		return newDeployment;
 	}
@@ -55,5 +63,31 @@ public class DeploymentsController {
 		List<Deployments> deploymentList = deploymentsService.getAll(clientId, name);
 		
 		return deploymentList;
+	}
+	
+	/**
+	 * Get status of a deployment
+	 * 
+	 * @param name
+	 * @return
+	 */
+	@RequestMapping(value = "/status/name/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public Deployments getStatus(@PathVariable String name) {
+		LOGGER.info("Api received to get status of deployment");
+		Deployments deploymentStatus = deploymentsService.getStatus(name);
+		return deploymentStatus;
+	}
+	
+	/**
+	 * Get cost of a deployment
+	 * 
+	 * @param name
+	 * @return
+	 */
+	@RequestMapping(value = "/cost/name/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public float getCost(@PathVariable String name) {
+		LOGGER.info("Api received to get cost of deployment");
+		float deploymentCost = deploymentsService.getCost(name);
+		return deploymentCost;
 	}
 }

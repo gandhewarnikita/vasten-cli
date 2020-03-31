@@ -18,7 +18,7 @@ public class OauthAccessToken {
 	private String tokenId;
 	
 	@Column(name = "token")
-	private Blob token;
+	private byte[] token;
 
 	@Column(name = "user_name")
 	private String userName;
@@ -27,7 +27,7 @@ public class OauthAccessToken {
 	private String clientId;
 	
 	@Column(name = "authentication")
-	private Blob authentication;
+	private byte[] authentication;
 	
 	@Column(name = "refresh_token")
 	private String refreshToken;
@@ -48,19 +48,19 @@ public class OauthAccessToken {
 		this.tokenId = tokenId;
 	}
 
-	public Blob getToken() {
+	public byte[] getToken() {
 		return token;
 	}
 
-	public void setToken(Blob token) {
+	public void setToken(byte[] token) {
 		this.token = token;
 	}
 
-	public Blob getAuthentication() {
+	public byte[] getAuthentication() {
 		return authentication;
 	}
 
-	public void setAuthentication(Blob authentication) {
+	public void setAuthentication(byte[] authentication) {
 		this.authentication = authentication;
 	}
 

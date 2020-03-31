@@ -10,9 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
+import com.vasten.cli.repository.ClientsRepository;
 import com.vasten.cli.repository.UserRepository;
 import com.vasten.cli.service.UserService;
 
@@ -23,6 +25,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private ClientsRepository clientsRepository;
 
 	@Override
 	public User create(User userData) {
@@ -68,6 +73,14 @@ public class UserServiceImpl implements UserService {
 		if (userData.getClients() == null || userData.getClients().getId() == null) {
 			LOGGER.error("Client id is mandatory");
 			validationErrorList.add(new ValidationError("clientId", "Client id is mandatory"));
+
+		} else {
+			Clients dbClient = clientsRepository.findOneById(userData.getClients().getId());
+
+			if (dbClient == null) {
+				LOGGER.error("Client does not exist");
+				validationErrorList.add(new ValidationError("clientId", "Client does not exist"));
+			}
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {

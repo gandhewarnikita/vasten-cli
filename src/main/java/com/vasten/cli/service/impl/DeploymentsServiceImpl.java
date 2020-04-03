@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -50,6 +52,12 @@ import com.vasten.cli.utility.ValidationUtility;
 public class DeploymentsServiceImpl implements DeploymentsService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeploymentsServiceImpl.class);
+
+	@Value("${VARS_FILE_PATH}")
+	public String varsFilePath;
+
+	@Value("${FILE_PATH}")
+	public String filePath;
 
 	private static final String billingUrl = "https://cloudbilling.googleapis.com/v1/";
 
@@ -135,6 +143,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		String fileName = provisionData.getName() + "_terraform.tfvars";
 		newDeployment.setFileName(fileName);
+		
+		deploymentsRepository.save(newDeployment);
 
 		FileInputStream instream = null;
 		FileOutputStream outstream = null;
@@ -142,8 +152,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		File outfile = null;
 
 		try {
-			file = new File("/home/scriptuit/varsfile/terraform.tfvars");
-			outfile = new File("/home/scriptuit/varsfile/" + fileName);
+			file = new File(varsFilePath);
+			outfile = new File(filePath + fileName);
 
 			instream = new FileInputStream(file);
 			outstream = new FileOutputStream(outfile);
@@ -171,7 +181,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			}
 			reader.close();
 
-			String newtext = oldtext.replaceAll("vasten", provisionData.getName());
+			String newtext = oldtext.replaceAll("qwerty", provisionData.getName());
 
 			FileWriter writer = new FileWriter(outfile);
 			writer.write(newtext);
@@ -179,47 +189,72 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
+		
+	
 
-		return deploymentsRepository.save(newDeployment);
+//		String newFilePath = outfile.getAbsolutePath();
+		
+		String[] cmd = { "/home/scriptuit/apply.sh" };
+
+		ProcessBuilder pb = new ProcessBuilder(cmd);
+
+		try {
+			Process process = pb.start();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			StringBuilder builder = new StringBuilder();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				builder.append(line);
+			}
+			String result = builder.toString();
+			LOGGER.info(result);
+			LOGGER.info("end of script execution");
+		} catch (IOException e) {
+			LOGGER.error("error");
+			e.printStackTrace();
+		}
+
+		return newDeployment;
 	}
 
 	@Override
-	public List<Deployments> getAll(int clientId, String name) {
+	public List<Deployments> getAll(int id, String name) {
 		LOGGER.info("Getting all deployments");
 
-//		List<Deployments> deploymentList = new ArrayList<Deployments>();
-//		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
-//
-//		validationUtility.validateClientId(clientId);
-//
-//		Clients dbClient = clientsRepository.findOneById(clientId);
-//
-//		if (name == null) {
-//
-//			deploymentList = deploymentsRepository.findAllByClients(dbClient);
-//			return deploymentList;
-//
-//		} else {
-//
-//			Deployments dbDeployments = deploymentsRepository.findByName(name);
-//
-//			if (dbDeployments == null) {
-//				LOGGER.error("Deployment with this name does not exist");
-//				validationErrorList.add(new ValidationError("name", "Deployment with this name does not exist"));
-//
-//			} else {
-//				Deployments dbDeployment = deploymentsRepository.findByClientsAndName(dbClient, name);
-//				deploymentList.add(dbDeployment);
-//				return deploymentList;
-//			}
-//
-//			if (validationErrorList != null && !validationErrorList.isEmpty()) {
-//				throw new CliBadRequestException("Bad Request", validationErrorList);
-//			}
-//		}
-//		return deploymentList;
+		List<Deployments> deploymentList = new ArrayList<Deployments>();
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
-		return null;
+	//	validationUtility.validateClientId(clientId);
+
+	//	Clients dbClient = clientsRepository.findOneById(clientId);
+		
+		User dbUser = userRepository.findOneById(id);
+
+		if (name == null) {
+
+			deploymentList = deploymentsRepository.findAllByUser(dbUser);
+			return deploymentList;
+
+		} else {
+
+			Deployments dbDeployments = deploymentsRepository.findByName(name);
+
+			if (dbDeployments == null) {
+				LOGGER.error("Deployment with this name does not exist");
+				validationErrorList.add(new ValidationError("name", "Deployment with this name does not exist"));
+
+			} else {
+				Deployments dbDeployment = deploymentsRepository.findByUserAndName(dbUser, name);
+				deploymentList.add(dbDeployment);
+				return deploymentList;
+			}
+
+			if (validationErrorList != null && !validationErrorList.isEmpty()) {
+				throw new CliBadRequestException("Bad Request", validationErrorList);
+			}
+		}
+		return deploymentList;
+
 	}
 
 	@Override

@@ -8,7 +8,7 @@ public interface DeploymentsService {
 
 	public Deployments createDeployment(int id, Deployments provisionData);
 
-	public List<Deployments> getAll(int clientId, String name);
+	public List<Deployments> getAll(int id, String name);
 
 	public Deployments getStatus(String name);
 

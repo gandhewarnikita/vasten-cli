@@ -26,13 +26,13 @@ import com.vasten.cli.service.DeploymentsService;
 public class DeploymentsController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeploymentsController.class);
-	
+
 	@Autowired
 	private DeploymentsService deploymentsService;
-	
+
 	@Autowired
 	private SecurityUtil securityUtil;
-	
+
 	/**
 	 * Create deployment of client
 	 * 
@@ -42,29 +42,31 @@ public class DeploymentsController {
 	@RequestMapping(value = "/provision", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public Deployments create(@RequestBody Deployments provisionData) {
 		LOGGER.info("Api receives to create deployments");
-		
+
 		User user = securityUtil.getLoggedInUser();
-		
+
 		Deployments newDeployment = deploymentsService.createDeployment(user.getId(), provisionData);
-		
+
 		return newDeployment;
 	}
-	
+
 	/**
 	 * Get all deployments of client
 	 * 
 	 * @param clientId
 	 * @return
 	 */
-	@RequestMapping(value = "/profile/clientId/{clientId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<Deployments> getAllDeployments(@PathVariable int clientId, @RequestParam(value="name", required=false) String name){
-		LOGGER.info("Api received to get all deployments of client");
-		
-		List<Deployments> deploymentList = deploymentsService.getAll(clientId, name);
-		
+	@RequestMapping(value = "/profile", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<Deployments> getAllDeployments(@RequestParam(value = "name", required = false) String name) {
+		LOGGER.info("Api received to get all deployments of user");
+
+		User user = securityUtil.getLoggedInUser();
+
+		List<Deployments> deploymentList = deploymentsService.getAll(user.getId(), name);
+
 		return deploymentList;
 	}
-	
+
 	/**
 	 * Get status of a deployment
 	 * 
@@ -77,7 +79,7 @@ public class DeploymentsController {
 		Deployments deploymentStatus = deploymentsService.getStatus(name);
 		return deploymentStatus;
 	}
-	
+
 	/**
 	 * Get cost of a deployment
 	 * 

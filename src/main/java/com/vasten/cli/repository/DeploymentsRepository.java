@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeploymentStatus;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.User;
 
 @Repository
 public interface DeploymentsRepository extends JpaRepository<Deployments, Integer> {
@@ -19,5 +20,9 @@ public interface DeploymentsRepository extends JpaRepository<Deployments, Intege
 //	public Deployments findByClientsAndName(Clients dbClient, String name);
 
 	public List<Deployments> findAllByStatus(DeploymentStatus pending);
+
+	public List<Deployments> findAllByUser(User dbUser);
+
+	public Deployments findByUserAndName(User dbUser, String name);
 
 }

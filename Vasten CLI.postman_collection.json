@@ -1,0 +1,249 @@
+{
+	"info": {
+		"_postman_id": "34cb4637-307d-4c68-8acc-ea0804dac5b8",
+		"name": "Vasten CLI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login API",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "cli-secret",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "cli-client",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8092/oauth/token?username=vishal.kamble@gmail.com&grant_type=password&password=vishal",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"oauth",
+						"token"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "vishal.kamble@gmail.com"
+						},
+						{
+							"key": "grant_type",
+							"value": "password"
+						},
+						{
+							"key": "password",
+							"value": "vishal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get loggedIn user",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 21832d70-6b62-441e-a667-49a5765a8803",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8092/loggedIn",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"loggedIn"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "API to create client",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\" : \"TechGig\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8092/api/client",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"client"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "API to create user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\" : \"vishal.kamble@gmail.com\",\n\t\"password\" : \"vishal\",\n\t\"clients\" : {\n\t\t\"id\" : 1\n\t}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8092/api/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create deployment API (Provision API)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 21832d70-6b62-441e-a667-49a5765a8803",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\" : \"ecsCluster2\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8092/api/provision",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"provision"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get status of deployment",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 21832d70-6b62-441e-a667-49a5765a8803",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8092/api/status/name/ekscluster",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"status",
+						"name",
+						"ekscluster"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get profile of deployment ",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 21832d70-6b62-441e-a667-49a5765a8803",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8092/api/profile?name=ekscluster",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"profile"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "ekscluster"
+						}
+					]
+				},
+				"description": "Get profile of deployment with user id and deployment name as well"
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

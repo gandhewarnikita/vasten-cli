@@ -56,8 +56,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	@Value("${VARS_FILE_PATH}")
 	public String varsFilePath;
 
-	@Value("${FILE_PATH}")
-	public String filePath;
+	@Value("${OUTPUT_FILE_PATH}")
+	public String outputFilePath;
 
 	private static final String billingUrl = "https://cloudbilling.googleapis.com/v1/";
 
@@ -153,7 +153,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		try {
 			file = new File(varsFilePath);
-			outfile = new File(filePath + fileName);
+			outfile = new File(outputFilePath + fileName);
 
 			instream = new FileInputStream(file);
 			outstream = new FileOutputStream(outfile);

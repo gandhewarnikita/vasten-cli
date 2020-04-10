@@ -27,7 +27,7 @@ public class ValidationUtility {
 
 	@Autowired
 	private DeploymentsRepository deploymentsRepository;
-	
+
 	@Autowired
 	private UserRepository userRepository;
 
@@ -41,8 +41,8 @@ public class ValidationUtility {
 		User dbUser = userRepository.findOneById(id);
 
 		if (dbUser == null) {
-			LOGGER.error("Client does not exist");
-			validationErrorList.add(new ValidationError("client", "Client does not exist"));
+			LOGGER.error("User does not exist");
+			validationErrorList.add(new ValidationError("user", "User does not exist"));
 		}
 //		}
 
@@ -52,12 +52,19 @@ public class ValidationUtility {
 
 		} else {
 
-			Deployments dbDeployment = deploymentsRepository.findByName(provisionData.getName());
+			String deploymentName = provisionData.getName().toLowerCase();
+
+			Deployments dbDeployment = deploymentsRepository.findByName(deploymentName);
 
 			if (dbDeployment != null) {
 				LOGGER.error("Deployment with this name already exists");
 				validationErrorList.add(new ValidationError("name", "Deployment with this name already exists"));
 			}
+		}
+
+		if (provisionData.getClusterNode() == null || provisionData.getClusterNode() < 0) {
+			LOGGER.error("Cluster node is mandatory");
+			validationErrorList.add(new ValidationError("clusterNode", "Cluster node is mandatory"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
@@ -85,7 +92,7 @@ public class ValidationUtility {
 	public void validateDeploymentName(String name) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
-		Deployments dbDeployment = deploymentsRepository.findByName(name);
+		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
 
 		if (dbDeployment == null) {
 			LOGGER.error("Deployment does not exist with this name");

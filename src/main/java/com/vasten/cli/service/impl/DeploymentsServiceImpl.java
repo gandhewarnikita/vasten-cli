@@ -62,6 +62,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	@Value("${SHELL_PATH}")
 	public String shellPath;
 
+	@Value("${DESTROY_SHELL_PATH}")
+	public String destroyShellPath;
+
 	private static final String billingUrl = "https://cloudbilling.googleapis.com/v1/";
 
 	@Autowired
@@ -87,8 +90,12 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		Deployments newDeployment = new Deployments();
 
 		newDeployment.setUser(dbUser);
-		newDeployment.setName(provisionData.getName());
+		
+		String deploymentName = provisionData.getName().toLowerCase();
+		
+		newDeployment.setName(deploymentName);
 		newDeployment.setStatus(DeploymentStatus.PENDING);
+		newDeployment.setClusterNode(provisionData.getClusterNode());
 
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS");
 		Calendar calobj = Calendar.getInstance();
@@ -133,7 +140,6 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			ioe.printStackTrace();
 		}
 
-		// String outputFile = new String(outstream.toString());
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(outfile));
 			String line = "", oldtext = "";
@@ -141,11 +147,18 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 				oldtext += line + "\r\n";
 			}
 			reader.close();
+			
+			String node = String.valueOf(provisionData.getClusterNode());
 
-			String newtext = oldtext.replaceAll("qwerty", provisionData.getName());
+			String newtext = oldtext.replaceAll("qwerty", deploymentName).replaceAll("qazwsx", node);
+			
+		//	String node = String.valueOf(provisionData.getClusterNode());
+			
+		//	String newnum = oldtext.replaceAll("qazwsx", node);
 
 			FileWriter writer = new FileWriter(outfile);
 			writer.write(newtext);
+		//	writer.write(newnum);
 			writer.close();
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
@@ -295,6 +308,67 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 //		LOGGER.info("response : " + response);
 
 		return 0;
+	}
+
+	@Override
+	public void deleteByName(String name) {
+		LOGGER.info("Deleting instance by name of deployment");
+
+		validationUtility.validateDeploymentName(name);
+		
+		String[] cmd = { shellPath };
+
+		ProcessBuilder pb = new ProcessBuilder(cmd);
+
+		try {
+			Process process = pb.start();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			StringBuilder builder = new StringBuilder();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				builder.append(line);
+			}
+			String result = builder.toString();
+			LOGGER.info(result);
+			LOGGER.info("end of script execution");
+		} catch (IOException e) {
+			LOGGER.error("error");
+			e.printStackTrace();
+		}
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
+
+		dbDeployment.setDeleted(true);
+
+		deploymentsRepository.save(dbDeployment);
+
+		String[] cmdarr = { destroyShellPath };
+
+		ProcessBuilder pbs = new ProcessBuilder(cmdarr);
+
+		try {
+			Process process = pbs.start();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			StringBuilder builder = new StringBuilder();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				builder.append(line);
+			}
+			String result = builder.toString();
+			LOGGER.info(result);
+			LOGGER.info("end of script execution");
+		} catch (IOException e) {
+			LOGGER.error("error");
+			e.printStackTrace();
+		}
+
 	}
 
 }

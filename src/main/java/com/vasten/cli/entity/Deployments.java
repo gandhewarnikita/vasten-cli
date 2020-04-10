@@ -36,6 +36,9 @@ public class Deployments {
 	@Column(name = "property_file")
 	private String fileName;
 
+	@Column(name = "cluster_node")
+	private Integer clusterNode;
+
 	public Integer getId() {
 		return id;
 	}
@@ -92,10 +95,18 @@ public class Deployments {
 		this.fileName = fileName;
 	}
 
+	public Integer getClusterNode() {
+		return clusterNode;
+	}
+
+	public void setClusterNode(Integer clusterNode) {
+		this.clusterNode = clusterNode;
+	}
+
 	@Override
 	public String toString() {
 		return "Deployments [id=" + id + ", user=" + user + ", name=" + name + ", status=" + status + ", prefix="
-				+ prefix + ", isDeleted=" + isDeleted + ", fileName=" + fileName + "]";
+				+ prefix + ", isDeleted=" + isDeleted + ", fileName=" + fileName + ", clusterNode=" + clusterNode + "]";
 	}
 
 }

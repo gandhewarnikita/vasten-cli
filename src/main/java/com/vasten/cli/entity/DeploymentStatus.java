@@ -2,7 +2,7 @@ package com.vasten.cli.entity;
 
 public enum DeploymentStatus {
 
-	PENDING("PENDING"), DELETED("DELETED");
+	PENDING("PENDING"), SUCCESS("SUCCESS"), ERROR("ERROR");
 	
 	private String status;
 

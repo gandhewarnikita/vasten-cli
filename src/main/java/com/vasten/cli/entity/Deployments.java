@@ -8,6 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity
 @Table(name = "deployments")
@@ -36,8 +37,25 @@ public class Deployments {
 	@Column(name = "property_file")
 	private String fileName;
 
-	@Column(name = "cluster_node")
-	private Integer clusterNode;
+	@Transient
+	private Integer clusterNodes;
+
+	@Transient
+	private String clusterMachineType;
+
+	@Transient
+	private Integer clusterMachineCores;
+
+	// Validate minimum 30 capacity and maximum 1024 capacity
+	@Transient
+	private Integer clusterLocalStoreCapacity;
+
+	@Transient
+	private String toolVersion;
+
+	// validate minimum 1024 capacity and maximum 3072 capacity
+	@Transient
+	private Integer nfsCapacity;
 
 	public Integer getId() {
 		return id;
@@ -95,18 +113,61 @@ public class Deployments {
 		this.fileName = fileName;
 	}
 
-	public Integer getClusterNode() {
-		return clusterNode;
+	public Integer getClusterNodes() {
+		return clusterNodes;
 	}
 
-	public void setClusterNode(Integer clusterNode) {
-		this.clusterNode = clusterNode;
+	public void setClusterNodes(Integer clusterNodes) {
+		this.clusterNodes = clusterNodes;
+	}
+
+	public String getClusterMachineType() {
+		return clusterMachineType;
+	}
+
+	public void setClusterMachineType(String clusterMachineType) {
+		this.clusterMachineType = clusterMachineType;
+	}
+
+	public Integer getClusterMachineCores() {
+		return clusterMachineCores;
+	}
+
+	public void setClusterMachineCores(Integer clusterMachineCores) {
+		this.clusterMachineCores = clusterMachineCores;
+	}
+
+	public Integer getClusterLocalStoreCapacity() {
+		return clusterLocalStoreCapacity;
+	}
+
+	public void setClusterLocalStoreCapacity(Integer clusterLocalStoreCapacity) {
+		this.clusterLocalStoreCapacity = clusterLocalStoreCapacity;
+	}
+
+	public String getToolVersion() {
+		return toolVersion;
+	}
+
+	public void setToolVersion(String toolVersion) {
+		this.toolVersion = toolVersion;
+	}
+
+	public Integer getNfsCapacity() {
+		return nfsCapacity;
+	}
+
+	public void setNfsCapacity(Integer nfsCapacity) {
+		this.nfsCapacity = nfsCapacity;
 	}
 
 	@Override
 	public String toString() {
 		return "Deployments [id=" + id + ", user=" + user + ", name=" + name + ", status=" + status + ", prefix="
-				+ prefix + ", isDeleted=" + isDeleted + ", fileName=" + fileName + ", clusterNode=" + clusterNode + "]";
+				+ prefix + ", isDeleted=" + isDeleted + ", fileName=" + fileName + ", clusterNodes=" + clusterNodes
+				+ ", clusterMachineType=" + clusterMachineType + ", clusterMachineCores=" + clusterMachineCores
+				+ ", clusterLocalStoreCapacity=" + clusterLocalStoreCapacity + ", toolVersion=" + toolVersion
+				+ ", nfsCapacity=" + nfsCapacity + "]";
 	}
 
 }

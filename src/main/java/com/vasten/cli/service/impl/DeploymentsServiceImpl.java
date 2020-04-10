@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,8 +60,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	@Value("${OUTPUT_FILE_PATH}")
 	public String outputFilePath;
 
-	@Value("${SHELL_PATH}")
-	public String shellPath;
+	@Value("${APPLY_SHELL_PATH}")
+	public String applyShellPath;
 
 	@Value("${DESTROY_SHELL_PATH}")
 	public String destroyShellPath;
@@ -86,25 +87,32 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		validationUtility.validateDeploymentData(id, provisionData);
 
 		User dbUser = userRepository.findOneById(id);
+		Clients dbClient = clientsRepository.findOneById(dbUser.getClients().getId());
+		int clientId = dbClient.getId();
 
 		Deployments newDeployment = new Deployments();
 
 		newDeployment.setUser(dbUser);
-		
+
 		String deploymentName = provisionData.getName().toLowerCase();
-		
+
 		newDeployment.setName(deploymentName);
 		newDeployment.setStatus(DeploymentStatus.PENDING);
-		newDeployment.setClusterNode(provisionData.getClusterNode());
+		newDeployment.setClusterNodes(provisionData.getClusterNodes());
 
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS");
-		Calendar calobj = Calendar.getInstance();
+//		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS");
+//		Calendar calobj = Calendar.getInstance();
+//
+//		String dateTime = df.format(calobj.getTime());
+//
+//		UUID uuid = UUID.randomUUID();
+//
+//		String prefix = id + "_" + uuid + "_" + dateTime;
 
-		String dateTime = df.format(calobj.getTime());
+		Date date = new Date();
+		long currentTimestamp = date.getTime();
 
-		UUID uuid = UUID.randomUUID();
-
-		String prefix = id + "_" + uuid + "_" + dateTime;
+		String prefix = clientId + "-" + currentTimestamp;
 		LOGGER.info("prefix : " + prefix);
 
 		newDeployment.setPrefix(prefix);
@@ -147,24 +155,31 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 				oldtext += line + "\r\n";
 			}
 			reader.close();
-			
-			String node = String.valueOf(provisionData.getClusterNode());
 
-			String newtext = oldtext.replaceAll("qwerty", deploymentName).replaceAll("qazwsx", node);
-			
-		//	String node = String.valueOf(provisionData.getClusterNode());
-			
-		//	String newnum = oldtext.replaceAll("qazwsx", node);
+			String node = String.valueOf(provisionData.getClusterNodes());
+			String capacity = String.valueOf(provisionData.getClusterLocalStoreCapacity());
+			String nfsCapacity = String.valueOf(provisionData.getNfsCapacity());
+			String machineType = provisionData.getClusterMachineType();
+
+			String newtext = oldtext.replaceAll("qwerty", deploymentName).replaceAll("qazwsx", node)
+					.replaceAll("ikmikm", machineType).replaceAll("mknmkn", node).replaceAll("erdfcv", capacity)
+					.replaceAll("ioplkj", provisionData.getToolVersion()).replaceAll("wqsaxz", nfsCapacity);
+
+			// String node = String.valueOf(provisionData.getClusterNode());
+
+			// String newnum = oldtext.replaceAll("qazwsx", node);
 
 			FileWriter writer = new FileWriter(outfile);
 			writer.write(newtext);
-		//	writer.write(newnum);
+			// writer.write(newnum);
 			writer.close();
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
 
-		String[] cmd = { shellPath };
+//		String command = shellPath + " " + fileName;
+
+		String[] cmd = { applyShellPath, fileName };
 
 		ProcessBuilder pb = new ProcessBuilder(cmd);
 
@@ -311,45 +326,19 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public void deleteByName(String name) {
+	public void deProvision(String name) {
 		LOGGER.info("Deleting instance by name of deployment");
 
 		validationUtility.validateDeploymentName(name);
-		
-		String[] cmd = { shellPath };
-
-		ProcessBuilder pb = new ProcessBuilder(cmd);
-
-		try {
-			Process process = pb.start();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			StringBuilder builder = new StringBuilder();
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				builder.append(line);
-			}
-			String result = builder.toString();
-			LOGGER.info(result);
-			LOGGER.info("end of script execution");
-		} catch (IOException e) {
-			LOGGER.error("error");
-			e.printStackTrace();
-		}
-
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 
 		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
+		String propertyFile = dbDeployment.getFileName();
 
 		dbDeployment.setDeleted(true);
 
 		deploymentsRepository.save(dbDeployment);
 
-		String[] cmdarr = { destroyShellPath };
+		String[] cmdarr = { destroyShellPath, propertyFile };
 
 		ProcessBuilder pbs = new ProcessBuilder(cmdarr);
 

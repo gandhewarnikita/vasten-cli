@@ -94,8 +94,8 @@ public class DeploymentsController {
 	}
 	
 	@RequestMapping(value = "/name/{name}", method = RequestMethod.DELETE)
-	public void deleteByName(@PathVariable String name) {
+	public void deProvision(@PathVariable String name) {
 		LOGGER.info("Api received to delete deployment");
-		deploymentsService.deleteByName(name);
+		deploymentsService.deProvision(name);
 	}
 }

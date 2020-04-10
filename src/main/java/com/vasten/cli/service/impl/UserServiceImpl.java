@@ -65,10 +65,10 @@ public class UserServiceImpl implements UserService {
 			}
 		}
 
-		if (userData.getPassword() == null || userData.getPassword().isEmpty()) {
-			LOGGER.error("Password is mandatory");
-			validationErrorList.add(new ValidationError("password", "Password is mandatory"));
-		}
+//		if (userData.getPassword() == null || userData.getPassword().isEmpty()) {
+//			LOGGER.error("Password is mandatory");
+//			validationErrorList.add(new ValidationError("password", "Password is mandatory"));
+//		}
 
 		if (userData.getClients() == null || userData.getClients().getId() == null) {
 			LOGGER.error("Client id is mandatory");

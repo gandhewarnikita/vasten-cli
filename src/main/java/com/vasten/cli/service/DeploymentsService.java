@@ -14,6 +14,6 @@ public interface DeploymentsService {
 
 	public float getCost(String name);
 
-	public void deleteByName(String name);
+	public void deProvision(String name);
 
 }

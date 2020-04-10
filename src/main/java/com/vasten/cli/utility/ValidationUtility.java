@@ -62,9 +62,33 @@ public class ValidationUtility {
 			}
 		}
 
-		if (provisionData.getClusterNode() == null || provisionData.getClusterNode() < 0) {
+		if (provisionData.getClusterNodes() == null || provisionData.getClusterNodes() < 0) {
 			LOGGER.error("Cluster node is mandatory");
 			validationErrorList.add(new ValidationError("clusterNode", "Cluster node is mandatory"));
+		}
+
+		if (provisionData.getToolVersion() == null || provisionData.getToolVersion().isEmpty()) {
+			LOGGER.error("Tool version is mandatory");
+			validationErrorList.add(new ValidationError("toolVserion", "Tool version is mandatory"));
+
+		} else if (!provisionData.getToolVersion().equals("latest")) {
+			LOGGER.error("Tool version does not contain default value");
+			validationErrorList.add(new ValidationError("toolVserion", "Tool version does not contain default value"));
+		}
+		
+		if(!provisionData.getClusterMachineType().equals("n1-standard")) {
+			LOGGER.error("Cluster machine type does not contain default value");
+			validationErrorList.add(new ValidationError("clusterMachineType", "Cluster machine type does not contain default value"));
+		}
+		
+		if(provisionData.getClusterLocalStoreCapacity() < 30 && provisionData.getClusterLocalStoreCapacity() > 1024) {
+			LOGGER.error("Cluster local store capacity is not in range min 30 to max 1024");
+			validationErrorList.add(new ValidationError("clusterLocalStoreCapacity", "Cluster local store capacity is not in range min 30 to max 1024"));
+		}
+		
+		if(provisionData.getNfsCapacity() < 1024 && provisionData.getNfsCapacity() > 3072) {
+			LOGGER.error("Nfs capacity is not in range min 1024 and max 3072");
+			validationErrorList.add(new ValidationError("nfscapacity", "Nfs capacity is not in range min 1024 and max 3072"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {

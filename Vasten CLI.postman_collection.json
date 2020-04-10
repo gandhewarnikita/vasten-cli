@@ -116,7 +116,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\" : \"vishal.kamble@gmail.com\",\n\t\"password\" : \"vishal\",\n\t\"clients\" : {\n\t\t\"id\" : 1\n\t}\n}",
+					"raw": "{\n\t\"email\" : \"mehul.malik@gmail.com\",\n\t\"password\" : \"mehul\",\n\t\"clients\" : {\n\t\t\"id\" : 1\n\t}\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -156,7 +156,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"ecsCluster2\"\n}"
+					"raw": "{\n\t\"name\" : \"ecsCluster4\"\n}"
 				},
 				"url": {
 					"raw": "http://localhost:8092/api/provision",
@@ -241,6 +241,187 @@
 					]
 				},
 				"description": "Get profile of deployment with user id and deployment name as well"
+			},
+			"response": []
+		},
+		{
+			"name": "Create client API using VM ip",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\" : \"TechnoGig Pvt. Ltd.\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://35.212.206.2:8092/api/client",
+					"protocol": "http",
+					"host": [
+						"35",
+						"212",
+						"206",
+						"2"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"client"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create user API using VM ip",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\" : \"nikita.gandhewar@gmail.com\",\n\t\"password\" : \"nikita\",\n\t\"clients\" : {\n\t\t\"id\" : 4\n\t}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://35.212.206.2:8092/api/user",
+					"protocol": "http",
+					"host": [
+						"35",
+						"212",
+						"206",
+						"2"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login API using VM ip",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "cli-secret",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "cli-client",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://35.212.206.2:8092/oauth/token?username=nikita.gandhewar@gmail.com&grant_type=password&password=nikita",
+					"protocol": "http",
+					"host": [
+						"35",
+						"212",
+						"206",
+						"2"
+					],
+					"port": "8092",
+					"path": [
+						"oauth",
+						"token"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "nikita.gandhewar@gmail.com"
+						},
+						{
+							"key": "grant_type",
+							"value": "password"
+						},
+						{
+							"key": "password",
+							"value": "nikita"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create provision API using VM ip",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer efd1de21-b17d-4333-a121-7aeb124712ac",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\" : \"newEks2Cluster\"\n}"
+				},
+				"url": {
+					"raw": "http://35.212.206.2:8092/api/provision",
+					"protocol": "http",
+					"host": [
+						"35",
+						"212",
+						"206",
+						"2"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"provision"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete deployment API ",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8092/api/name/ecsCluster1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"name",
+						"ecsCluster1"
+					]
+				}
 			},
 			"response": []
 		}

@@ -156,7 +156,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"eescluster3\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024,\n\t\"clusterMachineCores\" : 3\n}"
+					"raw": "{\n\t\"name\" : \"cluster5\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024,\n\t\"clusterMachineCores\" : 3\n}"
 				},
 				"url": {
 					"raw": "http://localhost:8092/api/provision",
@@ -257,7 +257,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"TechnoGig Pvt. Ltd.\"\n}",
+					"raw": "{\n\t\"name\" : \"TechsolPvt. Ltd.\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -286,10 +286,16 @@
 			"name": "Create user API using VM ip",
 			"request": {
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\" : \"nikita.gandhewar@gmail.com\",\n\t\"password\" : \"nikita\",\n\t\"clients\" : {\n\t\t\"id\" : 4\n\t}\n}",
+					"raw": "{\n\t\"email\" : \"nikita.gandhewar@scriptuit.com\",\n\t\"password\" : \"nikita\",\n\t\"clients\" : {\n\t\t\"id\" : 38\n\t}\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -335,7 +341,7 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://35.212.206.2:8092/oauth/token?username=nikita.gandhewar@gmail.com&grant_type=password&password=nikita",
+					"raw": "http://35.212.206.2:8092/oauth/token?username=nikita.gandhewar@scriptuit.com&grant_type=password&password=nikita",
 					"protocol": "http",
 					"host": [
 						"35",
@@ -351,7 +357,7 @@
 					"query": [
 						{
 							"key": "username",
-							"value": "nikita.gandhewar@gmail.com"
+							"value": "nikita.gandhewar@scriptuit.com"
 						},
 						{
 							"key": "grant_type",
@@ -384,7 +390,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"newcluster1\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024\n}"
+					"raw": "{\n\t\"name\" : \"newcluster12345\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024\n}"
 				},
 				"url": {
 					"raw": "http://35.212.206.2:8092/api/provision",
@@ -416,7 +422,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8092/api/name/eescluster2",
+					"raw": "http://localhost:8092/api/name/cluster4",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -425,7 +431,37 @@
 					"path": [
 						"api",
 						"name",
-						"eescluster2"
+						"cluster4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete deployment api using VM ip",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer efd1de21-b17d-4333-a121-7aeb124712ac",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://35.212.206.2:8092/api/name/newcluster12345",
+					"protocol": "http",
+					"host": [
+						"35",
+						"212",
+						"206",
+						"2"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"name",
+						"newcluster12345"
 					]
 				}
 			},

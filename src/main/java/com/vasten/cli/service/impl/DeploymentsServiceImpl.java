@@ -18,6 +18,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -80,6 +83,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	@Autowired
 	private UserRepository userRepository;
 
+	ExecutorService executorService = Executors.newFixedThreadPool(5);
+
 	@Override
 	public Deployments createDeployment(int id, Deployments provisionData) {
 		LOGGER.info("Creating deployment");
@@ -99,15 +104,6 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		newDeployment.setName(deploymentName);
 		newDeployment.setStatus(DeploymentStatus.PENDING);
 		newDeployment.setClusterNodes(provisionData.getClusterNodes());
-
-//		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS");
-//		Calendar calobj = Calendar.getInstance();
-//
-//		String dateTime = df.format(calobj.getTime());
-//
-//		UUID uuid = UUID.randomUUID();
-//
-//		String prefix = id + "_" + uuid + "_" + dateTime;
 
 		Date date = new Date();
 		long currentTimestamp = date.getTime();
@@ -182,23 +178,32 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		String[] cmd = { applyShellPath, fileName };
 
-		ProcessBuilder pb = new ProcessBuilder(cmd);
+//		applyAsync(cmd);
 
-		try {
-			Process process = pb.start();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			StringBuilder builder = new StringBuilder();
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				builder.append(line);
+		executorService.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				ProcessBuilder pb = new ProcessBuilder(cmd);
+
+				try {
+					Process process = pb.start();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+					StringBuilder builder = new StringBuilder();
+					String line = null;
+					while ((line = reader.readLine()) != null) {
+						builder.append(line);
+					}
+					String result = builder.toString();
+					LOGGER.info(result);
+					LOGGER.info("end of script execution");
+				} catch (IOException e) {
+					LOGGER.error("error");
+					e.printStackTrace();
+				}
+
 			}
-			String result = builder.toString();
-			LOGGER.info(result);
-			LOGGER.info("end of script execution");
-		} catch (IOException e) {
-			LOGGER.error("error");
-			e.printStackTrace();
-		}
+		});
 
 		return newDeployment;
 	}
@@ -246,7 +251,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	@Override
 	public Deployments getStatus(Integer id, String name) {
 		LOGGER.info("Getting status");
-		
+
 		User dbUser = userRepository.findOneById(id);
 
 		validationUtility.validateDeploymentName(id, name);
@@ -345,23 +350,30 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		String[] cmdarr = { destroyShellPath, propertyFile };
 
-		ProcessBuilder pbs = new ProcessBuilder(cmdarr);
+		executorService.execute(new Runnable() {
 
-		try {
-			Process process = pbs.start();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			StringBuilder builder = new StringBuilder();
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				builder.append(line);
+			@Override
+			public void run() {
+				ProcessBuilder pbs = new ProcessBuilder(cmdarr);
+
+				try {
+					Process process = pbs.start();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+					StringBuilder builder = new StringBuilder();
+					String line = null;
+					while ((line = reader.readLine()) != null) {
+						builder.append(line);
+					}
+					String result = builder.toString();
+					LOGGER.info("result : " + result);
+					LOGGER.info("end of script execution");
+				} catch (IOException e) {
+					LOGGER.error("error");
+					e.printStackTrace();
+				}
+
 			}
-			String result = builder.toString();
-			LOGGER.info(result);
-			LOGGER.info("end of script execution");
-		} catch (IOException e) {
-			LOGGER.error("error");
-			e.printStackTrace();
-		}
+		});
 
 	}
 

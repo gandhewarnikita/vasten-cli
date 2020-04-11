@@ -27,4 +27,6 @@ public interface DeploymentsRepository extends JpaRepository<Deployments, Intege
 
 	public Deployments findByNameAndIsDeletedFalse(String name);
 
+	public Deployments findByUserAndNameAndIsDeletedFalse(User dbUser, String name);
+
 }

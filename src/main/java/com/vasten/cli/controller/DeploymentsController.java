@@ -76,7 +76,8 @@ public class DeploymentsController {
 	@RequestMapping(value = "/status/name/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Deployments getStatus(@PathVariable String name) {
 		LOGGER.info("Api received to get status of deployment");
-		Deployments deploymentStatus = deploymentsService.getStatus(name);
+		User user = securityUtil.getLoggedInUser();
+		Deployments deploymentStatus = deploymentsService.getStatus(user.getId(), name);
 		return deploymentStatus;
 	}
 
@@ -93,9 +94,17 @@ public class DeploymentsController {
 		return deploymentCost;
 	}
 	
+	/**
+	 * Delete deployment of user
+	 * 
+	 * @param name
+	 */
 	@RequestMapping(value = "/name/{name}", method = RequestMethod.DELETE)
 	public void deProvision(@PathVariable String name) {
 		LOGGER.info("Api received to delete deployment");
-		deploymentsService.deProvision(name);
+		
+		User user = securityUtil.getLoggedInUser();
+		
+		deploymentsService.deProvision(user.getId(), name);
 	}
 }

@@ -10,10 +10,10 @@ public interface DeploymentsService {
 
 	public List<Deployments> getAll(int id, String name);
 
-	public Deployments getStatus(String name);
+	public Deployments getStatus(Integer id, String name);
 
 	public float getCost(String name);
 
-	public void deProvision(String name);
+	public void deProvision(Integer id, String name);
 
 }

@@ -26,7 +26,7 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8092/oauth/token?username=vishal.kamble@gmail.com&grant_type=password&password=vishal",
+					"raw": "http://localhost:8092/oauth/token?username=nikita.gandhewar@gmail.com&grant_type=password&password=nikita",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -39,7 +39,7 @@
 					"query": [
 						{
 							"key": "username",
-							"value": "vishal.kamble@gmail.com"
+							"value": "nikita.gandhewar@gmail.com"
 						},
 						{
 							"key": "grant_type",
@@ -47,7 +47,7 @@
 						},
 						{
 							"key": "password",
-							"value": "vishal"
+							"value": "nikita"
 						}
 					]
 				}
@@ -116,7 +116,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\" : \"mehul.malik@gmail.com\",\n\t\"password\" : \"mehul\",\n\t\"clients\" : {\n\t\t\"id\" : 1\n\t}\n}",
+					"raw": "{\n\t\"email\" : \"nikita.gandhewar@gmail.com\",\n\t\"password\" : \"nikita\",\n\t\"clients\" : {\n\t\t\"id\" : 1\n\t}\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -150,13 +150,13 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Bearer 21832d70-6b62-441e-a667-49a5765a8803",
+						"value": "Bearer a55f7b6c-b54a-4925-bd09-2e5e18977fe3",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"ecsCluster4\"\n}"
+					"raw": "{\n\t\"name\" : \"eescluster3\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024,\n\t\"clusterMachineCores\" : 3\n}"
 				},
 				"url": {
 					"raw": "http://localhost:8092/api/provision",
@@ -384,7 +384,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"newEks2Cluster\"\n}"
+					"raw": "{\n\t\"name\" : \"newcluster1\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024\n}"
 				},
 				"url": {
 					"raw": "http://35.212.206.2:8092/api/provision",
@@ -408,9 +408,15 @@
 			"name": "Delete deployment API ",
 			"request": {
 				"method": "DELETE",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer a55f7b6c-b54a-4925-bd09-2e5e18977fe3",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "http://localhost:8092/api/name/ecsCluster1",
+					"raw": "http://localhost:8092/api/name/eescluster2",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -419,7 +425,7 @@
 					"path": [
 						"api",
 						"name",
-						"ecsCluster1"
+						"eescluster2"
 					]
 				}
 			},

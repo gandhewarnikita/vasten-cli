@@ -157,12 +157,13 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			reader.close();
 
 			String node = String.valueOf(provisionData.getClusterNodes());
+			String core = String.valueOf(provisionData.getClusterMachineCores());
 			String capacity = String.valueOf(provisionData.getClusterLocalStoreCapacity());
 			String nfsCapacity = String.valueOf(provisionData.getNfsCapacity());
 			String machineType = provisionData.getClusterMachineType();
 
 			String newtext = oldtext.replaceAll("qwerty", deploymentName).replaceAll("qazwsx", node)
-					.replaceAll("ikmikm", machineType).replaceAll("mknmkn", node).replaceAll("erdfcv", capacity)
+					.replaceAll("ikmikm", machineType).replaceAll("mknmkn", core).replaceAll("erdfcv", capacity)
 					.replaceAll("ioplkj", provisionData.getToolVersion()).replaceAll("wqsaxz", nfsCapacity);
 
 			// String node = String.valueOf(provisionData.getClusterNode());
@@ -243,10 +244,12 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public Deployments getStatus(String name) {
+	public Deployments getStatus(Integer id, String name) {
 		LOGGER.info("Getting status");
+		
+		User dbUser = userRepository.findOneById(id);
 
-		validationUtility.validateDeploymentName(name);
+		validationUtility.validateDeploymentName(id, name);
 
 		Deployments dbDeployment = deploymentsRepository.findByName(name);
 
@@ -257,7 +260,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	public float getCost(String name) {
 		LOGGER.info("Getting cost of deployment");
 
-		validationUtility.validateDeploymentName(name);
+		// validationUtility.validateDeploymentName(name);
 
 //		Deployments dbDeployment = deploymentsRepository.findByName(name);
 //		Clients dbClient = clientsRepository.findOneById(dbDeployment.getClients().getId());
@@ -326,12 +329,14 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public void deProvision(String name) {
+	public void deProvision(Integer id, String name) {
 		LOGGER.info("Deleting instance by name of deployment");
 
-		validationUtility.validateDeploymentName(name);
+		User dbUser = userRepository.findOneById(id);
 
-		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
+		validationUtility.validateDeploymentName(dbUser.getId(), name);
+
+		Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, name);
 		String propertyFile = dbDeployment.getFileName();
 
 		dbDeployment.setDeleted(true);

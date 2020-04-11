@@ -75,20 +75,38 @@ public class ValidationUtility {
 			LOGGER.error("Tool version does not contain default value");
 			validationErrorList.add(new ValidationError("toolVserion", "Tool version does not contain default value"));
 		}
-		
-		if(!provisionData.getClusterMachineType().equals("n1-standard")) {
+
+		if (provisionData.getClusterMachineType() == null || provisionData.getClusterMachineType().isEmpty()) {
+			LOGGER.error("Cluster machine type is mandatory");
+			validationErrorList.add(new ValidationError("clusterMachineType", "Cluster machine type is mandatory"));
+
+		} else if (!provisionData.getClusterMachineType().equals("n1-standard")) {
 			LOGGER.error("Cluster machine type does not contain default value");
-			validationErrorList.add(new ValidationError("clusterMachineType", "Cluster machine type does not contain default value"));
+			validationErrorList.add(
+					new ValidationError("clusterMachineType", "Cluster machine type does not contain default value"));
 		}
-		
-		if(provisionData.getClusterLocalStoreCapacity() < 30 && provisionData.getClusterLocalStoreCapacity() > 1024) {
+
+		if (provisionData.getClusterLocalStoreCapacity() == null) {
+			LOGGER.error("Cluster local store capacity is mandatory");
+			validationErrorList
+					.add(new ValidationError("clusterLocalStoreCapacity", "Cluster local store capacity is mandatory"));
+
+		} else if ((provisionData.getClusterLocalStoreCapacity() < 30)
+				|| (provisionData.getClusterLocalStoreCapacity() > 1024)) {
+			
 			LOGGER.error("Cluster local store capacity is not in range min 30 to max 1024");
-			validationErrorList.add(new ValidationError("clusterLocalStoreCapacity", "Cluster local store capacity is not in range min 30 to max 1024"));
+			validationErrorList.add(new ValidationError("clusterLocalStoreCapacity",
+					"Cluster local store capacity is not in range min 30 to max 1024"));
 		}
-		
-		if(provisionData.getNfsCapacity() < 1024 && provisionData.getNfsCapacity() > 3072) {
-			LOGGER.error("Nfs capacity is not in range min 1024 and max 3072");
-			validationErrorList.add(new ValidationError("nfscapacity", "Nfs capacity is not in range min 1024 and max 3072"));
+
+		if (provisionData.getNfsCapacity() == null) {
+			LOGGER.error("Nfs capacity is mandatory");
+			validationErrorList.add(new ValidationError("nfscapacity", "Nfs capacity is mandatory"));
+
+		} else if ((provisionData.getNfsCapacity() < 1024) || (provisionData.getNfsCapacity() > 3072)) {
+			LOGGER.error("Nfs capacity is not in range min 1024 to max 3072");
+			validationErrorList
+					.add(new ValidationError("nfscapacity", "Nfs capacity is not in range min 1024 to max 3072"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
@@ -113,10 +131,11 @@ public class ValidationUtility {
 
 	}
 
-	public void validateDeploymentName(String name) {
+	public void validateDeploymentName(Integer id, String name) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
-		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
+		User dbUser = userRepository.findOneById(id);
+		Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, name);
 
 		if (dbDeployment == null) {
 			LOGGER.error("Deployment does not exist with this name");

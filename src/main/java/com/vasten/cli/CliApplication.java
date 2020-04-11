@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableAutoConfiguration
-@ComponentScan({"com.vasten.cli", "com.vasten.cli.controller", "com.vasten.cli.config"})
+@ComponentScan({"com.vasten.cli", "com.vasten.cli.controller", "com.vasten.cli.security.config", "com.vasten.cli.config"})
 public class CliApplication {
 
 	public static void main(String[] args) {

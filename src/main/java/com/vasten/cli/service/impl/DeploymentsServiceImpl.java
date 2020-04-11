@@ -162,23 +162,15 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 					.replaceAll("ikmikm", machineType).replaceAll("mknmkn", core).replaceAll("erdfcv", capacity)
 					.replaceAll("ioplkj", provisionData.getToolVersion()).replaceAll("wqsaxz", nfsCapacity);
 
-			// String node = String.valueOf(provisionData.getClusterNode());
-
-			// String newnum = oldtext.replaceAll("qazwsx", node);
-
 			FileWriter writer = new FileWriter(outfile);
 			writer.write(newtext);
-			// writer.write(newnum);
+
 			writer.close();
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
 
-//		String command = shellPath + " " + fileName;
-
 		String[] cmd = { applyShellPath, fileName };
-
-//		applyAsync(cmd);
 
 		executorService.execute(new Runnable() {
 

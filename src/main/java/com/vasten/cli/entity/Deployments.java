@@ -2,6 +2,8 @@ package com.vasten.cli.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -26,6 +28,7 @@ public class Deployments {
 	private String name;
 
 	@Column(name = "status")
+	@Enumerated(EnumType.STRING)
 	private DeploymentStatus status;
 
 	@Column(name = "prefix")
@@ -56,6 +59,9 @@ public class Deployments {
 	// validate minimum 1024 capacity and maximum 3072 capacity
 	@Transient
 	private Integer nfsCapacity;
+
+	@Column(name = "nfs_name")
+	private String nfsName;
 
 	public Integer getId() {
 		return id;
@@ -161,13 +167,21 @@ public class Deployments {
 		this.nfsCapacity = nfsCapacity;
 	}
 
+	public String getNfsName() {
+		return nfsName;
+	}
+
+	public void setNfsName(String nfsName) {
+		this.nfsName = nfsName;
+	}
+
 	@Override
 	public String toString() {
 		return "Deployments [id=" + id + ", user=" + user + ", name=" + name + ", status=" + status + ", prefix="
 				+ prefix + ", isDeleted=" + isDeleted + ", fileName=" + fileName + ", clusterNodes=" + clusterNodes
 				+ ", clusterMachineType=" + clusterMachineType + ", clusterMachineCores=" + clusterMachineCores
 				+ ", clusterLocalStoreCapacity=" + clusterLocalStoreCapacity + ", toolVersion=" + toolVersion
-				+ ", nfsCapacity=" + nfsCapacity + "]";
+				+ ", nfsCapacity=" + nfsCapacity + ", nfsName=" + nfsName + "]";
 	}
 
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vasten.cli.entity.Clients;
+import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.security.config.SecurityUtil;
@@ -74,10 +75,10 @@ public class DeploymentsController {
 	 * @return
 	 */
 	@RequestMapping(value = "/status/name/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Deployments getStatus(@PathVariable String name) {
+	public DeployStatus getStatus(@PathVariable String name) {
 		LOGGER.info("Api received to get status of deployment");
 		User user = securityUtil.getLoggedInUser();
-		Deployments deploymentStatus = deploymentsService.getStatus(user.getId(), name);
+		DeployStatus deploymentStatus = deploymentsService.getStatus(user.getId(), name);
 		return deploymentStatus;
 	}
 

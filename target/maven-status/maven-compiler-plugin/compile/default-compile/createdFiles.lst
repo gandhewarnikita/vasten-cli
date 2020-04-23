@@ -1,5 +1,7 @@
+com/vasten/cli/entity/DeploymentCost.class
 com/vasten/cli/config/CorsFilter.class
 com/vasten/cli/controller/UserController.class
+com/vasten/cli/repository/DeployStatusRepository.class
 com/vasten/cli/security/config/ResourceServerConfig.class
 com/vasten/cli/controller/DeploymentsController.class
 com/vasten/cli/repository/DeploymentsRepository.class
@@ -16,6 +18,7 @@ com/vasten/cli/error/ValidationError.class
 com/vasten/cli/entity/Deployments.class
 com/vasten/cli/entity/User.class
 com/vasten/cli/security/config/SecurityUtil.class
+com/vasten/cli/service/impl/DeploymentsServiceImpl$1.class
 com/vasten/cli/repository/ClientsRepository.class
 com/vasten/cli/exception/CliBadRequestException.class
 com/vasten/cli/entity/OauthAccessToken.class
@@ -29,4 +32,6 @@ com/vasten/cli/service/impl/ClientsServiceImpl.class
 com/vasten/cli/service/ClientsService.class
 com/vasten/cli/security/config/AuthorizationServerConfig.class
 com/vasten/cli/error/handler/CustomizedResponseEntityExceptionHandler.class
+com/vasten/cli/entity/DeployStatus.class
+com/vasten/cli/service/impl/DeploymentsServiceImpl$2.class
 com/vasten/cli/service/impl/DeploymentStatusScheduler.class

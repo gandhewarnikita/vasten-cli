@@ -41,12 +41,14 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.cloudbilling.Cloudbilling;
 import com.google.api.services.cloudbilling.model.BillingAccount;
 import com.vasten.cli.entity.Clients;
+import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.DeploymentStatus;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
 import com.vasten.cli.repository.ClientsRepository;
+import com.vasten.cli.repository.DeployStatusRepository;
 import com.vasten.cli.repository.DeploymentsRepository;
 import com.vasten.cli.repository.UserRepository;
 import com.vasten.cli.service.DeploymentsService;
@@ -68,6 +70,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	@Value("${DESTROY_SHELL_PATH}")
 	public String destroyShellPath;
+	
+	@Autowired
+	private DeployStatusRepository deployStatusRepository;
 
 	private static final String billingUrl = "https://cloudbilling.googleapis.com/v1/";
 
@@ -241,14 +246,14 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public Deployments getStatus(Integer id, String name) {
+	public DeployStatus getStatus(Integer id, String name) {
 		LOGGER.info("Getting status");
 
 		User dbUser = userRepository.findOneById(id);
 
 		validationUtility.validateDeploymentName(id, name);
 
-		Deployments dbDeployment = deploymentsRepository.findByName(name);
+		DeployStatus dbDeployment = deployStatusRepository.findByName(name);
 
 		return dbDeployment;
 	}

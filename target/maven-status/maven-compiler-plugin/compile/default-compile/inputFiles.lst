@@ -2,11 +2,14 @@
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/CliApplication.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/controller/UserController.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/error/handler/CustomizedResponseEntityExceptionHandler.java
+/home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/entity/DeployStatus.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/exception/CliBadRequestException.java
+/home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/entity/DeploymentCost.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/service/UserService.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/service/impl/DeploymentsServiceImpl.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/service/impl/UserSecurityServiceImpl.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/entity/User.java
+/home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/repository/DeployStatusRepository.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/controller/ClientsController.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/security/config/ResourceServerConfig.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/repository/DeploymentsRepository.java

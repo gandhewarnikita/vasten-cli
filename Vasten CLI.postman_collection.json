@@ -390,7 +390,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"cluster89\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024\n}"
+					"raw": "{\n\t\"name\" : \"newdemovasten52-cluster\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024\n}"
 				},
 				"url": {
 					"raw": "http://35.212.206.2:8092/api/provision",
@@ -462,6 +462,31 @@
 						"api",
 						"name",
 						"newcluster12345"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get status API using VM ip",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://35.212.206.2:8092/api/status/name/newdemovasten52-cluster",
+					"protocol": "http",
+					"host": [
+						"35",
+						"212",
+						"206",
+						"2"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"status",
+						"name",
+						"newdemovasten52-cluster"
 					]
 				}
 			},

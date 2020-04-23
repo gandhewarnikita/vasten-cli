@@ -9,11 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.vasten.cli.entity.Clients;
+import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
 import com.vasten.cli.repository.ClientsRepository;
+import com.vasten.cli.repository.DeployStatusRepository;
 import com.vasten.cli.repository.DeploymentsRepository;
 import com.vasten.cli.repository.UserRepository;
 
@@ -30,6 +32,9 @@ public class ValidationUtility {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private DeployStatusRepository deployStatusRepository;
 
 	public void validateDeploymentData(int id, Deployments provisionData) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
@@ -93,7 +98,7 @@ public class ValidationUtility {
 
 		} else if ((provisionData.getClusterLocalStoreCapacity() < 30)
 				|| (provisionData.getClusterLocalStoreCapacity() > 1024)) {
-			
+
 			LOGGER.error("Cluster local store capacity is not in range min 30 to max 1024");
 			validationErrorList.add(new ValidationError("clusterLocalStoreCapacity",
 					"Cluster local store capacity is not in range min 30 to max 1024"));
@@ -161,6 +166,22 @@ public class ValidationUtility {
 				LOGGER.error("Client already exists");
 				validationErrorList.add(new ValidationError("name", "Client already exists"));
 			}
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
+	}
+
+	public void validateClusterName(String name) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		DeployStatus dbDeployment = deployStatusRepository.findByName(name);
+
+		if (dbDeployment == null) {
+			LOGGER.error("Deployment does not exist with this name");
+			validationErrorList.add(new ValidationError("name", "Deployment does not exist with this name"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {

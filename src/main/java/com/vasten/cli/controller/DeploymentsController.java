@@ -77,8 +77,7 @@ public class DeploymentsController {
 	@RequestMapping(value = "/status/name/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public DeployStatus getStatus(@PathVariable String name) {
 		LOGGER.info("Api received to get status of deployment");
-		User user = securityUtil.getLoggedInUser();
-		DeployStatus deploymentStatus = deploymentsService.getStatus(user.getId(), name);
+		DeployStatus deploymentStatus = deploymentsService.getStatus(name);
 		return deploymentStatus;
 	}
 

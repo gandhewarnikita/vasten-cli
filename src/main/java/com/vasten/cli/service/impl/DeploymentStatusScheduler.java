@@ -92,7 +92,7 @@ public class DeploymentStatusScheduler {
 	private static final String clusterStatusUrl = "https://container.googleapis.com/v1";
 
 	// @Scheduled()
-	@Scheduled(cron = "0/10 * * * * *")
+//	@Scheduled(cron = "0/10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 
 		LOGGER.info("in the scheduler");

@@ -246,12 +246,10 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public DeployStatus getStatus(Integer id, String name) {
+	public DeployStatus getStatus(String name) {
 		LOGGER.info("Getting status");
 
-		User dbUser = userRepository.findOneById(id);
-
-		validationUtility.validateDeploymentName(id, name);
+		validationUtility.validateClusterName(name);
 
 		DeployStatus dbDeployment = deployStatusRepository.findByName(name);
 

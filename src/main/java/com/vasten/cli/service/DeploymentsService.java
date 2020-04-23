@@ -11,7 +11,7 @@ public interface DeploymentsService {
 
 	public List<Deployments> getAll(int id, String name);
 
-	public DeployStatus getStatus(Integer id, String name);
+	public DeployStatus getStatus(String name);
 
 	public float getCost(String name);
 

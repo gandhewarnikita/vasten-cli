@@ -55,6 +55,19 @@ import com.google.api.gax.paging.Page;
 import com.google.api.services.container.Container;
 import com.google.api.services.container.Container.Projects.Locations.Clusters;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.compute.v1.GetInstanceGroupManagerHttpRequest;
+import com.google.cloud.compute.v1.Instance;
+import com.google.cloud.compute.v1.InstanceClient;
+import com.google.cloud.compute.v1.InstanceClient.ListInstancesPagedResponse;
+import com.google.cloud.compute.v1.InstanceGroupManager;
+import com.google.cloud.compute.v1.InstanceGroupManagerClient;
+import com.google.cloud.compute.v1.InstanceGroupManagerClient.ListInstanceGroupManagersPagedResponse;
+import com.google.cloud.compute.v1.InstanceGroupManagerList;
+import com.google.cloud.compute.v1.InstanceGroupManagerSettings;
+import com.google.cloud.compute.v1.InstanceSettings;
+import com.google.cloud.compute.v1.ListInstanceGroupManagersHttpRequest;
+import com.google.cloud.compute.v1.ProjectZoneInstanceGroupManagerName;
+import com.google.cloud.compute.v1.ProjectZoneName;
 import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.cloud.container.v1.ClusterManagerSettings;
 import com.google.cloud.storage.Bucket;
@@ -82,6 +95,12 @@ public class DeploymentStatusScheduler {
 
 	@Value("${ACCESS_TOKEN}")
 	private String accessToken;
+
+	@Value("${NEW_PROJECT_ID}")
+	public String newProjectId;
+
+	@Value("${NEW_ZONE}")
+	private String newZone;
 
 	@Autowired
 	private DeploymentsRepository deploymentsRepository;
@@ -165,7 +184,7 @@ public class DeploymentStatusScheduler {
 		while (itr.hasNext()) {
 			DeployStatus obj = new DeployStatus();
 			obj = (DeployStatus) itr.next();
-			
+
 			if (!dbDeployList.contains(obj)) {
 				deployStatusRepository.save(obj);
 			}
@@ -189,6 +208,82 @@ public class DeploymentStatusScheduler {
 		ListClustersResponse response = clusterManagerClient.listClusters(projectId, zone);
 
 		return response;
+	}
+
+//	@Scheduled(cron = "0/10 * * * * *")
+	private void getStatusInstance() throws FileNotFoundException, IOException {
+		LOGGER.info("in getStatusInstance() method");
+
+//		String jsonPath = "/home/scriptuit/Downloads/academic-torch-248600-c81edA9634bd5.json";
+//
+//		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
+//				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+//
+//		InstanceGroupManagerSettings instanceGroupManagerSettings = InstanceGroupManagerSettings.newBuilder()
+//				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+//
+//		InstanceGroupManagerClient instanceGroupManagerClient = InstanceGroupManagerClient
+//				.create(instanceGroupManagerSettings);
+//
+//		String formattedZone = ProjectZoneName.format(newProjectId, newZone);
+//		ListInstanceGroupManagersHttpRequest request = ListInstanceGroupManagersHttpRequest.newBuilder()
+//				.setZone(formattedZone).build();
+//		ListInstanceGroupManagersPagedResponse response = instanceGroupManagerClient.listInstanceGroupManagers(request);
+//
+//		for (InstanceGroupManager element : instanceGroupManagerClient.listInstanceGroupManagers(request)
+//				.iterateAll()) {
+//
+//			LOGGER.info("response : " + element);
+//		}
+
+		String instanceName = "";
+		String instanceStatus = "";
+		DeployStatus deployInstance = new DeployStatus();
+
+		String jsonPath = "/home/scriptuit/Downloads/gold-braid-268003-fa0b37fc4447.json";
+
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
+				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+
+		InstanceSettings instanceSettings = InstanceSettings.newBuilder()
+				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+
+		InstanceClient instanceClient = InstanceClient.create(instanceSettings);
+		ProjectZoneName projectZoneName = ProjectZoneName.of(projectId, newZone);
+
+		ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
+
+//		LOGGER.info("response : " + instanceList);
+
+		for (Instance instance : instanceList.iterateAll()) {
+			LOGGER.info("instance response : " + instance);
+			LOGGER.info("*********************************************************************");
+
+			instanceName = instance.getName();
+			instanceStatus = instance.getStatus();
+
+			LOGGER.info("instanceName : " + instanceName + " & instanceStatus : " + instanceStatus);
+
+			deployInstance.setInstanceName(instanceName);
+
+			if (instanceStatus.equals("RUNNING")) {
+				deployInstance.setInstanceStatus(DeploymentStatus.SUCCESS);
+
+			} else if (instanceStatus.equals("TERMINATED")) {
+				deployInstance.setInstanceStatus(DeploymentStatus.ERROR);
+			}
+
+			deployStatusRepository.save(deployInstance);
+
+		}
+
+	}
+	
+//	@Scheduled(cron = "0/10 * * * * *")
+	private void getNfsStatus() {
+		LOGGER.info("Getting nfs status");
+		
+		
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.vasten.cli.controller;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 import javax.websocket.server.PathParam;
@@ -86,11 +88,13 @@ public class DeploymentsController {
 	 * 
 	 * @param name
 	 * @return
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
 	 */
-	@RequestMapping(value = "/cost/name/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public float getCost(@PathVariable String name) {
-		LOGGER.info("Api received to get cost of deployment");
-		float deploymentCost = deploymentsService.getCost(name);
+	@RequestMapping(value = "/cost/startDate/{startDate}/enddate/{endDate}/name/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public float getCost(@PathVariable String name, @PathVariable Long startDate, @PathVariable Long endDate) throws FileNotFoundException, IOException {
+		LOGGER.info("Api received to get cost of deployment between start date and end date");
+		float deploymentCost = deploymentsService.getCost(name, startDate, endDate);
 		return deploymentCost;
 	}
 	

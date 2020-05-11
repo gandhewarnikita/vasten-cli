@@ -3,7 +3,7 @@ Implementation-Title: cli
 Implementation-Version: 0.0.1-SNAPSHOT
 Built-By: scriptuit
 Implementation-Vendor-Id: com.vasten
-Build-Jdk: 1.8.0_242
+Build-Jdk: 1.8.0_252
 Implementation-URL: https://projects.spring.io/spring-boot/#/spring-bo
  ot-starter-parent/cli
 Created-By: Maven Integration for Eclipse

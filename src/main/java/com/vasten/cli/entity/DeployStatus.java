@@ -23,9 +23,20 @@ public class DeployStatus {
 	@Column(name = "deployment_status")
 	@Enumerated(EnumType.STRING)
 	private DeploymentStatus status;
-	
-//	@Column(name = "instance_name")
-//	private String instanceName;
+
+	@Column(name = "instance_name")
+	private String instanceName;
+
+	@Column(name = "instance_status")
+	@Enumerated(EnumType.STRING)
+	private DeploymentStatus instanceStatus;
+
+	@Column(name = "nfs_name")
+	private String nfsName;
+
+	@Column(name = "nfs_status")
+	@Enumerated(EnumType.STRING)
+	private DeploymentStatus nfsStatus;
 
 	public Integer getId() {
 		return id;
@@ -51,9 +62,42 @@ public class DeployStatus {
 		this.status = status;
 	}
 
+	public String getInstanceName() {
+		return instanceName;
+	}
+
+	public void setInstanceName(String instanceName) {
+		this.instanceName = instanceName;
+	}
+
+	public DeploymentStatus getInstanceStatus() {
+		return instanceStatus;
+	}
+
+	public void setInstanceStatus(DeploymentStatus instanceStatus) {
+		this.instanceStatus = instanceStatus;
+	}
+
+	public String getNfsName() {
+		return nfsName;
+	}
+
+	public void setNfsName(String nfsName) {
+		this.nfsName = nfsName;
+	}
+
+	public DeploymentStatus getNfsStatus() {
+		return nfsStatus;
+	}
+
+	public void setNfsStatus(DeploymentStatus nfsStatus) {
+		this.nfsStatus = nfsStatus;
+	}
+
 	@Override
 	public String toString() {
-		return "DeployStatus [id=" + id + ", name=" + name + ", status=" + status + "]";
+		return "DeployStatus [id=" + id + ", name=" + name + ", status=" + status + ", instanceName=" + instanceName
+				+ ", instanceStatus=" + instanceStatus + ", nfsName=" + nfsName + ", nfsStatus=" + nfsStatus + "]";
 	}
 
 }

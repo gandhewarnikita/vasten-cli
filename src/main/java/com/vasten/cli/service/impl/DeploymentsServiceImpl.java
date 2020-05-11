@@ -38,8 +38,12 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.services.cloudbilling.Cloudbilling;
 import com.google.api.services.cloudbilling.model.BillingAccount;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.billing.v1.CloudBillingSettings;
+import com.google.common.collect.Lists;
 import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.DeploymentStatus;
@@ -70,7 +74,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	@Value("${DESTROY_SHELL_PATH}")
 	public String destroyShellPath;
-	
+
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
 
@@ -257,78 +261,6 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public float getCost(String name) {
-		LOGGER.info("Getting cost of deployment");
-
-		// validationUtility.validateDeploymentName(name);
-
-//		Deployments dbDeployment = deploymentsRepository.findByName(name);
-//		Clients dbClient = clientsRepository.findOneById(dbDeployment.getClients().getId());
-//		String email = dbClient.getEmail();
-//
-//		try {
-//			float cost = getDploymentCost(name, billingUrl);
-//		} catch (IOException | GeneralSecurityException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
-		return 0;
-	}
-
-	private float getDploymentCost(String name, String billingUrl) throws IOException, GeneralSecurityException {
-//		LOGGER.info("Getting cost of client's deployment");
-//
-////		String newUrl = billingUrl + name;
-////		
-////		RestTemplate template = new RestTemplate();
-////
-////		HttpHeaders headers = new HttpHeaders();
-////		headers.set("Content-Type", "application/json");
-////
-////		HttpEntity<Object> entity = new HttpEntity<>(null, headers);
-////
-////		ResponseEntity<BillingAccount> response = template.exchange(newUrl, HttpMethod.GET, entity,
-////				BillingAccount.class);
-//
-//		// Authentication is provided by the 'gcloud' tool when running locally
-//		// and by built-in service accounts when running on GAE, GCE, or GKE.
-//		GoogleCredential credential = GoogleCredential.getApplicationDefault();
-//
-//		// The createScopedRequired method returns true when running on GAE or a local
-//		// developer
-//		// machine. In that case, the desired scopes must be passed in manually. When
-//		// the code is
-//		// running in GCE, GKE or a Managed VM, the scopes are pulled from the GCE
-//		// metadata server.
-//		// See
-//		// https://developers.google.com/identity/protocols/application-default-credentials
-//		// for more information.
-//		if (credential.createScopedRequired()) {
-//			credential = credential
-//					.createScoped(Collections.singletonList("https://www.googleapis.com/auth/cloud-platform"));
-//		}
-//
-//		HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-//		JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-//		Cloudbilling cloudbillingService = new Cloudbilling.Builder(httpTransport, jsonFactory, credential)
-//				.setApplicationName("Google Cloud Platform Sample").build();
-//
-//		// TODO: Change placeholders below to appropriate parameter values for the 'get'
-//		// method:
-//		// The resource name of the billing account to retrieve. For example,
-//		// `billingAccounts/012345-567890-ABCDEF`.
-//		String name1 = "billingAccounts/name";
-//
-//		Cloudbilling.BillingAccounts.Get request = cloudbillingService.billingAccounts().get(name1);
-//		BillingAccount response = request.execute();
-//
-//		LOGGER.info("response : " + response);
-
-		return 0;
-	}
-
-	@Override
 	public void deProvision(Integer id, String name) {
 		LOGGER.info("Deleting instance by name of deployment");
 
@@ -370,6 +302,20 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			}
 		});
 
+	}
+
+	@Override
+	public float getCost(String name, Long startDate, Long endDate) throws FileNotFoundException, IOException {
+		LOGGER.info("Getting the cost of deployment");
+		
+		String jsonPath = "/home/scriptuit/Downloads/gold-braid-268003-fa0b37fc4447.json";
+
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
+				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+		
+		CloudBillingSettings cloudBillingSettings = CloudBillingSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+		
+		return 0;
 	}
 
 }

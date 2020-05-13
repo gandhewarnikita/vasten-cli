@@ -1,23 +1,17 @@
 package com.vasten.cli.service.impl;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,54 +19,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.auth.oauth2.StoredCredential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.store.DataStore;
-import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.gax.core.FixedCredentialsProvider;
-import com.google.api.gax.paging.Page;
-import com.google.api.services.container.Container;
-import com.google.api.services.container.Container.Projects.Locations.Clusters;
+import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.compute.v1.GetInstanceGroupManagerHttpRequest;
 import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstanceClient;
 import com.google.cloud.compute.v1.InstanceClient.ListInstancesPagedResponse;
-import com.google.cloud.compute.v1.InstanceGroupManager;
-import com.google.cloud.compute.v1.InstanceGroupManagerClient;
-import com.google.cloud.compute.v1.InstanceGroupManagerClient.ListInstanceGroupManagersPagedResponse;
-import com.google.cloud.compute.v1.InstanceGroupManagerList;
-import com.google.cloud.compute.v1.InstanceGroupManagerSettings;
 import com.google.cloud.compute.v1.InstanceSettings;
-import com.google.cloud.compute.v1.ListInstanceGroupManagersHttpRequest;
-import com.google.cloud.compute.v1.ProjectZoneInstanceGroupManagerName;
 import com.google.cloud.compute.v1.ProjectZoneName;
 import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.cloud.container.v1.ClusterManagerSettings;
-import com.google.cloud.storage.Bucket;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
 import com.google.common.collect.Lists;
 import com.google.container.v1.Cluster;
 import com.google.container.v1.ListClustersResponse;
@@ -102,6 +68,9 @@ public class DeploymentStatusScheduler {
 	@Value("${NEW_ZONE}")
 	private String newZone;
 
+	@Value("${NFS_SHELL_PATH}")
+	private String nfsShellPath;
+
 	@Autowired
 	private DeploymentsRepository deploymentsRepository;
 
@@ -111,16 +80,20 @@ public class DeploymentStatusScheduler {
 	private static final String clusterStatusUrl = "https://container.googleapis.com/v1";
 
 	// @Scheduled()
-//	@Scheduled(cron = "0/10 * * * * *")
+	@Scheduled(cron = "0/10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 
-		LOGGER.info("in the scheduler");
+		LOGGER.info("in the deployment status update scheduler");
 
 //		Deployments dbDeployment = new Deployments();
-//		DeployStatus deployStatus = new DeployStatus();
+		DeployStatus finalobj = new DeployStatus();
 
 		String clusterName = "";
 		String status = "";
+		String instanceName = "";
+		String instanceStatus = "";
+		String nfsName = "";
+		String nfsStatus = "";
 
 		List<Deployments> deploymentList = new ArrayList<Deployments>();
 
@@ -128,75 +101,153 @@ public class DeploymentStatusScheduler {
 
 		Set<DeployStatus> deploySet = new HashSet<DeployStatus>();
 
-//		List<String> nameList = new ArrayList<String>();
-//
-//		for (Deployments dbDeployment : deploymentList) {
-//			nameList.add(dbDeployment.getName());
-//		}
+		List<String> nameList = new ArrayList<String>();
+
+		for (Deployments dbDeployment : deploymentList) {
+			nameList.add(dbDeployment.getName());
+		}
+
+//		this.getStatus();
 
 		List<DeployStatus> deployStatusList = new ArrayList<DeployStatus>();
 
-		// Map<String, String> clusterStatus = new HashMap<String, String>();
+		Map<String, String> deploymentMap = this.getDeploymentStatus(projectId, zone);
 
-		ListClustersResponse result = this.getStatus(projectId, zone);
-		// LOGGER.info("result : " + result.getClustersList());
+		Map<String, String> instanceMap = this.getInstanceStatus(projectId, zone);
 
-		for (Cluster cluster : result.getClustersList()) {
+		Map<String, String> nfsMap = this.getNfsStatus();
 
-			DeployStatus deployStatus = new DeployStatus();
-			clusterName = cluster.getName();
-			status = cluster.getStatus().toString();
+		if (!CollectionUtils.isEmpty(deploymentMap)) {
 
-			LOGGER.info("clusterName : " + clusterName);
-			LOGGER.info("status : " + status);
+			for (Map.Entry<String, String> entry : deploymentMap.entrySet()) {
+				DeployStatus deployStatus = new DeployStatus();
 
-			// clusterStatus.put(clusterName, status);
+				LOGGER.info("in deployment map");
+				LOGGER.info("deployment name : " + entry.getKey() + " & deployment status : " + entry.getValue());
 
-			deployStatus.setName(clusterName);
+				
+				
+				clusterName = entry.getKey();
+	//			deployStatus.setName(clusterName);
+				
+				deployStatus.setDeploymentTypeName(clusterName);
+	//			deployStatus.setDeploymentId(deploymentId);
 
-			if (status.equals("RUNNING")) {
-				deployStatus.setStatus(DeploymentStatus.SUCCESS);
-			} else {
-				deployStatus.setStatus(DeploymentStatus.ERROR);
+				status = entry.getValue();
+
+				if (status.equals("RUNNING")) {
+
+					deployStatus.setStatus(DeploymentStatus.SUCCESS);
+
+					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(clusterName);
+
+					if (dbDeploy != null) {
+						if (dbDeploy.getStatus().equals(DeploymentStatus.PENDING)) {
+							dbDeploy.setStatus(DeploymentStatus.SUCCESS);
+							deploymentsRepository.save(dbDeploy);
+						}
+					}
+
+				} else if (status.equals("PROVISIONING")) {
+					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+
+				} else if ((status.equals("TERMINATED")) || (status.equals("DELETED") || (status.equals("DELETING")))) {
+
+					deployStatus.setStatus(DeploymentStatus.ERROR);
+				}
+
+				// LOGGER.info("deploy status obj after deployment : " + deployStatus);
+
+				// deployStatusList.add(deployStatus);
+
+				// deployStatusRepository.save(deployStatus);
+
 			}
 
-			deploySet.add(deployStatus);
 		}
 
-//		List<DeployStatus> dbDeployList = deployStatusRepository.findAll();
-//
-//		for (DeployStatus deployObj : deployStatusList) {
-//			if (!dbDeployList.contains(deployObj)) {
-//				LOGGER.info("ans : " + !dbDeployList.contains(deployObj));
-//				// deployStatusRepository.save(deployObj);
-//				dbDeployList.add(deployStatus);
-//			}
-//		}
-//
-//		for (DeployStatus obj : dbDeployList) {
-//			deployStatusRepository.save(obj);
-//		}
+//		LOGGER.info("deploy status obj after deployment : " + deployStatus);
 
-		List<DeployStatus> dbDeployList = deployStatusRepository.findAll();
+		if (!CollectionUtils.isEmpty(instanceMap)) {
 
-		Iterator itr = deploySet.iterator();
+			for (Map.Entry<String, String> entry : instanceMap.entrySet()) {
+				DeployStatus deployStatus = new DeployStatus();
 
-		while (itr.hasNext()) {
-			DeployStatus obj = new DeployStatus();
-			obj = (DeployStatus) itr.next();
+				LOGGER.info("in instance map");
 
-			if (!dbDeployList.contains(obj)) {
-				deployStatusRepository.save(obj);
+				instanceName = entry.getKey();
+				instanceStatus = entry.getValue();
+
+				LOGGER.info("instance name : " + instanceName + " & instance status : " + instanceStatus);
+
+	//			deployStatus.setInstanceName(instanceName);
+
+				if (instanceStatus.equals("RUNNING")) {
+		//			deployStatus.setInstanceStatus(DeploymentStatus.SUCCESS);
+
+				} else if (instanceStatus.equals("PROVISIONING")) {
+			//		deployStatus.setInstanceStatus(DeploymentStatus.PROVISIONING);
+				} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETED"))
+						|| (instanceStatus.equals("DELETING"))) {
+				//	deployStatus.setInstanceStatus(DeploymentStatus.ERROR);
+				}
+
+				// LOGGER.info("deploy status obj after instance : " + deployStatus);
+
+				// deployStatusList.add(deployStatus);
+
+				// deployStatusRepository.save(deployStatus);
+			}
+
+		}
+
+//		LOGGER.info("deploy status obj after instance : " + deployStatus);
+
+		if (!CollectionUtils.isEmpty(nfsMap)) {
+
+			for (Map.Entry<String, String> entry : nfsMap.entrySet()) {
+				DeployStatus deployStatus = new DeployStatus();
+
+				LOGGER.info("in nfs map");
+
+				nfsName = entry.getKey();
+				nfsStatus = entry.getValue();
+
+				LOGGER.info("nfs name : " + nfsName + " & nfs status : " + nfsStatus);
+
+	//			deployStatus.setNfsName(nfsName);
+
+				if (nfsStatus.equals("READY")) {
+		//			deployStatus.setNfsStatus(DeploymentStatus.SUCCESS);
+
+				} else if (nfsStatus.equals("PROVISIONING")) {
+			//		deployStatus.setNfsStatus(DeploymentStatus.PROVISIONING);
+
+				} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
+						|| (nfsStatus.equals("DELETED"))) {
+				//	deployStatus.setNfsStatus(DeploymentStatus.ERROR);
+				}
+
+				// LOGGER.info("deploy status obj after nfs : " + deployStatus);
+
+				// deployStatusList.add(deployStatus);
+
+				// deployStatusRepository.save(deployStatus);
 			}
 
 		}
 
 	}
 
-	private ListClustersResponse getStatus(String projectId, String zone) throws FileNotFoundException, IOException {
-		LOGGER.info("Fetching all clusters");
+	private Map<String, String> getDeploymentStatus(String projectId, String zone)
+			throws FileNotFoundException, IOException {
+		LOGGER.info("Getting sttaus of all deployments");
 
-		String jsonPath = "/home/scriptuit/Downloads/gold-braid-268003-fa0b37fc4447.json";
+		Map<String, String> deployMap = new HashMap<String, String>();
+		String deploymentName = "";
+		String deploymentStatus = "";
+
+		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
 
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
@@ -207,40 +258,32 @@ public class DeploymentStatusScheduler {
 		ClusterManagerClient clusterManagerClient = ClusterManagerClient.create(clusterManagerSettings);
 		ListClustersResponse response = clusterManagerClient.listClusters(projectId, zone);
 
-		return response;
+		for (Cluster cluster : response.getClustersList()) {
+			deploymentName = cluster.getName();
+			String name[] = deploymentName.split("-");
+			String newname = name[0];
+
+			deploymentStatus = cluster.getStatus().toString();
+
+			deployMap.put(newname, deploymentStatus);
+
+			// deployMap.put(deploymentName, deploymentStatus);
+		}
+
+		return deployMap;
 	}
 
-//	@Scheduled(cron = "0/10 * * * * *")
-	private void getStatusInstance() throws FileNotFoundException, IOException {
-		LOGGER.info("in getStatusInstance() method");
+	private Map<String, String> getInstanceStatus(String projectId, String zone)
+			throws FileNotFoundException, IOException {
 
-//		String jsonPath = "/home/scriptuit/Downloads/academic-torch-248600-c81edA9634bd5.json";
-//
-//		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
-//				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-//
-//		InstanceGroupManagerSettings instanceGroupManagerSettings = InstanceGroupManagerSettings.newBuilder()
-//				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-//
-//		InstanceGroupManagerClient instanceGroupManagerClient = InstanceGroupManagerClient
-//				.create(instanceGroupManagerSettings);
-//
-//		String formattedZone = ProjectZoneName.format(newProjectId, newZone);
-//		ListInstanceGroupManagersHttpRequest request = ListInstanceGroupManagersHttpRequest.newBuilder()
-//				.setZone(formattedZone).build();
-//		ListInstanceGroupManagersPagedResponse response = instanceGroupManagerClient.listInstanceGroupManagers(request);
-//
-//		for (InstanceGroupManager element : instanceGroupManagerClient.listInstanceGroupManagers(request)
-//				.iterateAll()) {
-//
-//			LOGGER.info("response : " + element);
-//		}
+		LOGGER.info("Getting all instances status");
 
 		String instanceName = "";
 		String instanceStatus = "";
-		DeployStatus deployInstance = new DeployStatus();
 
-		String jsonPath = "/home/scriptuit/Downloads/gold-braid-268003-fa0b37fc4447.json";
+		Map<String, String> instanceMap = new HashMap<String, String>();
+
+		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
 
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
@@ -249,41 +292,152 @@ public class DeploymentStatusScheduler {
 				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
 
 		InstanceClient instanceClient = InstanceClient.create(instanceSettings);
-		ProjectZoneName projectZoneName = ProjectZoneName.of(projectId, newZone);
+		ProjectZoneName projectZoneName = ProjectZoneName.of(projectId, zone);
 
 		ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
 
-//		LOGGER.info("response : " + instanceList);
-
 		for (Instance instance : instanceList.iterateAll()) {
-			LOGGER.info("instance response : " + instance);
-			LOGGER.info("*********************************************************************");
 
 			instanceName = instance.getName();
 			instanceStatus = instance.getStatus();
 
-			LOGGER.info("instanceName : " + instanceName + " & instanceStatus : " + instanceStatus);
-
-			deployInstance.setInstanceName(instanceName);
-
-			if (instanceStatus.equals("RUNNING")) {
-				deployInstance.setInstanceStatus(DeploymentStatus.SUCCESS);
-
-			} else if (instanceStatus.equals("TERMINATED")) {
-				deployInstance.setInstanceStatus(DeploymentStatus.ERROR);
-			}
-
-			deployStatusRepository.save(deployInstance);
+			instanceMap.put(instanceName, instanceStatus);
 
 		}
 
+		return instanceMap;
 	}
-	
+
 //	@Scheduled(cron = "0/10 * * * * *")
-	private void getNfsStatus() {
+	private Map<String, String> getNfsStatus() throws IOException {
 		LOGGER.info("Getting nfs status");
-		
-		
+
+		Map<String, String> nfsMap = new HashMap<String, String>();
+
+		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
+
+		String uri = "https://file.googleapis.com/v1/";
+		String requestListUri = uri + "projects/" + projectId + "/locations/" + zone + "/instances";
+
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
+				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+
+		credentials.refresh();
+
+		AccessToken token = credentials.getAccessToken();
+
+		RestTemplate template = new RestTemplate();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", "Bearer " + token.getTokenValue());
+		headers.set("Content-Type", "application/json");
+
+		HttpEntity<Object> entity = new HttpEntity<Object>(null, headers);
+
+		ResponseEntity<String> resultList = template.exchange(requestListUri, HttpMethod.GET, entity, String.class);
+
+		LOGGER.info("response code resultList : " + resultList.getStatusCodeValue());
+		LOGGER.info("response resultList : " + resultList.getBody());
+
+		if (resultList.getBody() != null || !resultList.getBody().isEmpty()) {
+			String strobj = resultList.getBody();
+			String strnew = strobj.replaceAll("=", ":");
+
+			LOGGER.info("strnew : " + strnew);
+
+			JSONObject jobj = new JSONObject(strnew);
+
+			if (!jobj.isEmpty()) {
+
+				String state = "";
+				String name = "";
+
+				JSONArray jarr = jobj.getJSONArray("instances");
+				LOGGER.info("jarr : " + jarr);
+				LOGGER.info("******************************************************");
+
+				for (int i = 0; i < jarr.length(); i++) {
+					LOGGER.info("jarr element : " + jarr.get(i));
+					LOGGER.info("******************************************************");
+
+//					JSONObject jarr2 = jarr.getJSONObject(0);
+					//
+//					LOGGER.info("jarr2 : " + jarr2);
+
+					String strobj1 = jarr.get(i).toString();
+
+					String strnew2 = strobj1.substring(1, strobj1.length() - 1);
+					LOGGER.info("strnew2 : " + strnew2);
+
+					int totalLength = strobj1.length();
+					int stateIndex = 0;
+					int fileIndex = 0;
+					int tierIndex = 0;
+					int networkIndex = 0;
+
+					LOGGER.info("******************************************************");
+
+					if (strnew2.contains("state")) {
+						stateIndex = strobj1.indexOf("state", 0);
+						LOGGER.info("state index = " + stateIndex);
+					}
+
+					if (strnew2.contains("fileShares")) {
+						fileIndex = strobj1.indexOf("fileShares", 0);
+						LOGGER.info("file index = " + fileIndex);
+					}
+
+					if (strnew2.contains("networks")) {
+						networkIndex = strobj1.indexOf("networks", 0);
+						LOGGER.info("network index = " + networkIndex);
+					}
+
+					if (strnew2.contains("tier")) {
+						tierIndex = strobj1.indexOf("tier", 0);
+						LOGGER.info("tier index = " + tierIndex);
+					}
+
+					LOGGER.info("******************************************************");
+
+					String strnew3 = strnew2.substring(fileIndex - 1, tierIndex - 3);
+					LOGGER.info("strnew3 : " + strnew3);
+
+					if (strnew3.contains("name")) {
+						int index2 = strnew3.indexOf("name");
+						LOGGER.info("name index : " + index2);
+
+						String substr = strnew3.substring(index2 - 1, strnew3.length() - 2);
+						LOGGER.info("******************************************************");
+
+						LOGGER.info("substr : " + substr);
+
+						String substr1[] = substr.split(":");
+						String namestr = substr1[1];
+
+						name = namestr.substring(1, namestr.length() - 1);
+						LOGGER.info("name : " + name);
+
+					}
+
+					LOGGER.info("******************************************************");
+
+					String strnew4 = strnew2.substring(stateIndex - 1, networkIndex - 3);
+					LOGGER.info("strnew4 : " + strnew4);
+
+					String substr2[] = strnew4.split(":");
+					String statestr = substr2[1];
+
+					state = statestr.substring(1, statestr.length() - 1);
+					LOGGER.info("state : " + state);
+
+					nfsMap.put(name, state);
+
+				}
+				return nfsMap;
+			}
+
+		}
+		return null;
 	}
 
 }

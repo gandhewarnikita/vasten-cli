@@ -17,26 +17,19 @@ public class DeployStatus {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer id;
 
-	@Column(name = "deployment_name")
-	private String name;
+	
+	@Column(name = "deployment_id")
+	private Deployments deploymentId;
+
+	@Column(name = "deployment_type")
+	@Enumerated(EnumType.STRING)
+	private DeploymentType type;
 
 	@Column(name = "deployment_status")
 	@Enumerated(EnumType.STRING)
 	private DeploymentStatus status;
 
-	@Column(name = "instance_name")
-	private String instanceName;
-
-	@Column(name = "instance_status")
-	@Enumerated(EnumType.STRING)
-	private DeploymentStatus instanceStatus;
-
-	@Column(name = "nfs_name")
-	private String nfsName;
-
-	@Column(name = "nfs_status")
-	@Enumerated(EnumType.STRING)
-	private DeploymentStatus nfsStatus;
+	private String deploymentTypeName;
 
 	public Integer getId() {
 		return id;
@@ -44,14 +37,6 @@ public class DeployStatus {
 
 	public void setId(Integer id) {
 		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public DeploymentStatus getStatus() {
@@ -62,42 +47,28 @@ public class DeployStatus {
 		this.status = status;
 	}
 
-	public String getInstanceName() {
-		return instanceName;
+	public Deployments getDeploymentId() {
+		return deploymentId;
 	}
 
-	public void setInstanceName(String instanceName) {
-		this.instanceName = instanceName;
+	public void setDeploymentId(Deployments deploymentId) {
+		this.deploymentId = deploymentId;
 	}
 
-	public DeploymentStatus getInstanceStatus() {
-		return instanceStatus;
+	public DeploymentType getType() {
+		return type;
 	}
 
-	public void setInstanceStatus(DeploymentStatus instanceStatus) {
-		this.instanceStatus = instanceStatus;
+	public void setType(DeploymentType type) {
+		this.type = type;
 	}
 
-	public String getNfsName() {
-		return nfsName;
+	public String getDeploymentTypeName() {
+		return deploymentTypeName;
 	}
 
-	public void setNfsName(String nfsName) {
-		this.nfsName = nfsName;
-	}
-
-	public DeploymentStatus getNfsStatus() {
-		return nfsStatus;
-	}
-
-	public void setNfsStatus(DeploymentStatus nfsStatus) {
-		this.nfsStatus = nfsStatus;
-	}
-
-	@Override
-	public String toString() {
-		return "DeployStatus [id=" + id + ", name=" + name + ", status=" + status + ", instanceName=" + instanceName
-				+ ", instanceStatus=" + instanceStatus + ", nfsName=" + nfsName + ", nfsStatus=" + nfsStatus + "]";
+	public void setDeploymentTypeName(String deploymentTypeName) {
+		this.deploymentTypeName = deploymentTypeName;
 	}
 
 }

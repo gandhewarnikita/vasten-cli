@@ -79,16 +79,14 @@ public class DeploymentStatusScheduler {
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
 
-	private static final String clusterStatusUrl = "https://container.googleapis.com/v1";
-
 	List<DeployStatus> deployStatusList = new ArrayList<DeployStatus>();
 
 	// @Scheduled()
-	@Scheduled(cron = "0 0/1 * * * *")
+	@Scheduled(cron = "0/10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("in the deployment status update scheduler");
 
-		this.truncateDb();
+		// this.truncateDb();
 
 		String clusterName = "";
 		String status = "";
@@ -125,36 +123,40 @@ public class DeploymentStatusScheduler {
 				String name[] = clusterName.split("-");
 				String newname = name[0];
 
-				deployStatus.setDeploymentTypeName(clusterName);
+				if (nameList.contains(newname)) {
 
-				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(newname);
+					deployStatus.setDeploymentTypeName(clusterName);
 
-				deployStatus.setDeploymentId(dbDeploy);
-				deployStatus.setType(DeploymentType.CLUSTER);
+					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(newname);
 
-				status = entry.getValue();
+					deployStatus.setDeploymentId(dbDeploy);
+					deployStatus.setType(DeploymentType.CLUSTER);
 
-				if (status.equals("RUNNING")) {
+					status = entry.getValue();
 
-					deployStatus.setStatus(DeploymentStatus.SUCCESS);
+					if (status.equals("RUNNING")) {
 
-					if (dbDeploy != null) {
-						if (dbDeploy.getStatus().equals(DeploymentStatus.PENDING)) {
-							dbDeploy.setStatus(DeploymentStatus.SUCCESS);
-							deploymentsRepository.save(dbDeploy);
+						deployStatus.setStatus(DeploymentStatus.SUCCESS);
+
+						if (dbDeploy != null) {
+							if (dbDeploy.getStatus().equals(DeploymentStatus.PENDING)) {
+								dbDeploy.setStatus(DeploymentStatus.SUCCESS);
+								deploymentsRepository.save(dbDeploy);
+							}
 						}
+
+					} else if (status.equals("PROVISIONING")) {
+						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+
+					} else if ((status.equals("TERMINATED"))
+							|| (status.equals("DELETED") || (status.equals("DELETING")))) {
+
+						deployStatus.setStatus(DeploymentStatus.ERROR);
 					}
 
-				} else if (status.equals("PROVISIONING")) {
-					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-
-				} else if ((status.equals("TERMINATED")) || (status.equals("DELETED") || (status.equals("DELETING")))) {
-
-					deployStatus.setStatus(DeploymentStatus.ERROR);
+					// deployStatusList.add(deployStatus);
+					this.saveclusterdb(deployStatus);
 				}
-
-				// deployStatusList.add(deployStatus);
-				this.saveclusterdb(deployStatus);
 
 			}
 
@@ -172,30 +174,33 @@ public class DeploymentStatusScheduler {
 
 				LOGGER.info("instance name : " + instanceName + " & instance status : " + instanceStatus);
 
-				deployStatus.setDeploymentTypeName(instanceName);
-				deployStatus.setType(DeploymentType.INSTANCE);
-
 				String name[] = instanceName.split("-");
 
-				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(name[1]);
-				deployStatus.setDeploymentId(dbDeploy);
+				if (nameList.contains(name[1])) {
 
-				if (instanceStatus.equals("RUNNING")) {
+					deployStatus.setDeploymentTypeName(instanceName);
+					deployStatus.setType(DeploymentType.INSTANCE);
 
-					deployStatus.setStatus(DeploymentStatus.SUCCESS);
+					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(name[1]);
+					deployStatus.setDeploymentId(dbDeploy);
 
-				} else if (instanceStatus.equals("PROVISIONING")) {
+					if (instanceStatus.equals("RUNNING")) {
 
-					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+						deployStatus.setStatus(DeploymentStatus.SUCCESS);
 
-				} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETED"))
-						|| (instanceStatus.equals("DELETING"))) {
+					} else if (instanceStatus.equals("PROVISIONING")) {
 
-					deployStatus.setStatus(DeploymentStatus.ERROR);
+						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+
+					} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETED"))
+							|| (instanceStatus.equals("DELETING"))) {
+
+						deployStatus.setStatus(DeploymentStatus.ERROR);
+					}
+
+					// deployStatusList.add(deployStatus);
+					this.saveinsdb(deployStatus);
 				}
-
-				// deployStatusList.add(deployStatus);
-				this.saveinsdb(deployStatus);
 
 			}
 
@@ -213,36 +218,35 @@ public class DeploymentStatusScheduler {
 
 				LOGGER.info("nfs name : " + nfsName + " & nfs status : " + nfsStatus);
 
-				deployStatus.setDeploymentTypeName(nfsName);
-				deployStatus.setType(DeploymentType.NFS);
+				if (nameList.contains(nfsName)) {
 
-				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(nfsName);
-				deployStatus.setDeploymentId(dbDeploy);
+					deployStatus.setDeploymentTypeName(nfsName);
+					deployStatus.setType(DeploymentType.NFS);
 
-				if (nfsStatus.equals("READY")) {
+					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(nfsName);
+					deployStatus.setDeploymentId(dbDeploy);
 
-					deployStatus.setStatus(DeploymentStatus.SUCCESS);
+					if (nfsStatus.equals("READY")) {
 
-				} else if (nfsStatus.equals("PROVISIONING")) {
+						deployStatus.setStatus(DeploymentStatus.SUCCESS);
 
-					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+					} else if (nfsStatus.equals("PROVISIONING")) {
 
-				} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
-						|| (nfsStatus.equals("DELETED"))) {
+						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
 
-					deployStatus.setStatus(DeploymentStatus.ERROR);
+					} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
+							|| (nfsStatus.equals("DELETED"))) {
+
+						deployStatus.setStatus(DeploymentStatus.ERROR);
+					}
+
+					// deployStatusList.add(deployStatus);
+					this.savenfsdb(deployStatus);
 				}
-
-				// deployStatusList.add(deployStatus);
-				this.savenfsdb(deployStatus);
 
 			}
 
 		}
-
-//		for (DeployStatus dobj : deployStatusList) {
-//			deployStatusRepository.save(dobj);
-//		}
 
 	}
 
@@ -273,9 +277,6 @@ public class DeploymentStatusScheduler {
 		String clusterName = "";
 		String clusterStatus = "";
 
-//		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
-		LOGGER.info("project key file path in cluster : " + projectKeyFilePath);
-
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(projectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
@@ -293,20 +294,17 @@ public class DeploymentStatusScheduler {
 			clusterMap.put(clusterName, clusterStatus);
 		}
 
+		clusterManagerClient.shutdown();
+
 		return clusterMap;
 	}
 
 	private Map<String, String> getInstanceStatus() throws FileNotFoundException, IOException {
-
 		LOGGER.info("Getting all instances status");
 
+		Map<String, String> instanceMap = new HashMap<String, String>();
 		String instanceName = "";
 		String instanceStatus = "";
-
-		Map<String, String> instanceMap = new HashMap<String, String>();
-
-//		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
-		LOGGER.info("project key file path in instance : " + projectKeyFilePath);
 
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(projectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
@@ -335,9 +333,6 @@ public class DeploymentStatusScheduler {
 		LOGGER.info("Getting nfs status");
 
 		Map<String, String> nfsMap = new HashMap<String, String>();
-
-//		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
-		LOGGER.info("project key file path in nfs : " + projectKeyFilePath);
 
 		String uri = "https://file.googleapis.com/v1/";
 		String requestListUri = uri + "projects/" + projectId + "/locations/" + zone + "/instances";

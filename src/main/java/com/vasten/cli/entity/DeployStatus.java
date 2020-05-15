@@ -7,6 +7,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -17,8 +19,8 @@ public class DeployStatus {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer id;
 
-	
-	@Column(name = "deployment_id")
+	@ManyToOne
+	@JoinColumn(name = "deployment_id")
 	private Deployments deploymentId;
 
 	@Column(name = "deployment_type")
@@ -29,6 +31,7 @@ public class DeployStatus {
 	@Enumerated(EnumType.STRING)
 	private DeploymentStatus status;
 
+	@Column(name = "deployment_type_name")
 	private String deploymentTypeName;
 
 	public Integer getId() {
@@ -69,6 +72,12 @@ public class DeployStatus {
 
 	public void setDeploymentTypeName(String deploymentTypeName) {
 		this.deploymentTypeName = deploymentTypeName;
+	}
+
+	@Override
+	public String toString() {
+		return "DeployStatus [id=" + id + ", deploymentId=" + deploymentId + ", type=" + type + ", status=" + status
+				+ ", deploymentTypeName=" + deploymentTypeName + "]";
 	}
 
 }

@@ -250,14 +250,16 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public DeployStatus getStatus(String name) {
-		LOGGER.info("Getting status");
-
-		validationUtility.validateClusterName(name);
-
-		DeployStatus dbDeployment = deployStatusRepository.findByName(name);
-
-		return dbDeployment;
+	public List<DeployStatus> getStatus(int deploymentId) {
+		LOGGER.info("Getting status of a deployment");
+		
+		validationUtility.validateDeploymentId(deploymentId);
+		
+		Deployments dbDeployment = deploymentsRepository.findOneByIdAndIsDeletedFalse(deploymentId);
+		
+		List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+		
+		return deployStatusList;
 	}
 
 	@Override
@@ -307,14 +309,15 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	@Override
 	public float getCost(String name, Long startDate, Long endDate) throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
-		
+
 		String jsonPath = "/home/scriptuit/Downloads/gold-braid-268003-fa0b37fc4447.json";
 
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-		
-		CloudBillingSettings cloudBillingSettings = CloudBillingSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-		
+
+		CloudBillingSettings cloudBillingSettings = CloudBillingSettings.newBuilder()
+				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+
 		return 0;
 	}
 

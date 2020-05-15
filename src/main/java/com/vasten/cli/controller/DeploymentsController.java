@@ -76,10 +76,10 @@ public class DeploymentsController {
 	 * @param name
 	 * @return
 	 */
-	@RequestMapping(value = "/status/name/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public DeployStatus getStatus(@PathVariable String name) {
+	@RequestMapping(value = "/status/deploymentId/{deploymentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<DeployStatus> getStatus(@PathVariable int deploymentId) {
 		LOGGER.info("Api received to get status of deployment");
-		DeployStatus deploymentStatus = deploymentsService.getStatus(name);
+		List<DeployStatus> deploymentStatus = deploymentsService.getStatus(deploymentId);
 		return deploymentStatus;
 	}
 

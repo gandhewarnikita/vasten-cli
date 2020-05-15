@@ -103,11 +103,11 @@ public class User {
 		this.deployments = deployments;
 	}
 
-	@Override
-	public String toString() {
-		return "User [id=" + id + ", clients=" + clients + ", email=" + email + ", password=" + password
-				+ ", createdDate=" + createdDate + ", updatedDate=" + updatedDate + ", deployments=" + deployments
-				+ "]";
-	}
+//	@Override
+//	public String toString() {
+//		return "User [id=" + id + ", clients=" + clients + ", email=" + email + ", password=" + password
+//				+ ", createdDate=" + createdDate + ", updatedDate=" + updatedDate + ", deployments=" + deployments
+//				+ "]";
+//	}
 
 }

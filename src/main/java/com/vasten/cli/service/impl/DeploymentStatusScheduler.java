@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,6 +45,7 @@ import com.google.container.v1.Cluster;
 import com.google.container.v1.ListClustersResponse;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.DeploymentStatus;
+import com.vasten.cli.entity.DeploymentType;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.repository.DeployStatusRepository;
 import com.vasten.cli.repository.DeploymentsRepository;
@@ -68,8 +70,8 @@ public class DeploymentStatusScheduler {
 	@Value("${NEW_ZONE}")
 	private String newZone;
 
-	@Value("${NFS_SHELL_PATH}")
-	private String nfsShellPath;
+	@Value("${PROJECT_KEYFILE_PATH}")
+	private String projectKeyFilePath;
 
 	@Autowired
 	private DeploymentsRepository deploymentsRepository;
@@ -79,14 +81,14 @@ public class DeploymentStatusScheduler {
 
 	private static final String clusterStatusUrl = "https://container.googleapis.com/v1";
 
+	List<DeployStatus> deployStatusList = new ArrayList<DeployStatus>();
+
 	// @Scheduled()
 	@Scheduled(cron = "0/10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
-
 		LOGGER.info("in the deployment status update scheduler");
 
-//		Deployments dbDeployment = new Deployments();
-		DeployStatus finalobj = new DeployStatus();
+		this.truncateDb();
 
 		String clusterName = "";
 		String status = "";
@@ -97,9 +99,7 @@ public class DeploymentStatusScheduler {
 
 		List<Deployments> deploymentList = new ArrayList<Deployments>();
 
-		deploymentList = deploymentsRepository.findAllByStatus(DeploymentStatus.PENDING);
-
-		Set<DeployStatus> deploySet = new HashSet<DeployStatus>();
+		deploymentList = deploymentsRepository.findAllByStatusAndIsDeletedFalse(DeploymentStatus.PENDING);
 
 		List<String> nameList = new ArrayList<String>();
 
@@ -107,39 +107,36 @@ public class DeploymentStatusScheduler {
 			nameList.add(dbDeployment.getName());
 		}
 
-//		this.getStatus();
+		Map<String, String> clusterMap = this.getClusterStatus();
 
-		List<DeployStatus> deployStatusList = new ArrayList<DeployStatus>();
-
-		Map<String, String> deploymentMap = this.getDeploymentStatus(projectId, zone);
-
-		Map<String, String> instanceMap = this.getInstanceStatus(projectId, zone);
+		Map<String, String> instanceMap = this.getInstanceStatus();
 
 		Map<String, String> nfsMap = this.getNfsStatus();
 
-		if (!CollectionUtils.isEmpty(deploymentMap)) {
+		if (!CollectionUtils.isEmpty(clusterMap)) {
 
-			for (Map.Entry<String, String> entry : deploymentMap.entrySet()) {
+			for (Map.Entry<String, String> entry : clusterMap.entrySet()) {
 				DeployStatus deployStatus = new DeployStatus();
 
-				LOGGER.info("in deployment map");
-				LOGGER.info("deployment name : " + entry.getKey() + " & deployment status : " + entry.getValue());
+				LOGGER.info("in cluster map");
+				LOGGER.info("cluster name : " + entry.getKey() + " & cluster status : " + entry.getValue());
 
-				
-				
 				clusterName = entry.getKey();
-	//			deployStatus.setName(clusterName);
-				
+				String name[] = clusterName.split("-");
+				String newname = name[0];
+
 				deployStatus.setDeploymentTypeName(clusterName);
-	//			deployStatus.setDeploymentId(deploymentId);
+
+				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(newname);
+
+				deployStatus.setDeploymentId(dbDeploy);
+				deployStatus.setType(DeploymentType.CLUSTER);
 
 				status = entry.getValue();
 
 				if (status.equals("RUNNING")) {
 
 					deployStatus.setStatus(DeploymentStatus.SUCCESS);
-
-					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(clusterName);
 
 					if (dbDeploy != null) {
 						if (dbDeploy.getStatus().equals(DeploymentStatus.PENDING)) {
@@ -156,17 +153,12 @@ public class DeploymentStatusScheduler {
 					deployStatus.setStatus(DeploymentStatus.ERROR);
 				}
 
-				// LOGGER.info("deploy status obj after deployment : " + deployStatus);
-
 				// deployStatusList.add(deployStatus);
-
-				// deployStatusRepository.save(deployStatus);
+				this.saveclusterdb(deployStatus);
 
 			}
 
 		}
-
-//		LOGGER.info("deploy status obj after deployment : " + deployStatus);
 
 		if (!CollectionUtils.isEmpty(instanceMap)) {
 
@@ -180,28 +172,34 @@ public class DeploymentStatusScheduler {
 
 				LOGGER.info("instance name : " + instanceName + " & instance status : " + instanceStatus);
 
-	//			deployStatus.setInstanceName(instanceName);
+				deployStatus.setDeploymentTypeName(instanceName);
+				deployStatus.setType(DeploymentType.INSTANCE);
+
+				String name[] = instanceName.split("-");
+
+				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(name[1]);
+				deployStatus.setDeploymentId(dbDeploy);
 
 				if (instanceStatus.equals("RUNNING")) {
-		//			deployStatus.setInstanceStatus(DeploymentStatus.SUCCESS);
+
+					deployStatus.setStatus(DeploymentStatus.SUCCESS);
 
 				} else if (instanceStatus.equals("PROVISIONING")) {
-			//		deployStatus.setInstanceStatus(DeploymentStatus.PROVISIONING);
+
+					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+
 				} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETED"))
 						|| (instanceStatus.equals("DELETING"))) {
-				//	deployStatus.setInstanceStatus(DeploymentStatus.ERROR);
+
+					deployStatus.setStatus(DeploymentStatus.ERROR);
 				}
 
-				// LOGGER.info("deploy status obj after instance : " + deployStatus);
-
 				// deployStatusList.add(deployStatus);
+				this.saveinsdb(deployStatus);
 
-				// deployStatusRepository.save(deployStatus);
 			}
 
 		}
-
-//		LOGGER.info("deploy status obj after instance : " + deployStatus);
 
 		if (!CollectionUtils.isEmpty(nfsMap)) {
 
@@ -215,41 +213,70 @@ public class DeploymentStatusScheduler {
 
 				LOGGER.info("nfs name : " + nfsName + " & nfs status : " + nfsStatus);
 
-	//			deployStatus.setNfsName(nfsName);
+				deployStatus.setDeploymentTypeName(nfsName);
+				deployStatus.setType(DeploymentType.NFS);
+
+				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(nfsName);
+				deployStatus.setDeploymentId(dbDeploy);
 
 				if (nfsStatus.equals("READY")) {
-		//			deployStatus.setNfsStatus(DeploymentStatus.SUCCESS);
+
+					deployStatus.setStatus(DeploymentStatus.SUCCESS);
 
 				} else if (nfsStatus.equals("PROVISIONING")) {
-			//		deployStatus.setNfsStatus(DeploymentStatus.PROVISIONING);
+
+					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
 
 				} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
 						|| (nfsStatus.equals("DELETED"))) {
-				//	deployStatus.setNfsStatus(DeploymentStatus.ERROR);
+
+					deployStatus.setStatus(DeploymentStatus.ERROR);
 				}
 
-				// LOGGER.info("deploy status obj after nfs : " + deployStatus);
-
 				// deployStatusList.add(deployStatus);
+				this.savenfsdb(deployStatus);
 
-				// deployStatusRepository.save(deployStatus);
 			}
 
 		}
 
+//		for (DeployStatus dobj : deployStatusList) {
+//			deployStatusRepository.save(dobj);
+//		}
+
 	}
 
-	private Map<String, String> getDeploymentStatus(String projectId, String zone)
-			throws FileNotFoundException, IOException {
-		LOGGER.info("Getting sttaus of all deployments");
+	private void truncateDb() {
+		deployStatusRepository.deleteAll();
 
-		Map<String, String> deployMap = new HashMap<String, String>();
-		String deploymentName = "";
-		String deploymentStatus = "";
+	}
 
-		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
+	private void savenfsdb(DeployStatus deployStatus) {
+		deployStatusRepository.save(deployStatus);
 
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
+	}
+
+	private void saveinsdb(DeployStatus deployStatus) {
+		deployStatusRepository.save(deployStatus);
+
+	}
+
+	private void saveclusterdb(DeployStatus deployStatus) {
+		deployStatusRepository.save(deployStatus);
+
+	}
+
+	private Map<String, String> getClusterStatus() throws FileNotFoundException, IOException {
+		LOGGER.info("Getting status of all deployments");
+
+		Map<String, String> clusterMap = new HashMap<String, String>();
+		String clusterName = "";
+		String clusterStatus = "";
+
+//		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
+		LOGGER.info("project key file path in cluster : " + projectKeyFilePath);
+
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(projectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
 		ClusterManagerSettings clusterManagerSettings = ClusterManagerSettings.newBuilder()
@@ -259,22 +286,17 @@ public class DeploymentStatusScheduler {
 		ListClustersResponse response = clusterManagerClient.listClusters(projectId, zone);
 
 		for (Cluster cluster : response.getClustersList()) {
-			deploymentName = cluster.getName();
-			String name[] = deploymentName.split("-");
-			String newname = name[0];
+			clusterName = cluster.getName();
 
-			deploymentStatus = cluster.getStatus().toString();
+			clusterStatus = cluster.getStatus().toString();
 
-			deployMap.put(newname, deploymentStatus);
-
-			// deployMap.put(deploymentName, deploymentStatus);
+			clusterMap.put(clusterName, clusterStatus);
 		}
 
-		return deployMap;
+		return clusterMap;
 	}
 
-	private Map<String, String> getInstanceStatus(String projectId, String zone)
-			throws FileNotFoundException, IOException {
+	private Map<String, String> getInstanceStatus() throws FileNotFoundException, IOException {
 
 		LOGGER.info("Getting all instances status");
 
@@ -283,9 +305,10 @@ public class DeploymentStatusScheduler {
 
 		Map<String, String> instanceMap = new HashMap<String, String>();
 
-		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
+//		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
+		LOGGER.info("project key file path in instance : " + projectKeyFilePath);
 
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(projectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
 		InstanceSettings instanceSettings = InstanceSettings.newBuilder()
@@ -308,18 +331,18 @@ public class DeploymentStatusScheduler {
 		return instanceMap;
 	}
 
-//	@Scheduled(cron = "0/10 * * * * *")
 	private Map<String, String> getNfsStatus() throws IOException {
 		LOGGER.info("Getting nfs status");
 
 		Map<String, String> nfsMap = new HashMap<String, String>();
 
-		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
+//		String jsonPath = "/home/scriptuit/Downloads/unique-badge-276520-d6e270a9c112.json";
+		LOGGER.info("project key file path in nfs : " + projectKeyFilePath);
 
 		String uri = "https://file.googleapis.com/v1/";
 		String requestListUri = uri + "projects/" + projectId + "/locations/" + zone + "/instances";
 
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(projectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
 		credentials.refresh();
@@ -336,14 +359,9 @@ public class DeploymentStatusScheduler {
 
 		ResponseEntity<String> resultList = template.exchange(requestListUri, HttpMethod.GET, entity, String.class);
 
-		LOGGER.info("response code resultList : " + resultList.getStatusCodeValue());
-		LOGGER.info("response resultList : " + resultList.getBody());
-
 		if (resultList.getBody() != null || !resultList.getBody().isEmpty()) {
 			String strobj = resultList.getBody();
 			String strnew = strobj.replaceAll("=", ":");
-
-			LOGGER.info("strnew : " + strnew);
 
 			JSONObject jobj = new JSONObject(strnew);
 
@@ -353,82 +371,54 @@ public class DeploymentStatusScheduler {
 				String name = "";
 
 				JSONArray jarr = jobj.getJSONArray("instances");
-				LOGGER.info("jarr : " + jarr);
-				LOGGER.info("******************************************************");
 
 				for (int i = 0; i < jarr.length(); i++) {
-					LOGGER.info("jarr element : " + jarr.get(i));
-					LOGGER.info("******************************************************");
-
-//					JSONObject jarr2 = jarr.getJSONObject(0);
-					//
-//					LOGGER.info("jarr2 : " + jarr2);
 
 					String strobj1 = jarr.get(i).toString();
 
 					String strnew2 = strobj1.substring(1, strobj1.length() - 1);
-					LOGGER.info("strnew2 : " + strnew2);
 
-					int totalLength = strobj1.length();
 					int stateIndex = 0;
 					int fileIndex = 0;
 					int tierIndex = 0;
 					int networkIndex = 0;
 
-					LOGGER.info("******************************************************");
-
 					if (strnew2.contains("state")) {
 						stateIndex = strobj1.indexOf("state", 0);
-						LOGGER.info("state index = " + stateIndex);
 					}
 
 					if (strnew2.contains("fileShares")) {
 						fileIndex = strobj1.indexOf("fileShares", 0);
-						LOGGER.info("file index = " + fileIndex);
 					}
 
 					if (strnew2.contains("networks")) {
 						networkIndex = strobj1.indexOf("networks", 0);
-						LOGGER.info("network index = " + networkIndex);
 					}
 
 					if (strnew2.contains("tier")) {
 						tierIndex = strobj1.indexOf("tier", 0);
-						LOGGER.info("tier index = " + tierIndex);
 					}
 
-					LOGGER.info("******************************************************");
-
 					String strnew3 = strnew2.substring(fileIndex - 1, tierIndex - 3);
-					LOGGER.info("strnew3 : " + strnew3);
 
 					if (strnew3.contains("name")) {
 						int index2 = strnew3.indexOf("name");
-						LOGGER.info("name index : " + index2);
 
 						String substr = strnew3.substring(index2 - 1, strnew3.length() - 2);
-						LOGGER.info("******************************************************");
-
-						LOGGER.info("substr : " + substr);
 
 						String substr1[] = substr.split(":");
 						String namestr = substr1[1];
 
 						name = namestr.substring(1, namestr.length() - 1);
-						LOGGER.info("name : " + name);
 
 					}
 
-					LOGGER.info("******************************************************");
-
 					String strnew4 = strnew2.substring(stateIndex - 1, networkIndex - 3);
-					LOGGER.info("strnew4 : " + strnew4);
 
 					String substr2[] = strnew4.split(":");
 					String statestr = substr2[1];
 
 					state = statestr.substring(1, statestr.length() - 1);
-					LOGGER.info("state : " + state);
 
 					nfsMap.put(name, state);
 

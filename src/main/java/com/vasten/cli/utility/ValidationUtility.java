@@ -174,20 +174,36 @@ public class ValidationUtility {
 
 	}
 
-	public void validateClusterName(String name) {
+	public void validateDeploymentId(int deploymentId) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
-
-		DeployStatus dbDeployment = deployStatusRepository.findByName(name);
-
-		if (dbDeployment == null) {
+		
+		Deployments dbDeployment = deploymentsRepository.findOneByIdAndIsDeletedFalse(deploymentId);
+		
+		if(dbDeployment == null) {
 			LOGGER.error("Deployment does not exist with this name");
 			validationErrorList.add(new ValidationError("name", "Deployment does not exist with this name"));
 		}
-
+		
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
 			throw new CliBadRequestException("Bad Request", validationErrorList);
 		}
-
+		
 	}
+
+//	public void validateClusterName(String name) {
+//		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+//
+//		DeployStatus dbDeployment = deployStatusRepository.findByName(name);
+//
+//		if (dbDeployment == null) {
+//			LOGGER.error("Deployment does not exist with this name");
+//			validationErrorList.add(new ValidationError("name", "Deployment does not exist with this name"));
+//		}
+//
+//		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+//			throw new CliBadRequestException("Bad Request", validationErrorList);
+//		}
+//
+//	}
 
 }

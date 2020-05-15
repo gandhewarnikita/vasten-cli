@@ -13,7 +13,7 @@ public interface DeploymentsService {
 
 	public List<Deployments> getAll(int id, String name);
 
-	public DeployStatus getStatus(String name);
+	public List<DeployStatus> getStatus(int deploymentId);
 
 	public float getCost(String name, Long startDate, Long endDate) throws FileNotFoundException, IOException;
 

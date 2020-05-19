@@ -91,10 +91,10 @@ public class DeploymentsController {
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
-	@RequestMapping(value = "/cost/startDate/{startDate}/enddate/{endDate}/name/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public float getCost(@PathVariable String name, @PathVariable Long startDate, @PathVariable Long endDate) throws FileNotFoundException, IOException {
+	@RequestMapping(value = "/cost/deploymentId/{deploymentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public float getCost(@PathVariable int deploymentId) throws FileNotFoundException, IOException {
 		LOGGER.info("Api received to get cost of deployment between start date and end date");
-		float deploymentCost = deploymentsService.getCost(name, startDate, endDate);
+		float deploymentCost = deploymentsService.getCost(deploymentId);
 		return deploymentCost;
 	}
 	

@@ -41,6 +41,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.services.cloudbilling.Cloudbilling;
 import com.google.api.services.cloudbilling.model.BillingAccount;
+import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.billing.v1.CloudBillingSettings;
 import com.google.common.collect.Lists;
@@ -252,13 +253,13 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	@Override
 	public List<DeployStatus> getStatus(int deploymentId) {
 		LOGGER.info("Getting status of a deployment");
-		
+
 		validationUtility.validateDeploymentId(deploymentId);
-		
+
 		Deployments dbDeployment = deploymentsRepository.findOneByIdAndIsDeletedFalse(deploymentId);
-		
+
 		List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
-		
+
 		return deployStatusList;
 	}
 
@@ -307,16 +308,33 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public float getCost(String name, Long startDate, Long endDate) throws FileNotFoundException, IOException {
+	public float getCost(int deploymentId) throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
 
 		String jsonPath = "/home/scriptuit/Downloads/gold-braid-268003-fa0b37fc4447.json";
+
+		String requestUrl = "https://cloudbilling.googleapis.com/v1/billingAccounts/01463E-59892A-CB4390";
 
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
 		CloudBillingSettings cloudBillingSettings = CloudBillingSettings.newBuilder()
 				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+
+		credentials.refresh();
+
+		AccessToken token = credentials.getAccessToken();
+
+		RestTemplate template = new RestTemplate();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", "Bearer " + token.getTokenValue());
+		headers.set("Content-Type", "application/json");
+
+		HttpEntity<Object> entity = new HttpEntity<Object>(null, headers);
+
+		ResponseEntity<Object> resultList = template.exchange(requestUrl, HttpMethod.GET, entity, Object.class);
+		LOGGER.info("response : " + resultList);
 
 		return 0;
 	}

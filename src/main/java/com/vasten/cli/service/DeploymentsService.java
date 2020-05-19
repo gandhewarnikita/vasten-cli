@@ -15,7 +15,7 @@ public interface DeploymentsService {
 
 	public List<DeployStatus> getStatus(int deploymentId);
 
-	public float getCost(String name, Long startDate, Long endDate) throws FileNotFoundException, IOException;
+	public float getCost(int deploymentId) throws FileNotFoundException, IOException;
 
 	public void deProvision(Integer id, String name);
 

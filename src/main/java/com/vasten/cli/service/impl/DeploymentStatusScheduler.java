@@ -6,13 +6,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -20,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -256,10 +250,10 @@ public class DeploymentStatusScheduler {
 
 	}
 
-	private void truncateDb() {
-		deployStatusRepository.deleteAll();
-
-	}
+//	private void truncateDb() {
+//		deployStatusRepository.deleteAll();
+//
+//	}
 
 	private void savenfsdb(DeployStatus deployStatus) {
 		deployStatusRepository.save(deployStatus);

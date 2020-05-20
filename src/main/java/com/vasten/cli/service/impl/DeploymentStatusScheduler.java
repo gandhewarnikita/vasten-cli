@@ -216,7 +216,7 @@ public class DeploymentStatusScheduler {
 
 				LOGGER.info("nfs name : " + nfsName + " & nfs status : " + nfsStatus);
 
-				LOGGER.info("is " + nfsName + " c;uster pending : " + nameList.contains(nfsName));
+				LOGGER.info("is " + nfsName + " cluster pending : " + nameList.contains(nfsName));
 
 				if (nameList.contains(nfsName)) {
 

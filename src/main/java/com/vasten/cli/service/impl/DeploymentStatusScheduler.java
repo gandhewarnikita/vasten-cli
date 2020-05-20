@@ -172,7 +172,7 @@ public class DeploymentStatusScheduler {
 
 				String name[] = instanceName.split("-");
 
-				LOGGER.info("is " + clusterName + " pending : " + nameList.contains(name[1]));
+				LOGGER.info("is " + name[1] + " cluster pending : " + nameList.contains(name[1]));
 
 				if (nameList.contains(name[1])) {
 
@@ -216,7 +216,7 @@ public class DeploymentStatusScheduler {
 
 				LOGGER.info("nfs name : " + nfsName + " & nfs status : " + nfsStatus);
 
-				LOGGER.info("is " + nfsName + " pending : " + nfsName);
+				LOGGER.info("is " + nfsName + " c;uster pending : " + nameList.contains(nfsName));
 
 				if (nameList.contains(nfsName)) {
 
@@ -321,8 +321,6 @@ public class DeploymentStatusScheduler {
 
 			instanceName = instance.getName();
 			instanceStatus = instance.getStatus();
-
-			LOGGER.info("metadata : " + instance.getMetadata());
 
 			instanceMap.put(instanceName, instanceStatus);
 

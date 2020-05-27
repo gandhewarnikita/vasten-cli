@@ -43,7 +43,11 @@ import com.google.api.services.cloudbilling.Cloudbilling;
 import com.google.api.services.cloudbilling.model.BillingAccount;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.billing.v1.CloudBillingClient;
 import com.google.cloud.billing.v1.CloudBillingSettings;
+import com.google.cloud.billing.v1.CloudCatalogClient;
+import com.google.cloud.billing.v1.CloudCatalogClient.ListServicesPagedResponse;
+import com.google.cloud.billing.v1.CloudCatalogSettings;
 import com.google.common.collect.Lists;
 import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeployStatus;
@@ -97,7 +101,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	@Override
 	public Deployments createDeployment(int id, Deployments provisionData) {
-		LOGGER.info("Creating deployment");
+
+		LOGGER.info("Creating deployment : " + provisionData.getName());
 
 		validationUtility.validateDeploymentData(id, provisionData);
 
@@ -168,9 +173,13 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			String nfsCapacity = String.valueOf(provisionData.getNfsCapacity());
 			String machineType = provisionData.getClusterMachineType();
 
-			String newtext = oldtext.replaceAll("qwerty", deploymentName).replaceAll("qazwsx", node)
-					.replaceAll("ikmikm", machineType).replaceAll("mknmkn", core).replaceAll("erdfcv", capacity)
-					.replaceAll("ioplkj", provisionData.getToolVersion()).replaceAll("wqsaxz", nfsCapacity);
+			String newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
+					.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("ioplkj", "latest")
+					.replaceAll("qazxsw", deploymentName).replaceAll("mkoijn", node).replaceAll("qwecxz", machineType)
+					.replaceAll("poibnm", core).replaceAll("tyunbv", capacity)
+					.replaceAll("yuilkj", provisionData.getNfsName()).replaceAll("vgyuhb", "us-west1-a")
+					.replaceAll("yuiklj", nfsCapacity).replaceAll("ijnbhu", provisionData.getFileStoreHost())
+					.replaceAll("itungf", provisionData.getFileStorePath());
 
 			FileWriter writer = new FileWriter(outfile);
 			writer.write(newtext);
@@ -311,15 +320,11 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	public float getCost(int deploymentId) throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
 
-//		String jsonPath = "/home/scriptuit/Downloads/gold-braid-268003-fa0b37fc4447.json";
+		String jsonPath = "/home/scriptuit/Downloads/gold-braid-268003-fa0b37fc4447.json";
 //
 //		String requestUrl = "https://cloudbilling.googleapis.com/v1/billingAccounts/01463E-59892A-CB4390";
 //
-//		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
-//				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-//
-//		CloudBillingSettings cloudBillingSettings = CloudBillingSettings.newBuilder()
-//				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+
 //
 //		credentials.refresh();
 //
@@ -335,6 +340,20 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 //
 //		ResponseEntity<Object> resultList = template.exchange(requestUrl, HttpMethod.GET, entity, Object.class);
 //		LOGGER.info("response : " + resultList);
+
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
+				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+
+		CloudBillingSettings cloudBillingSettings = CloudBillingSettings.newBuilder()
+				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+
+		CloudBillingClient cloudBillingClient = CloudBillingClient.create(cloudBillingSettings);
+
+		CloudCatalogSettings cloudCatalogSettings = CloudCatalogSettings.newBuilder()
+				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+
+		CloudCatalogClient cloudCatalogClient = CloudCatalogClient.create(cloudCatalogSettings);
+		ListServicesPagedResponse response = cloudCatalogClient.listServices();
 
 		return 0;
 	}

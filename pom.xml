@@ -92,6 +92,20 @@
 			<groupId>com.google.cloud</groupId>
 			<artifactId>google-cloud-billing</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-billing-bom</artifactId>
+			<version>1.0.2</version>
+			<type>pom</type>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-bom</artifactId>
+			<version>0.125.0</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

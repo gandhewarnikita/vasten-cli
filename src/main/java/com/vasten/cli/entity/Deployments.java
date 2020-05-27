@@ -73,6 +73,15 @@ public class Deployments {
 	@OneToMany(mappedBy = "deploymentId", fetch = FetchType.LAZY)
 	private List<DeployStatus> deploystatus;
 
+	@Transient
+	private String toolName;
+
+	@Transient
+	private String fileStoreHost;
+
+	@Transient
+	private String fileStorePath;
+
 	public Integer getId() {
 		return id;
 	}
@@ -185,13 +194,47 @@ public class Deployments {
 		this.nfsName = nfsName;
 	}
 
+	public List<DeployStatus> getDeploystatus() {
+		return deploystatus;
+	}
+
+	public void setDeploystatus(List<DeployStatus> deploystatus) {
+		this.deploystatus = deploystatus;
+	}
+
+	public String getToolName() {
+		return toolName;
+	}
+
+	public void setToolName(String toolName) {
+		this.toolName = toolName;
+	}
+
+	public String getFileStoreHost() {
+		return fileStoreHost;
+	}
+
+	public void setFileStoreHost(String fileStoreHost) {
+		this.fileStoreHost = fileStoreHost;
+	}
+
+	public String getFileStorePath() {
+		return fileStorePath;
+	}
+
+	public void setFileStorePath(String fileStorePath) {
+		this.fileStorePath = fileStorePath;
+	}
+
 	@Override
 	public String toString() {
 		return "Deployments [id=" + id + ", user=" + user + ", name=" + name + ", status=" + status + ", prefix="
 				+ prefix + ", isDeleted=" + isDeleted + ", fileName=" + fileName + ", clusterNodes=" + clusterNodes
 				+ ", clusterMachineType=" + clusterMachineType + ", clusterMachineCores=" + clusterMachineCores
 				+ ", clusterLocalStoreCapacity=" + clusterLocalStoreCapacity + ", toolVersion=" + toolVersion
-				+ ", nfsCapacity=" + nfsCapacity + ", nfsName=" + nfsName + "]";
+				+ ", nfsCapacity=" + nfsCapacity + ", nfsName=" + nfsName + ", deploystatus=" + deploystatus
+				+ ", toolName=" + toolName + ", fileStoreHost=" + fileStoreHost + ", fileStorePath=" + fileStorePath
+				+ "]";
 	}
 
 }

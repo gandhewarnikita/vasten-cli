@@ -82,6 +82,9 @@ public class Deployments {
 	@Transient
 	private String fileStorePath;
 
+	@Column(name = "is_nfs_external")
+	private boolean isNfsExternal;
+
 	public Integer getId() {
 		return id;
 	}
@@ -226,6 +229,14 @@ public class Deployments {
 		this.fileStorePath = fileStorePath;
 	}
 
+	public boolean isNfsExternal() {
+		return isNfsExternal;
+	}
+
+	public void setNfsExternal(boolean isNfsExternal) {
+		this.isNfsExternal = isNfsExternal;
+	}
+
 	@Override
 	public String toString() {
 		return "Deployments [id=" + id + ", user=" + user + ", name=" + name + ", status=" + status + ", prefix="
@@ -234,7 +245,7 @@ public class Deployments {
 				+ ", clusterLocalStoreCapacity=" + clusterLocalStoreCapacity + ", toolVersion=" + toolVersion
 				+ ", nfsCapacity=" + nfsCapacity + ", nfsName=" + nfsName + ", deploystatus=" + deploystatus
 				+ ", toolName=" + toolName + ", fileStoreHost=" + fileStoreHost + ", fileStorePath=" + fileStorePath
-				+ "]";
+				+ ", isNfsExternal=" + isNfsExternal + "]";
 	}
 
 }

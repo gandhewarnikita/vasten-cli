@@ -31,6 +31,7 @@ import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstanceClient;
 import com.google.cloud.compute.v1.InstanceClient.ListInstancesPagedResponse;
 import com.google.cloud.compute.v1.InstanceSettings;
+import com.google.cloud.compute.v1.NetworkInterface;
 import com.google.cloud.compute.v1.ProjectZoneName;
 import com.google.cloud.container.v1.ClusterManagerClient;
 import com.google.cloud.container.v1.ClusterManagerSettings;
@@ -76,7 +77,8 @@ public class DeploymentStatusScheduler {
 	List<DeployStatus> deployStatusList = new ArrayList<DeployStatus>();
 
 	// @Scheduled()
-	@Scheduled(cron = "0 0/1 * * * *")
+//	@Scheduled(cron = "0 0/1 * * * *")
+	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("in the deployment status update scheduler");
 
@@ -299,6 +301,7 @@ public class DeploymentStatusScheduler {
 		return clusterMap;
 	}
 
+//	@Scheduled(cron = "10 * * * * *")
 	private Map<String, String> getInstanceStatus() throws FileNotFoundException, IOException {
 		LOGGER.info("Getting all instances status");
 
@@ -318,6 +321,18 @@ public class DeploymentStatusScheduler {
 		ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
 
 		for (Instance instance : instanceList.iterateAll()) {
+
+			LOGGER.info("*********************************************************************************");
+			LOGGER.info("instance : " + instance);
+			LOGGER.info("=================================================================================");
+			LOGGER.info("Network interface list : " + instance.getNetworkInterfacesList());
+			LOGGER.info("*********************************************************************************");
+
+			List<NetworkInterface> networkList = instance.getNetworkInterfacesList();
+
+			for (NetworkInterface network : networkList) {
+				LOGGER.info("network ip : " + network.getNetworkIP());
+			}
 
 			instanceName = instance.getName();
 			instanceStatus = instance.getStatus();

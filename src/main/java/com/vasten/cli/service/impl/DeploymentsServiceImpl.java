@@ -53,6 +53,7 @@ import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.DeploymentStatus;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.MountFileStore;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
@@ -130,6 +131,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		String fileName = provisionData.getName() + "_terraform.tfvars";
 		newDeployment.setFileName(fileName);
+		newDeployment.setNfsExternal(provisionData.isNfsExternal());
 
 		deploymentsRepository.save(newDeployment);
 
@@ -173,13 +175,26 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			String nfsCapacity = String.valueOf(provisionData.getNfsCapacity());
 			String machineType = provisionData.getClusterMachineType();
 
-			String newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
-					.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("ioplkj", "latest")
-					.replaceAll("qazxsw", deploymentName).replaceAll("mkoijn", node).replaceAll("qwecxz", machineType)
-					.replaceAll("poibnm", core).replaceAll("tyunbv", capacity)
-					.replaceAll("yuilkj", provisionData.getNfsName()).replaceAll("vgyuhb", "us-west1-a")
-					.replaceAll("yuiklj", nfsCapacity).replaceAll("ijnbhu", provisionData.getFileStoreHost())
-					.replaceAll("itungf", provisionData.getFileStorePath());
+			String newtext = "";
+
+			if (provisionData.isNfsExternal()) {
+
+				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
+						.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("ioplkj", "latest")
+						.replaceAll("qazxsw", deploymentName).replaceAll("mkoijn", node)
+						.replaceAll("qwecxz", machineType).replaceAll("poibnm", core).replaceAll("tyunbv", capacity)
+						.replaceAll("yuilkj", provisionData.getNfsName()).replaceAll("vgyuhb", "us-west1-a")
+						.replaceAll("yuiklj", nfsCapacity).replaceAll("ijnbhu", provisionData.getFileStoreHost())
+						.replaceAll("itungf", provisionData.getFileStorePath());
+				
+			} else {
+				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
+						.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("ioplkj", "latest")
+						.replaceAll("qazxsw", deploymentName).replaceAll("mkoijn", node)
+						.replaceAll("qwecxz", machineType).replaceAll("poibnm", core).replaceAll("tyunbv", capacity)
+						.replaceAll("yuilkj", provisionData.getNfsName()).replaceAll("vgyuhb", "us-west1-a")
+						.replaceAll("yuiklj", nfsCapacity);
+			}
 
 			FileWriter writer = new FileWriter(outfile);
 			writer.write(newtext);
@@ -234,7 +249,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		if (name == null) {
 
-			deploymentList = deploymentsRepository.findAllByUser(dbUser);
+			deploymentList = deploymentsRepository.findAllByUserAndIsDeletedFalse(dbUser);
 			return deploymentList;
 
 		} else {
@@ -246,9 +261,12 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 				validationErrorList.add(new ValidationError("name", "Deployment with this name does not exist"));
 
 			} else {
-				Deployments dbDeployment = deploymentsRepository.findByUserAndName(dbUser, name);
-				deploymentList.add(dbDeployment);
-				return deploymentList;
+				Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, name);
+
+				if (dbDeployment != null) {
+					deploymentList.add(dbDeployment);
+					return deploymentList;
+				}
 			}
 
 			if (validationErrorList != null && !validationErrorList.isEmpty()) {
@@ -273,14 +291,14 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public void deProvision(Integer id, String name) {
+	public void deProvision(Integer id, Integer deploymentId) {
 		LOGGER.info("Deleting instance by name of deployment");
 
 		User dbUser = userRepository.findOneById(id);
 
-		validationUtility.validateDeploymentName(dbUser.getId(), name);
+		validationUtility.validateDeployment(dbUser.getId(), deploymentId);
 
-		Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, name);
+		Deployments dbDeployment = deploymentsRepository.findByUserAndIdAndIsDeletedFalse(dbUser, deploymentId);
 		String propertyFile = dbDeployment.getFileName();
 
 		dbDeployment.setDeleted(true);
@@ -356,6 +374,15 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		ListServicesPagedResponse response = cloudCatalogClient.listServices();
 
 		return 0;
+	}
+
+	@Override
+	public void mountNfs(MountFileStore fileStoreData) {
+		LOGGER.info("Mounting nfs filestore");
+
+		validationUtility.validateFileStoreData(fileStoreData);
+
+		LOGGER.info("Nfs mounted successfully : " + fileStoreData);
 	}
 
 }

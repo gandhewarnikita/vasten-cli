@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.MountFileStore;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
@@ -81,7 +82,7 @@ public class ValidationUtility {
 			LOGGER.error("Tool version is mandatory");
 			validationErrorList.add(new ValidationError("toolVserion", "Tool version is mandatory"));
 
-		} 
+		}
 //		else if (!provisionData.getToolVersion().equals("latest")) {
 //			LOGGER.error("Tool version does not contain default value");
 //			validationErrorList.add(new ValidationError("toolVserion", "Tool version does not contain default value"));
@@ -165,11 +166,11 @@ public class ValidationUtility {
 
 	}
 
-	public void validateDeploymentName(Integer id, String name) {
+	public void validateDeployment(Integer userId, Integer deploymentId) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
-		User dbUser = userRepository.findOneById(id);
-		Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, name);
+		User dbUser = userRepository.findOneById(userId);
+		Deployments dbDeployment = deploymentsRepository.findByUserAndIdAndIsDeletedFalse(dbUser, deploymentId);
 
 		if (dbDeployment == null) {
 			LOGGER.error("Deployment does not exist with this name");
@@ -211,6 +212,39 @@ public class ValidationUtility {
 		if (dbDeployment == null) {
 			LOGGER.error("Deployment does not exist with this name");
 			validationErrorList.add(new ValidationError("name", "Deployment does not exist with this name"));
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
+	}
+
+	public void validateFileStoreData(MountFileStore fileStoreData) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		if (fileStoreData.getDeploymentName() == null || fileStoreData.getDeploymentName().isEmpty()) {
+			LOGGER.error("Deployment name is mandatorry");
+			validationErrorList.add(new ValidationError("deploymentName", "Deployment name is mandatorry"));
+
+		} else {
+			Deployments dbDeployment = deploymentsRepository.findByName(fileStoreData.getDeploymentName());
+
+			if (dbDeployment == null) {
+				LOGGER.error("Deployment does not exist with this name : " + fileStoreData.getDeploymentName());
+				validationErrorList.add(new ValidationError("deploymentName",
+						"Deployment does not exist with this name : " + fileStoreData.getDeploymentName()));
+			}
+		}
+
+		if (fileStoreData.getNfsHost() == null || fileStoreData.getNfsHost().isEmpty()) {
+			LOGGER.error("Nfs host is mandatory");
+			validationErrorList.add(new ValidationError("nfsHost", "Nfs host is mandatory"));
+		}
+
+		if (fileStoreData.getNfsPath() == null || fileStoreData.getNfsPath().isEmpty()) {
+			LOGGER.error("Nfs path is mandatory");
+			validationErrorList.add(new ValidationError("nfsPath", "Nfs path is mandatory"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {

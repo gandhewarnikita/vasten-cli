@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.MountFileStore;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.security.config.SecurityUtil;
 import com.vasten.cli.service.DeploymentsService;
@@ -103,12 +104,18 @@ public class DeploymentsController {
 	 * 
 	 * @param name
 	 */
-	@RequestMapping(value = "/name/{name}", method = RequestMethod.DELETE)
-	public void deProvision(@PathVariable String name) {
+	@RequestMapping(value = "/deploymentId/{deploymentId}", method = RequestMethod.DELETE)
+	public void deProvision(@PathVariable Integer deploymentId) {
 		LOGGER.info("Api received to delete deployment");
 		
 		User user = securityUtil.getLoggedInUser();
 		
-		deploymentsService.deProvision(user.getId(), name);
+		deploymentsService.deProvision(user.getId(), deploymentId);
+	}
+	
+	@RequestMapping(value = "/mount", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public void mountNfs(@RequestBody MountFileStore fileStoreData) {
+		LOGGER.info("Api received to mount nfs");
+		deploymentsService.mountNfs(fileStoreData);
 	}
 }

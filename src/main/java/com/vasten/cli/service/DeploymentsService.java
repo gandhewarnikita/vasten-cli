@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.MountFileStore;
 
 public interface DeploymentsService {
 
@@ -17,6 +18,8 @@ public interface DeploymentsService {
 
 	public float getCost(int deploymentId) throws FileNotFoundException, IOException;
 
-	public void deProvision(Integer id, String name);
+	public void deProvision(Integer id, Integer deploymentId);
+
+	public void mountNfs(MountFileStore fileStoreData);
 
 }

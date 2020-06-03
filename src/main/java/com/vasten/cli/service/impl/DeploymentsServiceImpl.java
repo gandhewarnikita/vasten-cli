@@ -53,7 +53,6 @@ import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.DeploymentStatus;
 import com.vasten.cli.entity.Deployments;
-import com.vasten.cli.entity.MountFileStore;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
@@ -80,6 +79,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	@Value("${DESTROY_SHELL_PATH}")
 	public String destroyShellPath;
+
+	@Value("${APPLY_REMOTE_SHELL_PATH}")
+	public String applyRemoteShellPath;
 
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
@@ -186,7 +188,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 						.replaceAll("yuilkj", provisionData.getNfsName()).replaceAll("vgyuhb", "us-west1-a")
 						.replaceAll("yuiklj", nfsCapacity).replaceAll("ijnbhu", provisionData.getFileStoreHost())
 						.replaceAll("itungf", provisionData.getFileStorePath());
-				
+
 			} else {
 				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
 						.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("ioplkj", "latest")
@@ -377,12 +379,43 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public void mountNfs(MountFileStore fileStoreData) {
+	public void mountNfs(String deploymentName) {
 		LOGGER.info("Mounting nfs filestore");
 
-		validationUtility.validateFileStoreData(fileStoreData);
+		validationUtility.validateDeploymentName(deploymentName);
 
-		LOGGER.info("Nfs mounted successfully : " + fileStoreData);
+		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(deploymentName);
+
+		String propertyFile = dbDeployment.getFileName();
+
+		String[] cmd = { applyRemoteShellPath, propertyFile };
+
+		executorService.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				ProcessBuilder pb = new ProcessBuilder(cmd);
+
+				try {
+					Process process = pb.start();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+					StringBuilder builder = new StringBuilder();
+					String line = null;
+					while ((line = reader.readLine()) != null) {
+						builder.append(line);
+					}
+					LOGGER.info("Deployment mounted successfully");
+					String result = builder.toString();
+					LOGGER.info(result);
+					LOGGER.info("end of script execution");
+				} catch (IOException e) {
+					LOGGER.error("error");
+					e.printStackTrace();
+				}
+
+			}
+		});
+
 	}
 
 }

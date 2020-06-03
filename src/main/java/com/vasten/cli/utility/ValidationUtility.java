@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
-import com.vasten.cli.entity.MountFileStore;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
@@ -220,37 +219,20 @@ public class ValidationUtility {
 
 	}
 
-	public void validateFileStoreData(MountFileStore fileStoreData) {
+	public void validateDeploymentName(String deploymentName) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
-
-		if (fileStoreData.getDeploymentName() == null || fileStoreData.getDeploymentName().isEmpty()) {
-			LOGGER.error("Deployment name is mandatorry");
-			validationErrorList.add(new ValidationError("deploymentName", "Deployment name is mandatorry"));
-
-		} else {
-			Deployments dbDeployment = deploymentsRepository.findByName(fileStoreData.getDeploymentName());
-
-			if (dbDeployment == null) {
-				LOGGER.error("Deployment does not exist with this name : " + fileStoreData.getDeploymentName());
-				validationErrorList.add(new ValidationError("deploymentName",
-						"Deployment does not exist with this name : " + fileStoreData.getDeploymentName()));
-			}
-		}
-
-		if (fileStoreData.getNfsHost() == null || fileStoreData.getNfsHost().isEmpty()) {
-			LOGGER.error("Nfs host is mandatory");
-			validationErrorList.add(new ValidationError("nfsHost", "Nfs host is mandatory"));
-		}
-
-		if (fileStoreData.getNfsPath() == null || fileStoreData.getNfsPath().isEmpty()) {
-			LOGGER.error("Nfs path is mandatory");
-			validationErrorList.add(new ValidationError("nfsPath", "Nfs path is mandatory"));
+		
+		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(deploymentName);
+		
+		if (dbDeployment == null) {
+			LOGGER.error("Deployment does not exist with this name");
+			validationErrorList.add(new ValidationError("name", "Deployment does not exist with this name"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
 			throw new CliBadRequestException("Bad Request", validationErrorList);
 		}
-
+		
 	}
 
 //	public void validateClusterName(String name) {

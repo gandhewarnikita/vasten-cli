@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
-import com.vasten.cli.entity.MountFileStore;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.security.config.SecurityUtil;
 import com.vasten.cli.service.DeploymentsService;
@@ -113,9 +112,9 @@ public class DeploymentsController {
 		deploymentsService.deProvision(user.getId(), deploymentId);
 	}
 	
-	@RequestMapping(value = "/mount", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public void mountNfs(@RequestBody MountFileStore fileStoreData) {
+	@RequestMapping(value = "/mount/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public void mountNfs(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to mount nfs");
-		deploymentsService.mountNfs(fileStoreData);
+		deploymentsService.mountNfs(deploymentName);
 	}
 }

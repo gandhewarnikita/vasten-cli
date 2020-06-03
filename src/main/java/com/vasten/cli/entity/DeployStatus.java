@@ -34,6 +34,9 @@ public class DeployStatus {
 	@Column(name = "deployment_type_name")
 	private String deploymentTypeName;
 
+	@Column(name = "external_ip")
+	private String externalIp;
+
 	public Integer getId() {
 		return id;
 	}
@@ -74,10 +77,18 @@ public class DeployStatus {
 		this.deploymentTypeName = deploymentTypeName;
 	}
 
+	public String getExternalIp() {
+		return externalIp;
+	}
+
+	public void setExternalIp(String externalIp) {
+		this.externalIp = externalIp;
+	}
+
 	@Override
 	public String toString() {
 		return "DeployStatus [id=" + id + ", deploymentId=" + deploymentId + ", type=" + type + ", status=" + status
-				+ ", deploymentTypeName=" + deploymentTypeName + "]";
+				+ ", deploymentTypeName=" + deploymentTypeName + ", externalIp=" + externalIp + "]";
 	}
 
 }

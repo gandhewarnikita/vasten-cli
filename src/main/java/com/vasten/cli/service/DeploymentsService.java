@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
-import com.vasten.cli.entity.MountFileStore;
 
 public interface DeploymentsService {
 
@@ -20,6 +19,6 @@ public interface DeploymentsService {
 
 	public void deProvision(Integer id, Integer deploymentId);
 
-	public void mountNfs(MountFileStore fileStoreData);
+	public void mountNfs(String deploymentName);
 
 }

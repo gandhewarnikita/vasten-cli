@@ -55,12 +55,14 @@ public class ValidationUtility {
 			LOGGER.info("Deployment name is mandatory");
 			validationErrorList.add(new ValidationError("name", "Deployment name is mandatory"));
 
-		} else if (provisionData.getName().length() > 8) {
-			LOGGER.info("Deployment name should not be greater than 8 characters");
-			validationErrorList
-					.add(new ValidationError("name", "Deployment name should not be greater than 8 characters"));
-
-		} else {
+		} 
+//		else if (provisionData.getName().length() > 8) {
+//			LOGGER.info("Deployment name should not be greater than 8 characters");
+//			validationErrorList
+//					.add(new ValidationError("name", "Deployment name should not be greater than 8 characters"));
+//
+//		} 
+		else {
 
 			String deploymentName = provisionData.getName().toLowerCase();
 

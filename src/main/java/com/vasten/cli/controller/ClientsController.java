@@ -13,6 +13,12 @@ import com.vasten.cli.entity.Clients;
 import com.vasten.cli.security.config.SecurityUtil;
 import com.vasten.cli.service.ClientsService;
 
+/**
+ * Controller class for Client 
+ * 
+ * @author scriptuit
+ *
+ */
 @RestController
 public class ClientsController {
 	
@@ -21,6 +27,12 @@ public class ClientsController {
 	@Autowired
 	private ClientsService clientsService;
 	
+	/**
+	 * Create client
+	 * 
+	 * @param clientData
+	 * @return
+	 */
 	@RequestMapping(value = "/api/client", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public Clients createClient(@RequestBody Clients clientData) {
 		LOGGER.info("Api received to create new client");

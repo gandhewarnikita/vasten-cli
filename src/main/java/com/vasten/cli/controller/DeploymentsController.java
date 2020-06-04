@@ -24,6 +24,12 @@ import com.vasten.cli.entity.User;
 import com.vasten.cli.security.config.SecurityUtil;
 import com.vasten.cli.service.DeploymentsService;
 
+/**
+ * Controller class for Deployment
+ * 
+ * @author scriptuit
+ *
+ */
 @RestController
 @RequestMapping(value = "/api")
 public class DeploymentsController {
@@ -37,7 +43,7 @@ public class DeploymentsController {
 	private SecurityUtil securityUtil;
 
 	/**
-	 * Create deployment of client
+	 * Create deployment of user
 	 * 
 	 * @param provisionData
 	 * @return
@@ -54,7 +60,7 @@ public class DeploymentsController {
 	}
 
 	/**
-	 * Get all deployments of client
+	 * Get all deployments of user
 	 * 
 	 * @param clientId
 	 * @return
@@ -112,6 +118,11 @@ public class DeploymentsController {
 		deploymentsService.deProvision(user.getId(), deploymentId);
 	}
 	
+	/**
+	 * Mount external filestore
+	 * 
+	 * @param deploymentName
+	 */
 	@RequestMapping(value = "/mount/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public void mountNfs(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to mount nfs");

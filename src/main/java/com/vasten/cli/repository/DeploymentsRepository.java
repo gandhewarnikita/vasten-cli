@@ -15,10 +15,6 @@ public interface DeploymentsRepository extends JpaRepository<Deployments, Intege
 
 	public Deployments findByName(String name);
 
-//	public List<Deployments> findAllByClients(Clients dbClient);
-//
-//	public Deployments findByClientsAndName(Clients dbClient, String name);
-
 	public List<Deployments> findAllByStatus(DeploymentStatus pending);
 
 	public List<Deployments> findAllByUser(User dbUser);

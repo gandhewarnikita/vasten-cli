@@ -181,6 +181,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 			if (provisionData.isNfsExternal()) {
 
+				LOGGER.info("nfs external with host and path : " + provisionData.isNfsExternal());
+
 				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
 						.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("ioplkj", "latest")
 						.replaceAll("qazxsw", deploymentName).replaceAll("mkoijn", node)
@@ -190,6 +192,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 						.replaceAll("itungf", provisionData.getFileStorePath());
 
 			} else {
+				LOGGER.info("nfs external without host and path : " + provisionData.isNfsExternal());
+
 				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
 						.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("ioplkj", "latest")
 						.replaceAll("qazxsw", deploymentName).replaceAll("mkoijn", node)

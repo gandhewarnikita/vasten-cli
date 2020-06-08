@@ -176,6 +176,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			String capacity = String.valueOf(provisionData.getClusterLocalStoreCapacity());
 			String nfsCapacity = String.valueOf(provisionData.getNfsCapacity());
 			String machineType = provisionData.getClusterMachineType();
+			String nfsExternal = String.valueOf(provisionData.isNfsExternal());
 
 			String newtext = "";
 
@@ -184,22 +185,22 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 				LOGGER.info("nfs external with host and path : " + provisionData.isNfsExternal());
 
 				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
-						.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("ioplkj", "latest")
-						.replaceAll("qazxsw", deploymentName).replaceAll("mkoijn", node)
-						.replaceAll("qwecxz", machineType).replaceAll("poibnm", core).replaceAll("tyunbv", capacity)
-						.replaceAll("yuilkj", provisionData.getNfsName()).replaceAll("vgyuhb", "us-west1-a")
-						.replaceAll("yuiklj", nfsCapacity).replaceAll("ijnbhu", provisionData.getFileStoreHost())
-						.replaceAll("itungf", provisionData.getFileStorePath());
+						.replaceAll("pqlamz", provisionData.getToolVersion())
+						.replaceAll("ioplkj", provisionData.getImageTag()).replaceAll("qazxsw", deploymentName)
+						.replaceAll("mkoijn", node).replaceAll("qwecxz", machineType).replaceAll("poibnm", core)
+						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
+						.replaceAll("ijnbhu", provisionData.getFileStoreHost())
+						.replaceAll("itungf", provisionData.getFileStorePath()).replaceAll("lothxs", nfsExternal);
 
 			} else {
 				LOGGER.info("nfs external without host and path : " + provisionData.isNfsExternal());
 
 				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
-						.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("ioplkj", "latest")
-						.replaceAll("qazxsw", deploymentName).replaceAll("mkoijn", node)
-						.replaceAll("qwecxz", machineType).replaceAll("poibnm", core).replaceAll("tyunbv", capacity)
-						.replaceAll("yuilkj", provisionData.getNfsName()).replaceAll("vgyuhb", "us-west1-a")
-						.replaceAll("yuiklj", nfsCapacity);
+						.replaceAll("pqlamz", provisionData.getToolVersion())
+						.replaceAll("ioplkj", provisionData.getImageTag()).replaceAll("qazxsw", deploymentName)
+						.replaceAll("mkoijn", node).replaceAll("qwecxz", machineType).replaceAll("poibnm", core)
+						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
+						.replaceAll("lothxs", nfsExternal);
 			}
 
 			FileWriter writer = new FileWriter(outfile);
@@ -288,7 +289,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		LOGGER.info("Getting status of a deployment");
 
 		validationUtility.validateDeploymentId(deploymentId);
-		
+
 		User dbUser = userRepository.findOneById(userId);
 
 		Deployments dbDeployment = deploymentsRepository.findOneByIdAndUserAndIsDeletedFalse(dbUser, deploymentId);

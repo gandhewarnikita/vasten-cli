@@ -55,14 +55,12 @@ public class ValidationUtility {
 			LOGGER.info("Deployment name is mandatory");
 			validationErrorList.add(new ValidationError("name", "Deployment name is mandatory"));
 
-		} 
-//		else if (provisionData.getName().length() > 8) {
-//			LOGGER.info("Deployment name should not be greater than 8 characters");
-//			validationErrorList
-//					.add(new ValidationError("name", "Deployment name should not be greater than 8 characters"));
-//
-//		} 
-		else {
+		} else if (provisionData.getName().length() > 8) {
+			LOGGER.info("Deployment name should not be greater than 8 characters");
+			validationErrorList
+					.add(new ValidationError("name", "Deployment name should not be greater than 8 characters"));
+
+		} else {
 
 			String deploymentName = provisionData.getName().toLowerCase();
 
@@ -84,10 +82,6 @@ public class ValidationUtility {
 			validationErrorList.add(new ValidationError("toolVserion", "Tool version is mandatory"));
 
 		}
-//		else if (!provisionData.getToolVersion().equals("latest")) {
-//			LOGGER.error("Tool version does not contain default value");
-//			validationErrorList.add(new ValidationError("toolVserion", "Tool version does not contain default value"));
-//		}
 
 		if (provisionData.getClusterMachineType() == null || provisionData.getClusterMachineType().isEmpty()) {
 			LOGGER.error("Cluster machine type is mandatory");
@@ -134,15 +128,6 @@ public class ValidationUtility {
 		if (provisionData.getFileStorePath() == null || provisionData.getFileStorePath().isEmpty()) {
 			LOGGER.info("File store path is mandatory");
 			validationErrorList.add(new ValidationError("fileStorePath", "File store path is mandatory"));
-		}
-
-		if (provisionData.getNfsName() == null || provisionData.getNfsName().isEmpty()) {
-			LOGGER.info("Nfs name is mandatory");
-			validationErrorList.add(new ValidationError("nfsName", "Nfs name is mandatory"));
-
-		} else if (!provisionData.getNfsName().equalsIgnoreCase(provisionData.getName())) {
-			LOGGER.info("Nfs name should be same as deployment name");
-			validationErrorList.add(new ValidationError("nfsName", "Nfs name should be same as deployment name"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
@@ -223,9 +208,9 @@ public class ValidationUtility {
 
 	public void validateDeploymentName(String deploymentName) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
-		
+
 		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(deploymentName);
-		
+
 		if (dbDeployment == null) {
 			LOGGER.error("Deployment does not exist with this name");
 			validationErrorList.add(new ValidationError("name", "Deployment does not exist with this name"));
@@ -234,7 +219,7 @@ public class ValidationUtility {
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
 			throw new CliBadRequestException("Bad Request", validationErrorList);
 		}
-		
+
 	}
 
 //	public void validateClusterName(String name) {

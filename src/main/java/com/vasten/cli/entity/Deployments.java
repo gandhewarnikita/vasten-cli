@@ -87,6 +87,9 @@ public class Deployments {
 	@Column(name = "is_nfs_external")
 	private boolean isNfsExternal;
 
+	@Transient
+	private String imageTag;
+
 	public Integer getId() {
 		return id;
 	}
@@ -239,6 +242,14 @@ public class Deployments {
 		this.isNfsExternal = isNfsExternal;
 	}
 
+	public String getImageTag() {
+		return imageTag;
+	}
+
+	public void setImageTag(String imageTag) {
+		this.imageTag = imageTag;
+	}
+
 	@Override
 	public String toString() {
 		return "Deployments [id=" + id + ", user=" + user + ", name=" + name + ", status=" + status + ", prefix="
@@ -247,7 +258,7 @@ public class Deployments {
 				+ ", clusterLocalStoreCapacity=" + clusterLocalStoreCapacity + ", toolVersion=" + toolVersion
 				+ ", nfsCapacity=" + nfsCapacity + ", nfsName=" + nfsName + ", deploystatus=" + deploystatus
 				+ ", toolName=" + toolName + ", fileStoreHost=" + fileStoreHost + ", fileStorePath=" + fileStorePath
-				+ ", isNfsExternal=" + isNfsExternal + "]";
+				+ ", isNfsExternal=" + isNfsExternal + ", imageTag=" + imageTag + "]";
 	}
 
 }

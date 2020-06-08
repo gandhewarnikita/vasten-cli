@@ -180,6 +180,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 			String newtext = "";
 
+			// If user wants his own file store, then set the values of filestore host and
+			// path in the properties file
 			if (provisionData.isNfsExternal()) {
 
 				LOGGER.info("nfs external with host and path : " + provisionData.isNfsExternal());

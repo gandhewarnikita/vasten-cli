@@ -192,7 +192,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 						.replaceAll("mkoijn", node).replaceAll("qwecxz", machineType).replaceAll("poibnm", core)
 						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
 						.replaceAll("ijnbhu", provisionData.getFileStoreHost())
-						.replaceAll("itungf", provisionData.getFileStorePath()).replaceAll("lothxs", nfsExternal);
+						.replaceAll("itungf", provisionData.getFileStorePath()).replaceAll("\"lothxs\"", nfsExternal);
 
 			} else {
 				LOGGER.info("nfs external without host and path : " + provisionData.isNfsExternal());
@@ -202,7 +202,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 						.replaceAll("ioplkj", provisionData.getImageTag()).replaceAll("qazxsw", deploymentName)
 						.replaceAll("mkoijn", node).replaceAll("qwecxz", machineType).replaceAll("poibnm", core)
 						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
-						.replaceAll("lothxs", nfsExternal);
+						.replaceAll("\"lothxs\"", nfsExternal);
 			}
 
 			FileWriter writer = new FileWriter(outfile);

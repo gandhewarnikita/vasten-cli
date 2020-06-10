@@ -39,17 +39,12 @@ public class ValidationUtility {
 	public void validateDeploymentData(int id, Deployments provisionData) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
-//		if (provisionData.getClients() == null) {
-//			LOGGER.error("Client id is mandatory");
-//			validationErrorList.add(new ValidationError("clients", "Client id is mandatory"));
-//		} else {
 		User dbUser = userRepository.findOneById(id);
 
 		if (dbUser == null) {
 			LOGGER.error("User does not exist");
 			validationErrorList.add(new ValidationError("user", "User does not exist"));
 		}
-//		}
 
 		if (provisionData.getName() == null || provisionData.getName().isEmpty()) {
 			LOGGER.info("Deployment name is mandatory");
@@ -123,11 +118,6 @@ public class ValidationUtility {
 		} else if (!provisionData.getToolName().equalsIgnoreCase("vasten")) {
 			LOGGER.info("Tool name should be same as project name");
 			validationErrorList.add(new ValidationError("toolName", "Tool name should be same as project name"));
-		}
-
-		if (provisionData.getFileStorePath() == null || provisionData.getFileStorePath().isEmpty()) {
-			LOGGER.info("File store path is mandatory");
-			validationErrorList.add(new ValidationError("fileStorePath", "File store path is mandatory"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {

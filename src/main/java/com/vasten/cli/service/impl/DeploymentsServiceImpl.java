@@ -213,6 +213,13 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			ioe.printStackTrace();
 		}
 
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
 		String[] cmd = { applyShellPath, fileName };
 
 		executorService.execute(new Runnable() {

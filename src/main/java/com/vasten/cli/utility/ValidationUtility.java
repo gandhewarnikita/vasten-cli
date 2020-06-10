@@ -72,11 +72,11 @@ public class ValidationUtility {
 			validationErrorList.add(new ValidationError("clusterNode", "Cluster node is mandatory"));
 		}
 
-		if (provisionData.getToolVersion() == null || provisionData.getToolVersion().isEmpty()) {
-			LOGGER.error("Tool version is mandatory");
-			validationErrorList.add(new ValidationError("toolVserion", "Tool version is mandatory"));
-
-		}
+//		if (provisionData.getToolVersion() == null || provisionData.getToolVersion().isEmpty()) {
+//			LOGGER.error("Tool version is mandatory");
+//			validationErrorList.add(new ValidationError("toolVserion", "Tool version is mandatory"));
+//
+//		}
 
 		if (provisionData.getClusterMachineType() == null || provisionData.getClusterMachineType().isEmpty()) {
 			LOGGER.error("Cluster machine type is mandatory");

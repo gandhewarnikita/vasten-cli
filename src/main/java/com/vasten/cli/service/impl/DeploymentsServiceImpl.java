@@ -176,34 +176,38 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			String capacity = String.valueOf(provisionData.getClusterLocalStoreCapacity());
 			String nfsCapacity = String.valueOf(provisionData.getNfsCapacity());
 			String machineType = provisionData.getClusterMachineType();
-			String nfsExternal = String.valueOf(provisionData.isNfsExternal());
-
-			String newtext = "";
+//			String nfsExternal = String.valueOf(provisionData.isNfsExternal());
+//
+//			String newtext = "";
 
 			// If user wants his own file store, then set the values of filestore host and
 			// path in the properties file
-			if (provisionData.isNfsExternal()) {
-
-				LOGGER.info("nfs external with host and path : " + provisionData.isNfsExternal());
-
-				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
-						.replaceAll("pqlamz", provisionData.getToolVersion())
-						.replaceAll("ioplkj", provisionData.getImageTag()).replaceAll("qazxsw", deploymentName)
-						.replaceAll("mkoijn", node).replaceAll("qwecxz", machineType).replaceAll("poibnm", core)
-						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
-						.replaceAll("ijnbhu", provisionData.getFileStoreHost())
-						.replaceAll("itungf", provisionData.getFileStorePath()).replaceAll("\"lothxs\"", nfsExternal);
-
-			} else {
-				LOGGER.info("nfs external without host and path : " + provisionData.isNfsExternal());
-
-				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
-						.replaceAll("pqlamz", provisionData.getToolVersion())
-						.replaceAll("ioplkj", provisionData.getImageTag()).replaceAll("qazxsw", deploymentName)
-						.replaceAll("mkoijn", node).replaceAll("qwecxz", machineType).replaceAll("poibnm", core)
-						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
-						.replaceAll("\"lothxs\"", nfsExternal);
-			}
+//			if (provisionData.isNfsExternal()) {
+//
+//				LOGGER.info("nfs external with host and path : " + provisionData.isNfsExternal());
+//
+//				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
+//						.replaceAll("pqlamz", provisionData.getToolVersion())
+//						.replaceAll("ioplkj", provisionData.getImageTag()).replaceAll("qazxsw", deploymentName)
+//						.replaceAll("mkoijn", node).replaceAll("qwecxz", machineType).replaceAll("poibnm", core)
+//						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
+//						.replaceAll("ijnbhu", provisionData.getFileStoreHost())
+//						.replaceAll("itungf", provisionData.getFileStorePath()).replaceAll("\"lothxs\"", nfsExternal);
+//
+//			} else {
+//				LOGGER.info("nfs external without host and path : " + provisionData.isNfsExternal());
+//
+//				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
+//						.replaceAll("pqlamz", provisionData.getToolVersion())
+//						.replaceAll("ioplkj", provisionData.getImageTag()).replaceAll("qazxsw", deploymentName)
+//						.replaceAll("mkoijn", node).replaceAll("qwecxz", machineType).replaceAll("poibnm", core)
+//						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
+//						.replaceAll("\"lothxs\"", nfsExternal);
+//			}
+			
+			String newtext = oldtext.replaceAll("qwerty", deploymentName).replaceAll("qazwsx", node)
+					.replaceAll("ikmikm", machineType).replaceAll("mknmkn", core).replaceAll("erdfcv", capacity)
+					.replaceAll("wqsaxz", nfsCapacity).replaceAll("ioplkj", "latest");
 
 			FileWriter writer = new FileWriter(outfile);
 			writer.write(newtext);

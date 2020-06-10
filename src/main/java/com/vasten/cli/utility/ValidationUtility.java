@@ -111,14 +111,14 @@ public class ValidationUtility {
 					.add(new ValidationError("nfscapacity", "Nfs capacity is not in range min 1024 to max 3072"));
 		}
 
-		if (provisionData.getToolName() == null || provisionData.getToolName().isEmpty()) {
-			LOGGER.info("Tool name is mandatory");
-			validationErrorList.add(new ValidationError("toolName", "Tool name is mandatory"));
-
-		} else if (!provisionData.getToolName().equalsIgnoreCase("vasten")) {
-			LOGGER.info("Tool name should be same as project name");
-			validationErrorList.add(new ValidationError("toolName", "Tool name should be same as project name"));
-		}
+//		if (provisionData.getToolName() == null || provisionData.getToolName().isEmpty()) {
+//			LOGGER.info("Tool name is mandatory");
+//			validationErrorList.add(new ValidationError("toolName", "Tool name is mandatory"));
+//
+//		} else if (!provisionData.getToolName().equalsIgnoreCase("vasten")) {
+//			LOGGER.info("Tool name should be same as project name");
+//			validationErrorList.add(new ValidationError("toolName", "Tool name should be same as project name"));
+//		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
 			throw new CliBadRequestException("Bad Request", validationErrorList);

@@ -227,24 +227,28 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		String[] cmd = { applyShellPath, fileName };
 		LOGGER.info("cmd[] : " + Arrays.toString(cmd));
-		
+
 		ProcessBuilder pb = new ProcessBuilder(cmd);
 		LOGGER.info("process builder : " + pb);
 
 		try {
 			Process process = pb.start();
-//			LOGGER.info("process : " + process);
-//			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//			StringBuilder builder = new StringBuilder();
-//			String line = null;
-//			while ((line = reader.readLine()) != null) {
-//				builder.append(line);
-//			}
-//			String result = builder.toString();
-//			LOGGER.info(result);
+			LOGGER.info("process : " + process);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			StringBuilder builder = new StringBuilder();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				builder.append(line);
+			}
+			int exitCode = process.waitFor();
+			LOGGER.info("exit code : " + exitCode);
+			String result = builder.toString();
+			LOGGER.info(result);
 			LOGGER.info("end of script execution");
 		} catch (IOException e) {
 			LOGGER.error("error");
+			e.printStackTrace();
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 

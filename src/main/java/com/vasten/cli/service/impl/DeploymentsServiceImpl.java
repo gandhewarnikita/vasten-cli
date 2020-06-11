@@ -239,15 +239,15 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 					Process process = pb.start();
 					LOGGER.info("process : " + process);
 					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-					StringBuilder builder = new StringBuilder();
-					String line = null;
-					while ((line = reader.readLine()) != null) {
-						builder.append(line);
-					}
+//					StringBuilder builder = new StringBuilder();
+//					String line = null;
+//					while ((line = reader.readLine()) != null) {
+//						builder.append(line);
+//					}
 					int exitCode = process.waitFor();
 					LOGGER.info("exit code : " + exitCode);
-					String result = builder.toString();
-					LOGGER.info(result);
+//					String result = builder.toString();
+//					LOGGER.info(result);
 					LOGGER.info("end of script execution");
 				} catch (IOException e) {
 					LOGGER.error("error");

@@ -214,10 +214,14 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			ioe.printStackTrace();
 		}
 
-		try {
-			Thread.sleep(30000);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
+		try (BufferedReader br = new BufferedReader(new FileReader(outputFilePath + fileName))) {
+			String line;
+			while ((line = br.readLine()) != null) {
+				LOGGER.info(line);
+			}
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 

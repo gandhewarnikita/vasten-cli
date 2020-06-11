@@ -112,11 +112,11 @@ public class ValidationUtility {
 		}
 
 		if (provisionData.getToolName() == null || provisionData.getToolName().isEmpty()) {
-			LOGGER.info("Tool name is mandatory");
+			LOGGER.error("Tool name is mandatory");
 			validationErrorList.add(new ValidationError("toolName", "Tool name is mandatory"));
 
 		} else if (!provisionData.getToolName().equalsIgnoreCase("vasten")) {
-			LOGGER.info("Tool name should be same as project name");
+			LOGGER.error("Tool name should be same as project name");
 			validationErrorList.add(new ValidationError("toolName", "Tool name should be same as project name"));
 		}
 

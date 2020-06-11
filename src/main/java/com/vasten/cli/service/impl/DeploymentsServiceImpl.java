@@ -220,7 +220,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			e1.printStackTrace();
 		}
 
-		String[] cmd = { applyShellPath, fileName };
+		String[] cmd = { "nohup", applyShellPath, fileName };
 
 		executorService.execute(new Runnable() {
 

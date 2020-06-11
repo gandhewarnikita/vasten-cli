@@ -13,6 +13,7 @@ import java.security.GeneralSecurityException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -220,16 +221,19 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			e1.printStackTrace();
 		}
 
-		String[] cmd = { "nohup", applyShellPath, fileName };
+		String[] cmd = { applyShellPath, fileName };
+		LOGGER.info("cmd[] : " + Arrays.toString(cmd));
 
 		executorService.execute(new Runnable() {
 
 			@Override
 			public void run() {
 				ProcessBuilder pb = new ProcessBuilder(cmd);
+				LOGGER.info("process builder : " + pb);
 
 				try {
 					Process process = pb.start();
+					LOGGER.info("process : " + process);
 					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 					StringBuilder builder = new StringBuilder();
 					String line = null;

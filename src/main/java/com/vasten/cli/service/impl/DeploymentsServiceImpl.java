@@ -204,7 +204,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 //						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
 //						.replaceAll("\"lothxs\"", nfsExternal);
 //			}
-			
+
 			String newtext = oldtext.replaceAll("qwerty", deploymentName).replaceAll("qazwsx", node)
 					.replaceAll("ikmikm", machineType).replaceAll("mknmkn", core).replaceAll("erdfcv", capacity)
 					.replaceAll("wqsaxz", nfsCapacity).replaceAll("ioplkj", "latest");
@@ -224,7 +224,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			e1.printStackTrace();
 		}
 
-		String[] cmd = { applyShellPath, fileName };
+		String[] cmd = { "nohup", applyShellPath, fileName };
 
 		executorService.execute(new Runnable() {
 

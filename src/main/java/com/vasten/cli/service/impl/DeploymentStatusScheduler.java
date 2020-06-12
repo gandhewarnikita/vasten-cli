@@ -89,7 +89,7 @@ public class DeploymentStatusScheduler {
 	List<DeployStatus> deployStatusList = new ArrayList<DeployStatus>();
 
 	// @Scheduled()
-//	@Scheduled(cron = "0 0/1 * * * *")
+	@Scheduled(cron = "0 0/1 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("In the deployment status update scheduler");

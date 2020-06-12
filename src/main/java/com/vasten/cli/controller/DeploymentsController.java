@@ -95,8 +95,8 @@ public class DeploymentsController {
 	 * 
 	 * @param name
 	 * @return
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
+	 * @throws IOException
+	 * @throws FileNotFoundException
 	 */
 	@RequestMapping(value = "/cost/deploymentId/{deploymentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public float getCost(@PathVariable int deploymentId) throws FileNotFoundException, IOException {
@@ -104,7 +104,7 @@ public class DeploymentsController {
 		float deploymentCost = deploymentsService.getCost(deploymentId);
 		return deploymentCost;
 	}
-	
+
 	/**
 	 * Delete deployment of user
 	 * 
@@ -113,12 +113,12 @@ public class DeploymentsController {
 	@RequestMapping(value = "/deploymentId/{deploymentId}", method = RequestMethod.DELETE)
 	public void deProvision(@PathVariable Integer deploymentId) {
 		LOGGER.info("Api received to delete deployment");
-		
+
 		User user = securityUtil.getLoggedInUser();
-		
+
 		deploymentsService.deProvision(user.getId(), deploymentId);
 	}
-	
+
 	/**
 	 * Mount external filestore
 	 * 
@@ -127,6 +127,14 @@ public class DeploymentsController {
 	@RequestMapping(value = "/mount/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public void mountNfs(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to mount nfs");
-		deploymentsService.mountNfs(deploymentName);
+		User user = securityUtil.getLoggedInUser();
+		deploymentsService.mountNfs(user.getId(), deploymentName);
+	}
+
+	@RequestMapping(value = "/deleteMount/deploymentName/{deploymentname}", method = RequestMethod.DELETE)
+	public void deProvisionRemote(@PathVariable String deploymentName) {
+		LOGGER.info("Api received to delete mounted nfs");
+		User user = securityUtil.getLoggedInUser();
+		deploymentsService.deProvisionRemote(user.getId(), deploymentName);
 	}
 }

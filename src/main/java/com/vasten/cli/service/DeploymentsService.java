@@ -37,7 +37,7 @@ public interface DeploymentsService {
 	 * Get status of cluster, instances and nfs status for a deployment
 	 * 
 	 * @param deploymentId
-	 * @param userId 
+	 * @param userId
 	 * @return
 	 */
 	public List<DeployStatus> getStatus(int deploymentId, int userId);
@@ -58,13 +58,17 @@ public interface DeploymentsService {
 	 * @param id
 	 * @param deploymentId
 	 */
-	public void deProvision(Integer id, Integer deploymentId);
+	public void deProvision(Integer userId, Integer deploymentId);
 
 	/**
-	 * MOunt external file store 
+	 * Mount external file store
+	 * 
+	 * @param userId
 	 * 
 	 * @param deploymentName
 	 */
-	public void mountNfs(String deploymentName);
+	public void mountNfs(Integer userId, String deploymentName);
+
+	public void deProvisionRemote(Integer userId, String deploymentName);
 
 }

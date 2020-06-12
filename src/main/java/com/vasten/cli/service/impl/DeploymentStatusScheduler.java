@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +77,9 @@ public class DeploymentStatusScheduler {
 	@Value("${PROJECT_KEYFILE_PATH}")
 	private String projectKeyFilePath;
 
+	@Value("${NEW_PROJECT_KEYFILE_PATH}")
+	private String newProjectKeyFilePath;
+
 	@Autowired
 	private DeploymentsRepository deploymentsRepository;
 
@@ -85,7 +89,7 @@ public class DeploymentStatusScheduler {
 	List<DeployStatus> deployStatusList = new ArrayList<DeployStatus>();
 
 	// @Scheduled()
-//	@Scheduled(cron = "0 0/1 * * * *")
+	@Scheduled(cron = "0 0/1 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("In the deployment status update scheduler");
@@ -189,33 +193,63 @@ public class DeploymentStatusScheduler {
 
 			String name[] = instanceName.split("-");
 
-			LOGGER.info("is " + name[1] + " cluster pending : " + nameList.contains(name[1]));
+			if (instanceName.startsWith("gke")) {
+				LOGGER.info("is " + name[1] + " cluster pending : " + nameList.contains(name[1]));
 
-			if (nameList.contains(name[1])) {
+				if (nameList.contains(name[1])) {
 
-				deployStatus.setDeploymentTypeName(instanceName);
-				deployStatus.setType(DeploymentType.INSTANCE);
+					deployStatus.setDeploymentTypeName(instanceName);
+					deployStatus.setType(DeploymentType.INSTANCE);
 
-				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(name[1]);
-				deployStatus.setDeploymentId(dbDeploy);
+					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(name[1]);
+					deployStatus.setDeploymentId(dbDeploy);
 
-				if (instanceStatus.equals("RUNNING")) {
+					if (instanceStatus.equals("RUNNING")) {
 
-					deployStatus.setStatus(DeploymentStatus.SUCCESS);
+						deployStatus.setStatus(DeploymentStatus.SUCCESS);
 
-				} else if (instanceStatus.equals("PROVISIONING")) {
+					} else if (instanceStatus.equals("PROVISIONING")) {
 
-					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
 
-				} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETED"))
-						|| (instanceStatus.equals("DELETING"))) {
+					} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETED"))
+							|| (instanceStatus.equals("DELETING"))) {
 
-					deployStatus.setStatus(DeploymentStatus.ERROR);
+						deployStatus.setStatus(DeploymentStatus.ERROR);
+					}
+
+					deployStatus.setExternalIp(externalIp);
+					this.saveinsdb(deployStatus);
 				}
-
-				deployStatus.setExternalIp(externalIp);
-				this.saveinsdb(deployStatus);
 			}
+
+//			LOGGER.info("is " + name[1] + " cluster pending : " + nameList.contains(name[1]));
+//
+//			if (nameList.contains(name[1])) {
+//
+//				deployStatus.setDeploymentTypeName(instanceName);
+//				deployStatus.setType(DeploymentType.INSTANCE);
+//
+//				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(name[1]);
+//				deployStatus.setDeploymentId(dbDeploy);
+//
+//				if (instanceStatus.equals("RUNNING")) {
+//
+//					deployStatus.setStatus(DeploymentStatus.SUCCESS);
+//
+//				} else if (instanceStatus.equals("PROVISIONING")) {
+//
+//					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+//
+//				} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETED"))
+//						|| (instanceStatus.equals("DELETING"))) {
+//
+//					deployStatus.setStatus(DeploymentStatus.ERROR);
+//				}
+//
+//				deployStatus.setExternalIp(externalIp);
+//				this.saveinsdb(deployStatus);
+//			}
 
 		}
 
@@ -286,14 +320,14 @@ public class DeploymentStatusScheduler {
 		String clusterName = "";
 		String clusterStatus = "";
 
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(projectKeyFilePath))
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
 		ClusterManagerSettings clusterManagerSettings = ClusterManagerSettings.newBuilder()
 				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
 
 		ClusterManagerClient clusterManagerClient = ClusterManagerClient.create(clusterManagerSettings);
-		ListClustersResponse response = clusterManagerClient.listClusters(projectId, zone);
+		ListClustersResponse response = clusterManagerClient.listClusters(newProjectId, newZone);
 
 		for (Cluster cluster : response.getClustersList()) {
 			clusterName = cluster.getName();
@@ -311,14 +345,14 @@ public class DeploymentStatusScheduler {
 	private ListInstancesPagedResponse getInstanceStatus() throws IOException {
 		LOGGER.info("Getting all instances status");
 
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(projectKeyFilePath))
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
 		InstanceSettings instanceSettings = InstanceSettings.newBuilder()
 				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
 
 		InstanceClient instanceClient = InstanceClient.create(instanceSettings);
-		ProjectZoneName projectZoneName = ProjectZoneName.of(projectId, zone);
+		ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, newZone);
 
 		ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
 
@@ -331,9 +365,9 @@ public class DeploymentStatusScheduler {
 		Map<String, String> nfsMap = new HashMap<String, String>();
 
 		String uri = "https://file.googleapis.com/v1/";
-		String requestListUri = uri + "projects/" + projectId + "/locations/" + zone + "/instances";
+		String requestListUri = uri + "projects/" + newProjectId + "/locations/" + newZone + "/instances";
 
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(projectKeyFilePath))
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
 		credentials.refresh();

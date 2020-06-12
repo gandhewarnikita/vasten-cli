@@ -186,6 +186,22 @@ public class ValidationUtility {
 		Deployments dbDeployment = deploymentsRepository.findOneByIdAndIsDeletedFalse(deploymentId);
 
 		if (dbDeployment == null) {
+			LOGGER.error("Deployment does not exist with this id");
+			validationErrorList.add(new ValidationError("id", "Deployment does not exist with this id"));
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
+	}
+
+	public void validateDeploymentName(String deploymentName) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(deploymentName);
+
+		if (dbDeployment == null) {
 			LOGGER.error("Deployment does not exist with this name");
 			validationErrorList.add(new ValidationError("name", "Deployment does not exist with this name"));
 		}
@@ -196,7 +212,7 @@ public class ValidationUtility {
 
 	}
 
-	public void validateDeploymentName(String deploymentName) {
+	public void validateDeployment(Integer id, String deploymentName) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
 		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(deploymentName);

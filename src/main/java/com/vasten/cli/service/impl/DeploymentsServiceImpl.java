@@ -84,6 +84,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	@Value("${APPLY_REMOTE_SHELL_PATH}")
 	public String applyRemoteShellPath;
 
+	@Value("${DESTROY_REMOTE_SHELL_PATH}")
+	public String destroyRemoteShellPath;
+
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
 
@@ -348,10 +351,10 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public void deProvision(Integer id, Integer deploymentId) {
+	public void deProvision(Integer userId, Integer deploymentId) {
 		LOGGER.info("Deleting instance by name of deployment");
 
-		User dbUser = userRepository.findOneById(id);
+		User dbUser = userRepository.findOneById(userId);
 
 		validationUtility.validateDeployment(dbUser.getId(), deploymentId);
 
@@ -373,16 +376,20 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 				try {
 					Process process = pbs.start();
 					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-					StringBuilder builder = new StringBuilder();
-					String line = null;
-					while ((line = reader.readLine()) != null) {
-						builder.append(line);
-					}
-					String result = builder.toString();
-					LOGGER.info("result : " + result);
+//					StringBuilder builder = new StringBuilder();
+//					String line = null;
+//					while ((line = reader.readLine()) != null) {
+//						builder.append(line);
+//					}
+					int exitCode = process.waitFor();
+					LOGGER.info("exit code : " + exitCode);
+//					String result = builder.toString();
+//					LOGGER.info("result : " + result);
 					LOGGER.info("end of script execution");
 				} catch (IOException e) {
 					LOGGER.error("error");
+					e.printStackTrace();
+				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 
@@ -434,12 +441,13 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public void mountNfs(String deploymentName) {
-		LOGGER.info("Mounting nfs filestore");
+	public void mountNfs(Integer userId, String deploymentName) {
+		LOGGER.info("Mounting nfs file store");
 
 		validationUtility.validateDeploymentName(deploymentName);
 
-		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(deploymentName);
+		User dbUser = userRepository.findOneById(userId);
+		Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, deploymentName);
 
 		String propertyFile = dbDeployment.getFileName();
 
@@ -454,17 +462,69 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 				try {
 					Process process = pb.start();
 					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-					StringBuilder builder = new StringBuilder();
-					String line = null;
-					while ((line = reader.readLine()) != null) {
-						builder.append(line);
-					}
-					LOGGER.info("Deployment mounted successfully");
-					String result = builder.toString();
-					LOGGER.info(result);
+//					StringBuilder builder = new StringBuilder();
+//					String line = null;
+//					while ((line = reader.readLine()) != null) {
+//						builder.append(line);
+//					}
+//					LOGGER.info("Deployment mounted successfully");
+					int exitCode = process.waitFor();
+					LOGGER.info("exit code : " + exitCode);
+//					String result = builder.toString();
+//					LOGGER.info(result);
 					LOGGER.info("end of script execution");
 				} catch (IOException e) {
 					LOGGER.error("error");
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+			}
+		});
+
+	}
+
+	@Override
+	public void deProvisionRemote(Integer userId, String deploymentName) {
+		LOGGER.info("Deleting the mounted file store");
+
+		User dbUser = userRepository.findOneById(userId);
+
+		validationUtility.validateDeployment(dbUser.getId(), deploymentName);
+
+		Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, deploymentName);
+		String propertyFile = dbDeployment.getFileName();
+
+		dbDeployment.setDeleted(true);
+
+		deploymentsRepository.save(dbDeployment);
+
+		String[] cmdarr = { destroyRemoteShellPath, propertyFile };
+
+		executorService.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				ProcessBuilder pbs = new ProcessBuilder(cmdarr);
+
+				try {
+					Process process = pbs.start();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//					StringBuilder builder = new StringBuilder();
+//					String line = null;
+//					while ((line = reader.readLine()) != null) {
+//						builder.append(line);
+//					}
+					int exitCode = process.waitFor();
+					LOGGER.info("exit code : " + exitCode);
+//					String result = builder.toString();
+//					LOGGER.info("result : " + result);
+					LOGGER.info("end of script execution");
+				} catch (IOException e) {
+					LOGGER.error("error");
+					e.printStackTrace();
+				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 

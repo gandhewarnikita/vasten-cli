@@ -336,14 +336,14 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public List<DeployStatus> getStatus(int deploymentId, int userId) {
+	public List<DeployStatus> getStatus(int deploymentId) {
 		LOGGER.info("Getting status of a deployment");
 
 		validationUtility.validateDeploymentId(deploymentId);
 
-		User dbUser = userRepository.findOneById(userId);
+	//	User dbUser = userRepository.findOneById(userId);
 
-		Deployments dbDeployment = deploymentsRepository.findOneByIdAndUserAndIsDeletedFalse(dbUser, deploymentId);
+		Deployments dbDeployment = deploymentsRepository.findOneByIdAndIsDeletedFalse(deploymentId);
 
 		List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
 

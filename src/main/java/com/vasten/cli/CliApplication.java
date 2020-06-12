@@ -9,8 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableAutoConfiguration
-@ComponentScan({ "com.vasten.cli", "com.vasten.cli.controller", "com.vasten.cli.security.config",
-		"com.vasten.cli.config", "com.vasten.cli.service.impl" })
+@ComponentScan({ "com.vasten"})
 @EnableScheduling
 public class CliApplication {
 

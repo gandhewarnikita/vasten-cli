@@ -40,7 +40,7 @@ public interface DeploymentsService {
 	 * @param userId
 	 * @return
 	 */
-	public List<DeployStatus> getStatus(int deploymentId, int userId);
+	public List<DeployStatus> getStatus(int deploymentId);
 
 	/**
 	 * Get cost of deployment

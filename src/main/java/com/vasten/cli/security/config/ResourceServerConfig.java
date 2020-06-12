@@ -16,15 +16,17 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
 	@Override
 	public void configure(ResourceServerSecurityConfigurer resources) {
+		System.out.println("in resource configure 1 resources");
 		resources.resourceId(RESOURCE_ID).stateless(false);
 	}
 
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
+		System.out.println("in resource configure 2 http");
 		http.anonymous().disable()
 		.authorizeRequests()
-		.antMatchers(HttpMethod.GET, "**/api/**").hasRole("ADMIN")
-		.antMatchers(HttpMethod.POST, "**/api/user/**").permitAll()
+		.antMatchers(HttpMethod.GET, "/api/**").hasRole("ADMIN")
+		.antMatchers(HttpMethod.POST, "/api/user/**").permitAll()
 		.and().exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
 	}
 }

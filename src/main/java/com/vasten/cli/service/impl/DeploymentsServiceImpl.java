@@ -339,18 +339,16 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public Map<String, List<StatusCli>> getStatus(int deploymentId, int userId) {
+	public Map<String, List<StatusCli>> getStatus(int deploymentId) {
 		LOGGER.info("Getting status of a deployment");
 
-		validationUtility.validateId(userId, deploymentId);
-
-		User dbUser = userRepository.findOneById(userId);
+		validationUtility.validateDeploymentId(deploymentId);
 
 		String deploymentName = "";
 		Map<String, List<StatusCli>> statusMap = new HashMap<String, List<StatusCli>>();
 		List<StatusCli> statusCliList = new ArrayList<StatusCli>();
 
-		Deployments dbDeployment = deploymentsRepository.findOneByIdAndUserAndIsDeletedFalse(dbUser, deploymentId);
+		Deployments dbDeployment = deploymentsRepository.findOneByIdAndIsDeletedFalse(deploymentId);
 		deploymentName = dbDeployment.getName();
 
 		List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);

@@ -228,24 +228,6 @@ public class ValidationUtility {
 
 	}
 
-	public void validateId(int userId, int deploymentId) {
-		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
-
-		User dbUser = userRepository.findOneById(userId);
-
-		Deployments dbDeployment = deploymentsRepository.findOneByIdAndUserAndIsDeletedFalse(dbUser, deploymentId);
-
-		if (dbDeployment == null) {
-			LOGGER.error("Deployment does not exist with this id and user");
-			validationErrorList.add(new ValidationError("id", "Deployment does not exist with this id and user"));
-		}
-
-		if (validationErrorList != null && !validationErrorList.isEmpty()) {
-			throw new CliBadRequestException("Bad Request", validationErrorList);
-		}
-
-	}
-
 //	public void validateClusterName(String name) {
 //		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 //

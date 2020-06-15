@@ -39,10 +39,9 @@ public interface DeploymentsService {
 	 * Get status of cluster, instances and nfs status for a deployment
 	 * 
 	 * @param deploymentId
-	 * @param userId
 	 * @return
 	 */
-	public Map<String, List<StatusCli>> getStatus(int deploymentId, int userId);
+	public Map<String, List<StatusCli>> getStatus(int deploymentId);
 
 	/**
 	 * Get cost of deployment

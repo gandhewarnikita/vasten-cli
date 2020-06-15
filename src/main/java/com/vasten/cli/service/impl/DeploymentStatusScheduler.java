@@ -223,34 +223,6 @@ public class DeploymentStatusScheduler {
 				}
 			}
 
-//			LOGGER.info("is " + name[1] + " cluster pending : " + nameList.contains(name[1]));
-//
-//			if (nameList.contains(name[1])) {
-//
-//				deployStatus.setDeploymentTypeName(instanceName);
-//				deployStatus.setType(DeploymentType.INSTANCE);
-//
-//				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(name[1]);
-//				deployStatus.setDeploymentId(dbDeploy);
-//
-//				if (instanceStatus.equals("RUNNING")) {
-//
-//					deployStatus.setStatus(DeploymentStatus.SUCCESS);
-//
-//				} else if (instanceStatus.equals("PROVISIONING")) {
-//
-//					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-//
-//				} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETED"))
-//						|| (instanceStatus.equals("DELETING"))) {
-//
-//					deployStatus.setStatus(DeploymentStatus.ERROR);
-//				}
-//
-//				deployStatus.setExternalIp(externalIp);
-//				this.saveinsdb(deployStatus);
-//			}
-
 		}
 
 		if (!CollectionUtils.isEmpty(nfsMap)) {
@@ -295,7 +267,6 @@ public class DeploymentStatusScheduler {
 			}
 
 		}
-
 	}
 
 	private void savenfsdb(DeployStatus deployStatus) {

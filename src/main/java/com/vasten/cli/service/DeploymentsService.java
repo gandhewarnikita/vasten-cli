@@ -42,7 +42,7 @@ public interface DeploymentsService {
 	 * @param userId
 	 * @return
 	 */
-	public Map<String, List<StatusCli>> getStatus(int deploymentId);
+	public Map<String, List<StatusCli>> getStatus(int deploymentId, int userId);
 
 	/**
 	 * Get cost of deployment

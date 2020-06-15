@@ -339,31 +339,33 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public Map<String, List<StatusCli>> getStatus(int deploymentId) {
+	public Map<String, List<StatusCli>> getStatus(int deploymentId, int userId) {
 		LOGGER.info("Getting status of a deployment");
 
-		validationUtility.validateDeploymentId(deploymentId);
+		validationUtility.validateId(userId, deploymentId);
+
+		User dbUser = userRepository.findOneById(userId);
 
 		String deploymentName = "";
 		Map<String, List<StatusCli>> statusMap = new HashMap<String, List<StatusCli>>();
 		List<StatusCli> statusCliList = new ArrayList<StatusCli>();
 
-		Deployments dbDeployment = deploymentsRepository.findOneByIdAndIsDeletedFalse(deploymentId);
+		Deployments dbDeployment = deploymentsRepository.findOneByIdAndUserAndIsDeletedFalse(dbUser, deploymentId);
 		deploymentName = dbDeployment.getName();
 
 		List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
-		
-		for(DeployStatus deployStatusObj : deployStatusList) {
+
+		for (DeployStatus deployStatusObj : deployStatusList) {
 			StatusCli statusCli = new StatusCli();
-			
+
 			statusCli.setDeploymentTypeName(deployStatusObj.getDeploymentTypeName());
 			statusCli.setExternalIp(deployStatusObj.getExternalIp());
 			statusCli.setStatus(deployStatusObj.getStatus().toString());
 			statusCli.setType(deployStatusObj.getType().toString());
-			
+
 			statusCliList.add(statusCli);
 		}
-		
+
 		statusMap.put(deploymentName, statusCliList);
 
 		return statusMap;

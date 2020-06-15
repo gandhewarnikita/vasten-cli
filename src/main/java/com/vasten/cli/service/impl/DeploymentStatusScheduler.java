@@ -194,7 +194,8 @@ public class DeploymentStatusScheduler {
 			String name[] = instanceName.split("-");
 
 			if (instanceName.startsWith("gke")) {
-				
+				LOGGER.info("instance name : " + instanceName);
+
 				LOGGER.info("is " + name[1] + " cluster pending : " + nameList.contains(name[1]));
 
 				if (nameList.contains(name[1])) {

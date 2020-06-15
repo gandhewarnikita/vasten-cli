@@ -3,9 +3,11 @@ package com.vasten.cli.service;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.StatusCli;
 
 /**
  * Service interface for Deployment related activities
@@ -40,7 +42,7 @@ public interface DeploymentsService {
 	 * @param userId
 	 * @return
 	 */
-	public List<DeployStatus> getStatus(int deploymentId);
+	public Map<String, List<StatusCli>> getStatus(int deploymentId);
 
 	/**
 	 * Get cost of deployment

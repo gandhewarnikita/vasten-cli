@@ -17,7 +17,9 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,6 +56,7 @@ import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.DeploymentStatus;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.StatusCli;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
@@ -336,18 +339,34 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public List<DeployStatus> getStatus(int deploymentId) {
+	public Map<String, List<StatusCli>> getStatus(int deploymentId) {
 		LOGGER.info("Getting status of a deployment");
 
 		validationUtility.validateDeploymentId(deploymentId);
 
-	//	User dbUser = userRepository.findOneById(userId);
+		String deploymentName = "";
+		Map<String, List<StatusCli>> statusMap = new HashMap<String, List<StatusCli>>();
+		List<StatusCli> statusCliList = new ArrayList<StatusCli>();
 
 		Deployments dbDeployment = deploymentsRepository.findOneByIdAndIsDeletedFalse(deploymentId);
+		deploymentName = dbDeployment.getName();
 
 		List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+		
+		for(DeployStatus deployStatusObj : deployStatusList) {
+			StatusCli statusCli = new StatusCli();
+			
+			statusCli.setDeploymentTypeName(deployStatusObj.getDeploymentTypeName());
+			statusCli.setExternalIp(deployStatusObj.getExternalIp());
+			statusCli.setStatus(deployStatusObj.getStatus().toString());
+			statusCli.setType(deployStatusObj.getType().toString());
+			
+			statusCliList.add(statusCli);
+		}
+		
+		statusMap.put(deploymentName, statusCliList);
 
-		return deployStatusList;
+		return statusMap;
 	}
 
 	@Override

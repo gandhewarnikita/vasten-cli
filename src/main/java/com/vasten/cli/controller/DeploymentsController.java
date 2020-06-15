@@ -3,6 +3,7 @@ package com.vasten.cli.controller;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.websocket.server.PathParam;
 
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.StatusCli;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.security.config.SecurityUtil;
 import com.vasten.cli.service.DeploymentsService;
@@ -83,10 +85,10 @@ public class DeploymentsController {
 	 * @return
 	 */
 	@RequestMapping(value = "/status/deploymentId/{deploymentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<DeployStatus> getStatus(@PathVariable int deploymentId) {
+	public Map<String, List<StatusCli>> getStatus(@PathVariable int deploymentId) {
 		LOGGER.info("Api received to get status of deployment");
 	//	User user = securityUtil.getLoggedInUser();
-		List<DeployStatus> deploymentStatus = deploymentsService.getStatus(deploymentId);
+		Map<String, List<StatusCli>> deploymentStatus = deploymentsService.getStatus(deploymentId);
 		return deploymentStatus;
 	}
 

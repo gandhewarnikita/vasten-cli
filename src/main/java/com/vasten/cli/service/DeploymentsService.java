@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.StatusCli;
 
@@ -36,7 +35,7 @@ public interface DeploymentsService {
 	public List<Deployments> getAll(int id, String name);
 
 	/**
-	 * Get status of cluster, instances and nfs status for a deployment
+	 * Get status of cluster, instances and file store of a deployment
 	 * 
 	 * @param deploymentId
 	 * @return
@@ -44,7 +43,7 @@ public interface DeploymentsService {
 	public Map<String, List<StatusCli>> getStatus(int deploymentId);
 
 	/**
-	 * Get cost of deployment
+	 * Get cost of a deployment
 	 * 
 	 * @param deploymentId
 	 * @return
@@ -62,7 +61,7 @@ public interface DeploymentsService {
 	public void deProvision(Integer userId, Integer deploymentId);
 
 	/**
-	 * Mount external file store
+	 * Mount external file store for a user
 	 * 
 	 * @param userId
 	 * 
@@ -70,6 +69,12 @@ public interface DeploymentsService {
 	 */
 	public void mountNfs(Integer userId, String deploymentName);
 
+	/**
+	 * Delete external file store of a user
+	 * 
+	 * @param userId
+	 * @param deploymentName
+	 */
 	public void deProvisionRemote(Integer userId, String deploymentName);
 
 }

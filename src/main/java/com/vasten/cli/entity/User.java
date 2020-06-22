@@ -17,6 +17,12 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Class for User data
+ * 
+ * @author scriptuit
+ *
+ */
 @Entity
 @Table(name = "user")
 public class User {

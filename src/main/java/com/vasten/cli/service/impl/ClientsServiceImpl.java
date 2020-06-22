@@ -10,6 +10,12 @@ import com.vasten.cli.repository.ClientsRepository;
 import com.vasten.cli.service.ClientsService;
 import com.vasten.cli.utility.ValidationUtility;
 
+/**
+ * Service implementation class for Client related activities
+ * 
+ * @author scriptuit
+ *
+ */
 @Service
 public class ClientsServiceImpl implements ClientsService {
 

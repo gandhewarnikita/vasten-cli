@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +87,6 @@ public class DeploymentStatusScheduler {
 
 	List<DeployStatus> deployStatusList = new ArrayList<DeployStatus>();
 
-	// @Scheduled()
 	@Scheduled(cron = "0 0/1 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
@@ -286,6 +284,7 @@ public class DeploymentStatusScheduler {
 
 	}
 
+	// Get the status of cluster from GCP console
 	private Map<String, String> getClusterStatus() throws FileNotFoundException, IOException {
 		LOGGER.info("Getting status of all deployments");
 
@@ -315,6 +314,7 @@ public class DeploymentStatusScheduler {
 		return clusterMap;
 	}
 
+	// Get the status of instances created by the cluster from GCP console
 	private ListInstancesPagedResponse getInstanceStatus() throws IOException {
 		LOGGER.info("Getting all instances status");
 
@@ -332,6 +332,7 @@ public class DeploymentStatusScheduler {
 		return instanceList;
 	}
 
+	// Get the status of file store from GCP console
 	private Map<String, String> getNfsStatus() throws IOException {
 		LOGGER.info("Getting nfs status");
 

@@ -6,6 +6,12 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * Class for Refresh Token data
+ * 
+ * @author scriptuit
+ *
+ */
 @Entity
 @Table(name = "oauth_refresh_token")
 public class OauthRefreshToken {

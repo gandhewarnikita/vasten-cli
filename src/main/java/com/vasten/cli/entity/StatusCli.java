@@ -1,5 +1,11 @@
 package com.vasten.cli.entity;
 
+/**
+ * Class for storing Deployment status data
+ * 
+ * @author scriptuit
+ *
+ */
 public class StatusCli {
 
 	private String type;

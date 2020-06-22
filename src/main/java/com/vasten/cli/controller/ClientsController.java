@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vasten.cli.entity.Clients;
-import com.vasten.cli.security.config.SecurityUtil;
 import com.vasten.cli.service.ClientsService;
 
 /**

@@ -9,18 +9,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.security.GeneralSecurityException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,23 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.gax.core.FixedCredentialsProvider;
-import com.google.api.services.cloudbilling.Cloudbilling;
-import com.google.api.services.cloudbilling.model.BillingAccount;
-import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.billing.v1.CloudBillingClient;
 import com.google.cloud.billing.v1.CloudBillingSettings;
@@ -67,6 +46,12 @@ import com.vasten.cli.repository.UserRepository;
 import com.vasten.cli.service.DeploymentsService;
 import com.vasten.cli.utility.ValidationUtility;
 
+/**
+ * Service implementation class for Deployment related activities
+ * 
+ * @author scriptuit
+ *
+ */
 @Service
 public class DeploymentsServiceImpl implements DeploymentsService {
 
@@ -93,8 +78,6 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
 
-	private static final String billingUrl = "https://cloudbilling.googleapis.com/v1/";
-
 	@Autowired
 	private DeploymentsRepository deploymentsRepository;
 
@@ -109,6 +92,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	ExecutorService executorService = Executors.newFixedThreadPool(5);
 
+	/* (non-Javadoc)
+	 * @see com.vasten.cli.service.DeploymentsService#createDeployment(int, com.vasten.cli.entity.Deployments)
+	 */
 	@Override
 	public Deployments createDeployment(int id, Deployments provisionData) {
 
@@ -232,10 +218,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		}
 
 		String[] cmd = { applyShellPath, fileName };
-		LOGGER.info("cmd[] : " + Arrays.toString(cmd));
 
 		ProcessBuilder pb = new ProcessBuilder(cmd);
-		LOGGER.info("process builder : " + pb);
 
 		executorService.execute(new Runnable() {
 
@@ -243,17 +227,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			public void run() {
 				try {
 					Process process = pb.start();
-					LOGGER.info("process : " + process);
-					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//					StringBuilder builder = new StringBuilder();
-//					String line = null;
-//					while ((line = reader.readLine()) != null) {
-//						builder.append(line);
-//					}
 					int exitCode = process.waitFor();
 					LOGGER.info("exit code : " + exitCode);
-//					String result = builder.toString();
-//					LOGGER.info(result);
 					LOGGER.info("end of script execution");
 				} catch (IOException e) {
 					LOGGER.error("error");
@@ -265,46 +240,18 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			}
 		});
 
-//		executorService.execute(new Runnable() {
-//
-//			@Override
-//			public void run() {
-//				ProcessBuilder pb = new ProcessBuilder(cmd);
-//				LOGGER.info("process builder : " + pb);
-//
-//				try {
-//					Process process = pb.start();
-//					LOGGER.info("process : " + process);
-//					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//					StringBuilder builder = new StringBuilder();
-//					String line = null;
-//					while ((line = reader.readLine()) != null) {
-//						builder.append(line);
-//					}
-//					String result = builder.toString();
-//					LOGGER.info(result);
-//					LOGGER.info("end of script execution");
-//				} catch (IOException e) {
-//					LOGGER.error("error");
-//					e.printStackTrace();
-//				}
-//
-//			}
-//		});
-
 		return newDeployment;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vasten.cli.service.DeploymentsService#getAll(int, java.lang.String)
+	 */
 	@Override
 	public List<Deployments> getAll(int id, String name) {
 		LOGGER.info("Getting all deployments");
 
 		List<Deployments> deploymentList = new ArrayList<Deployments>();
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
-
-		// validationUtility.validateClientId(clientId);
-
-		// Clients dbClient = clientsRepository.findOneById(clientId);
 
 		User dbUser = userRepository.findOneById(id);
 
@@ -338,6 +285,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vasten.cli.service.DeploymentsService#getStatus(int)
+	 */
 	@Override
 	public Map<String, List<StatusCli>> getStatus(int deploymentId) {
 		LOGGER.info("Getting status of a deployment");
@@ -369,6 +319,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		return statusMap;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vasten.cli.service.DeploymentsService#deProvision(java.lang.Integer, java.lang.Integer)
+	 */
 	@Override
 	public void deProvision(Integer userId, Integer deploymentId) {
 		LOGGER.info("Deleting instance by name of deployment");
@@ -394,16 +347,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 				try {
 					Process process = pbs.start();
-					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//					StringBuilder builder = new StringBuilder();
-//					String line = null;
-//					while ((line = reader.readLine()) != null) {
-//						builder.append(line);
-//					}
 					int exitCode = process.waitFor();
 					LOGGER.info("exit code : " + exitCode);
-//					String result = builder.toString();
-//					LOGGER.info("result : " + result);
 					LOGGER.info("end of script execution");
 				} catch (IOException e) {
 					LOGGER.error("error");
@@ -417,6 +362,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vasten.cli.service.DeploymentsService#getCost(int)
+	 */
 	@Override
 	public float getCost(int deploymentId) throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
@@ -459,6 +407,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		return 0;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vasten.cli.service.DeploymentsService#mountNfs(java.lang.Integer, java.lang.String)
+	 */
 	@Override
 	public void mountNfs(Integer userId, String deploymentName) {
 		LOGGER.info("Mounting nfs file store");
@@ -480,17 +431,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 				try {
 					Process process = pb.start();
-					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//					StringBuilder builder = new StringBuilder();
-//					String line = null;
-//					while ((line = reader.readLine()) != null) {
-//						builder.append(line);
-//					}
-//					LOGGER.info("Deployment mounted successfully");
 					int exitCode = process.waitFor();
 					LOGGER.info("exit code : " + exitCode);
-//					String result = builder.toString();
-//					LOGGER.info(result);
 					LOGGER.info("end of script execution");
 				} catch (IOException e) {
 					LOGGER.error("error");
@@ -504,6 +446,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see com.vasten.cli.service.DeploymentsService#deProvisionRemote(java.lang.Integer, java.lang.String)
+	 */
 	@Override
 	public void deProvisionRemote(Integer userId, String deploymentName) {
 		LOGGER.info("Deleting the mounted file store");
@@ -529,16 +474,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 				try {
 					Process process = pbs.start();
-					BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//					StringBuilder builder = new StringBuilder();
-//					String line = null;
-//					while ((line = reader.readLine()) != null) {
-//						builder.append(line);
-//					}
 					int exitCode = process.waitFor();
 					LOGGER.info("exit code : " + exitCode);
-//					String result = builder.toString();
-//					LOGGER.info("result : " + result);
 					LOGGER.info("end of script execution");
 				} catch (IOException e) {
 					LOGGER.error("error");

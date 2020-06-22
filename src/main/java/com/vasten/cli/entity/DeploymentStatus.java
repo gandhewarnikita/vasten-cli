@@ -1,5 +1,11 @@
 package com.vasten.cli.entity;
 
+/**
+ * Enum for Deployment status
+ * 
+ * @author scriptuit
+ *
+ */
 public enum DeploymentStatus {
 
 	PENDING("PENDING"), SUCCESS("SUCCESS"), ERROR("ERROR"), PROVISIONING("PROVISIONING");

@@ -6,6 +6,12 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * Class for Oauth Token data
+ * 
+ * @author scriptuit
+ *
+ */
 @Entity
 @Table(name = "oauth_access_token")
 public class OauthAccessToken {

@@ -9,6 +9,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * Class for Deployment cost data
+ * 
+ * @author scriptuit
+ *
+ */
 @Entity
 @Table(name = "deployment_cost")
 public class DeploymentCost {

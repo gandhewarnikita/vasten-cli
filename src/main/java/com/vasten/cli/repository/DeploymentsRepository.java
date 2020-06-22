@@ -5,11 +5,16 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeploymentStatus;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.User;
 
+/**
+ * Repository for Deployment related activity
+ * 
+ * @author scriptuit
+ *
+ */
 @Repository
 public interface DeploymentsRepository extends JpaRepository<Deployments, Integer> {
 

@@ -11,6 +11,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+/**
+ * Class for status of cluster, instances and file store
+ * 
+ * @author scriptuit
+ *
+ */
 @Entity
 @Table(name = "deploystatus")
 public class DeployStatus {

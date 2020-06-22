@@ -19,6 +19,12 @@ import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Class for Deployment data
+ * 
+ * @author scriptuit
+ *
+ */
 @Entity
 @Table(name = "deployments")
 public class Deployments {

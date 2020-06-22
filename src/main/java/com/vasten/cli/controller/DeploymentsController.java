@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import javax.websocket.server.PathParam;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.vasten.cli.entity.Clients;
-import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.StatusCli;
 import com.vasten.cli.entity.User;
@@ -45,7 +41,7 @@ public class DeploymentsController {
 	private SecurityUtil securityUtil;
 
 	/**
-	 * Create deployment of user
+	 * Create deployment for a user
 	 * 
 	 * @param provisionData
 	 * @return
@@ -62,7 +58,7 @@ public class DeploymentsController {
 	}
 
 	/**
-	 * Get all deployments of user
+	 * Get all deployments of a user
 	 * 
 	 * @param clientId
 	 * @return
@@ -107,7 +103,7 @@ public class DeploymentsController {
 	}
 
 	/**
-	 * Delete deployment of user
+	 * Delete deployment of a user
 	 * 
 	 * @param name
 	 */
@@ -121,7 +117,7 @@ public class DeploymentsController {
 	}
 
 	/**
-	 * Mount external filestore
+	 * Mount external file store for a user
 	 * 
 	 * @param deploymentName
 	 */
@@ -132,6 +128,11 @@ public class DeploymentsController {
 		deploymentsService.mountNfs(user.getId(), deploymentName);
 	}
 
+	/**
+	 * Delete external file store of a user
+	 * 
+	 * @param deploymentName
+	 */
 	@RequestMapping(value = "/deleteMount/deploymentName/{deploymentname}", method = RequestMethod.DELETE)
 	public void deProvisionRemote(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to delete mounted nfs");

@@ -9,16 +9,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.vasten.cli.entity.Clients;
-import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
 import com.vasten.cli.repository.ClientsRepository;
-import com.vasten.cli.repository.DeployStatusRepository;
 import com.vasten.cli.repository.DeploymentsRepository;
 import com.vasten.cli.repository.UserRepository;
 
+/**
+ * Utility class for validation of data
+ * 
+ * @author scriptuit
+ *
+ */
 @Component
 public class ValidationUtility {
 
@@ -33,9 +37,12 @@ public class ValidationUtility {
 	@Autowired
 	private UserRepository userRepository;
 
-	@Autowired
-	private DeployStatusRepository deployStatusRepository;
-
+	/**
+	 * Validation for create deployment
+	 * 
+	 * @param id
+	 * @param provisionData
+	 */
 	public void validateDeploymentData(int id, Deployments provisionData) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
@@ -126,6 +133,11 @@ public class ValidationUtility {
 
 	}
 
+	/**
+	 * Validation for client id
+	 * 
+	 * @param clientId
+	 */
 	public void validateClientId(int clientId) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
@@ -142,6 +154,12 @@ public class ValidationUtility {
 
 	}
 
+	/**
+	 * Validation for user id and deployment id
+	 * 
+	 * @param userId
+	 * @param deploymentId
+	 */
 	public void validateDeployment(Integer userId, Integer deploymentId) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
@@ -159,6 +177,11 @@ public class ValidationUtility {
 
 	}
 
+	/**
+	 * Validation for client data
+	 * 
+	 * @param clientData
+	 */
 	public void validateClientData(Clients clientData) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
@@ -180,6 +203,11 @@ public class ValidationUtility {
 
 	}
 
+	/**
+	 * Validation for deployment id
+	 * 
+	 * @param deploymentId
+	 */
 	public void validateDeploymentId(int deploymentId) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
@@ -196,6 +224,11 @@ public class ValidationUtility {
 
 	}
 
+	/**
+	 * Validation for deployment name
+	 * 
+	 * @param deploymentName
+	 */
 	public void validateDeploymentName(String deploymentName) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
@@ -212,6 +245,12 @@ public class ValidationUtility {
 
 	}
 
+	/**
+	 * Validate deployment name and user id
+	 * 
+	 * @param id
+	 * @param deploymentName
+	 */
 	public void validateDeployment(Integer id, String deploymentName) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
@@ -227,21 +266,5 @@ public class ValidationUtility {
 		}
 
 	}
-
-//	public void validateClusterName(String name) {
-//		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
-//
-//		DeployStatus dbDeployment = deployStatusRepository.findByName(name);
-//
-//		if (dbDeployment == null) {
-//			LOGGER.error("Deployment does not exist with this name");
-//			validationErrorList.add(new ValidationError("name", "Deployment does not exist with this name"));
-//		}
-//
-//		if (validationErrorList != null && !validationErrorList.isEmpty()) {
-//			throw new CliBadRequestException("Bad Request", validationErrorList);
-//		}
-//
-//	}
 
 }

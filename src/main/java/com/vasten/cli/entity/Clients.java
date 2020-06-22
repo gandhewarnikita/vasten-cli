@@ -7,6 +7,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * Class for CLient data
+ * 
+ * @author scriptuit
+ *
+ */
 @Entity
 @Table(name = "clients")
 public class Clients {

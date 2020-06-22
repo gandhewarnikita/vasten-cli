@@ -5,6 +5,12 @@ import org.springframework.stereotype.Repository;
 
 import com.vasten.cli.entity.User;
 
+/**
+ * Repository for User related activity
+ * 
+ * @author scriptuit
+ *
+ */
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
 

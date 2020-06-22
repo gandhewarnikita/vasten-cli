@@ -1,5 +1,11 @@
 package com.vasten.cli.entity;
 
+/**
+ * Enum for Deployment type
+ * 
+ * @author scriptuit
+ *
+ */
 public enum DeploymentType {
 
 	CLUSTER("CLUSTER"),INSTANCE("INSTANCE"), NFS("NFS");

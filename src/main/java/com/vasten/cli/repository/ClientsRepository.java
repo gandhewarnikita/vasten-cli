@@ -5,6 +5,12 @@ import org.springframework.stereotype.Repository;
 
 import com.vasten.cli.entity.Clients;
 
+/**
+ * Repository for Client related activity
+ * 
+ * @author scriptuit
+ *
+ */
 @Repository
 public interface ClientsRepository extends JpaRepository<Clients, Integer> {
 

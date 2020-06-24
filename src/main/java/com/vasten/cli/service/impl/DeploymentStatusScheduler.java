@@ -349,20 +349,12 @@ public class DeploymentStatusScheduler {
 
 	}
 
+	// Get all instance groups and their status from GCP
 	private ListInstanceGroupManagersPagedResponse getInstanceGroup() throws FileNotFoundException, IOException {
 		LOGGER.info("Getting all the instance groups");
 
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-
-//		InstanceGroupSettings instanceGroupSettings = InstanceGroupSettings.newBuilder()
-//				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-//
-//		InstanceGroupClient instanceGroupClient = InstanceGroupClient.create(instanceGroupSettings);
-//		ProjectZoneName projectZoneNameGroup = ProjectZoneName.of(newProjectId, zone);
-//
-//		ListInstanceGroupsPagedResponse instanceGroupList = instanceGroupClient
-//				.listInstanceGroups(projectZoneNameGroup);
 
 		InstanceGroupManagerSettings instanceGroupManagerSettings = InstanceGroupManagerSettings.newBuilder()
 				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();

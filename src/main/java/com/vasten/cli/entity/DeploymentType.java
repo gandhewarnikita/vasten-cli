@@ -8,8 +8,8 @@ package com.vasten.cli.entity;
  */
 public enum DeploymentType {
 
-	CLUSTER("CLUSTER"),INSTANCE("INSTANCE"), NFS("NFS");
-	
+	CLUSTER("CLUSTER"), INSTANCE("INSTANCE"), NFS("NFS"), INSTANCE_GROUP("INSTANCE_GROUP");
+
 	private String status;
 
 	DeploymentType(String status) {

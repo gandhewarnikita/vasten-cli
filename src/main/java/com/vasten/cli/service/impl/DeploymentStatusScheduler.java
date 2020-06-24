@@ -30,21 +30,25 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.compute.v1.AccessConfig;
 import com.google.cloud.compute.v1.Instance;
 import com.google.cloud.compute.v1.InstanceClient;
+import com.google.cloud.compute.v1.InstanceGroupClient;
+import com.google.cloud.compute.v1.InstanceGroupManagerClient;
+import com.google.cloud.compute.v1.InstanceGroupManagerClient.ListInstanceGroupManagersPagedResponse;
+import com.google.cloud.compute.v1.InstanceGroupClient.ListInstanceGroupsPagedResponse;
+import com.google.cloud.compute.v1.InstanceGroupManagerSettings;
+import com.google.cloud.compute.v1.InstanceGroupSettings;
 import com.google.cloud.compute.v1.InstanceClient.ListInstancesPagedResponse;
+import com.google.cloud.compute.v1.InstanceGroup;
 import com.google.cloud.compute.v1.InstanceSettings;
 import com.google.cloud.compute.v1.NetworkInterface;
 import com.google.cloud.compute.v1.ProjectZoneName;
-import com.google.cloud.container.v1.ClusterManagerClient;
-import com.google.cloud.container.v1.ClusterManagerSettings;
 import com.google.common.collect.Lists;
-import com.google.container.v1.Cluster;
-import com.google.container.v1.ListClustersResponse;
 import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.DeploymentStatus;
 import com.vasten.cli.entity.DeploymentType;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.repository.DeployStatusRepository;
 import com.vasten.cli.repository.DeploymentsRepository;
+import com.google.cloud.compute.v1.InstanceGroupManager;
 
 /**
  * Scheduler for fetching status of deployment's cluster, instance and nfs from
@@ -85,17 +89,11 @@ public class DeploymentStatusScheduler {
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
 
-	List<DeployStatus> deployStatusList = new ArrayList<DeployStatus>();
-
-	@Scheduled(cron = "0 0/1 * * * *")
-//	@Scheduled(cron = "10 * * * * *")
+//	@Scheduled(cron = "0 0/1 * * * *")
+	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("In the deployment status update scheduler");
 
-		String clusterName = "";
-		String status = "";
-		String instanceName = "";
-		String instanceStatus = "";
 		String nfsName = "";
 		String nfsStatus = "";
 
@@ -109,164 +107,231 @@ public class DeploymentStatusScheduler {
 			nameList.add(dbDeployment.getName());
 		}
 
-		Map<String, String> clusterMap = this.getClusterStatus();
+		List<String> instanceGroupNameList = new ArrayList<String>();
 
-		ListInstancesPagedResponse instanceList = this.getInstanceStatus();
+		ListInstanceGroupManagersPagedResponse instanceGroupList = this.getInstanceGroup();
+
+		LOGGER.info("If instance group list contains an instance group : "
+				+ instanceGroupList.iterateAll().iterator().hasNext());
 
 		Map<String, String> nfsMap = this.getNfsStatus();
 
-		if (!CollectionUtils.isEmpty(clusterMap)) {
+		if (instanceGroupList.iterateAll().iterator().hasNext()) {
 
-			for (Map.Entry<String, String> entry : clusterMap.entrySet()) {
+			for (InstanceGroupManager element : instanceGroupList.iterateAll()) {
+
 				DeployStatus deployStatus = new DeployStatus();
 
-				LOGGER.info("In cluster map");
-				LOGGER.info("cluster name : " + entry.getKey() + " & cluster status : " + entry.getValue());
+				String instanceGroupName = "";
+				boolean instanceGroupStatus;
 
-				clusterName = entry.getKey();
-				String name[] = clusterName.split("-");
-				String newname = name[0];
+				instanceGroupName = element.getName();
+				instanceGroupNameList.add(instanceGroupName);
 
-				LOGGER.info("is " + clusterName + " pending : " + nameList.contains(newname));
+				instanceGroupStatus = element.getStatus().getIsStable();
+				LOGGER.info("instance group status : " + instanceGroupStatus);
 
-				if (nameList.contains(newname)) {
+				if (nameList.contains(instanceGroupName)) {
 
-					deployStatus.setDeploymentTypeName(clusterName);
+					deployStatus.setDeploymentTypeName(instanceGroupName);
+					deployStatus.setType(DeploymentType.INSTANCE_GROUP);
 
-					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(newname);
-
+					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(instanceGroupName);
 					deployStatus.setDeploymentId(dbDeploy);
-					deployStatus.setType(DeploymentType.CLUSTER);
 
-					status = entry.getValue();
+					if (dbDeploy != null) {
+						if (dbDeploy.getStatus().equals(DeploymentStatus.PENDING)) {
+							dbDeploy.setStatus(DeploymentStatus.SUCCESS);
+							deploymentsRepository.save(dbDeploy);
+						}
+					}
 
-					if (status.equals("RUNNING")) {
+					if (instanceGroupStatus) {
 
 						deployStatus.setStatus(DeploymentStatus.SUCCESS);
 
-						if (dbDeploy != null) {
-							if (dbDeploy.getStatus().equals(DeploymentStatus.PENDING)) {
-								dbDeploy.setStatus(DeploymentStatus.SUCCESS);
-								deploymentsRepository.save(dbDeploy);
+					} else {
+
+						deployStatus.setStatus(DeploymentStatus.ERROR);
+					}
+
+					this.saveinsgroupdb(deployStatus);
+
+					this.getInstanceStatus(nameList, instanceGroupNameList);
+				}
+			}
+
+			if (!CollectionUtils.isEmpty(nfsMap)) {
+
+				for (Map.Entry<String, String> entry : nfsMap.entrySet()) {
+
+					DeployStatus deployStatus = new DeployStatus();
+
+					LOGGER.info("in nfs map");
+
+					nfsName = entry.getKey();
+					nfsStatus = entry.getValue();
+
+					LOGGER.info("nfs name : " + nfsName + " & nfs status : " + nfsStatus);
+
+					// LOGGER.info("is " + nfsName + " cluster pending : " +
+					// nameList.contains(nfsName));
+
+					if (nameList.contains(nfsName)) {
+
+						deployStatus.setDeploymentTypeName(nfsName);
+						deployStatus.setType(DeploymentType.NFS);
+
+						Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(nfsName);
+						deployStatus.setDeploymentId(dbDeploy);
+
+						if (nfsStatus.equals("READY")) {
+
+							deployStatus.setStatus(DeploymentStatus.SUCCESS);
+
+						} else if (nfsStatus.equals("PROVISIONING")) {
+
+							deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+
+						} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
+								|| (nfsStatus.equals("DELETED"))) {
+
+							deployStatus.setStatus(DeploymentStatus.ERROR);
+						}
+
+						this.savenfsdb(deployStatus);
+
+					}
+
+				}
+
+			}
+		}
+	}
+
+	private void getInstanceStatus(List<String> instanceGroupNameList, List<String> nameList)
+			throws FileNotFoundException, IOException {
+		String name = "";
+		String instance = "";
+		String status = "";
+		String externalIp = "";
+
+		String uri = "https://compute.googleapis.com/compute/v1/";
+
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
+				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+
+		credentials.refresh();
+
+		AccessToken token = credentials.getAccessToken();
+
+		if (!CollectionUtils.isEmpty(instanceGroupNameList)) {
+
+			for (String instanceGroupName : instanceGroupNameList) {
+
+				String requestListUri = uri + "projects/" + newProjectId + "/zones/" + newZone
+						+ "/instanceGroupManagers/" + instanceGroupName + "/listManagedInstances";
+
+				RestTemplate template = new RestTemplate();
+
+				HttpHeaders headers = new HttpHeaders();
+				headers.set("Authorization", "Bearer " + token.getTokenValue());
+				headers.set("Content-Type", "application/json");
+
+				HttpEntity<Object> entity = new HttpEntity<Object>(null, headers);
+
+				ResponseEntity<String> resultList = template.exchange(requestListUri, HttpMethod.POST, entity,
+						String.class);
+
+				LOGGER.info("result : " + resultList.getBody());
+
+				JSONObject jobj = new JSONObject(resultList.getBody());
+
+				if (!jobj.isEmpty()) {
+					JSONArray jarr = jobj.getJSONArray("managedInstances");
+
+					for (int i = 0; i < jarr.length(); i++) {
+						DeployStatus deployStatus = new DeployStatus();
+
+						JSONObject jobj2 = jarr.getJSONObject(i);
+
+						instance = jobj2.getString("instance");
+						status = jobj2.getString("instanceStatus");
+
+						LOGGER.info("instance : " + instance + " & status : " + status);
+
+						String instanceArr[] = instance.split("/");
+
+						if (instanceArr.length != 0) {
+							int index = instanceArr.length - 1;
+							name = instanceArr[index];
+
+							LOGGER.info("name : " + name);
+
+							if (nameList.contains(instanceGroupName)) {
+								
+								deployStatus.setDeploymentTypeName(name);
+								deployStatus.setType(DeploymentType.INSTANCE);
+
+								Deployments dbDeploy = deploymentsRepository
+										.findByNameAndIsDeletedFalse(instanceGroupName);
+								deployStatus.setDeploymentId(dbDeploy);
+
+								if (status.equals("RUNNING")) {
+
+									deployStatus.setStatus(DeploymentStatus.SUCCESS);
+
+								} else if (status.equals("PROVISIONING")) {
+
+									deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+
+								} else if ((status.equals("TERMINATED")) || (status.equals("DELETING"))
+										|| (status.equals("DELETED"))) {
+
+									deployStatus.setStatus(DeploymentStatus.ERROR);
+								}
+
+								InstanceSettings instanceSettings = InstanceSettings.newBuilder()
+										.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+
+								InstanceClient instanceClient = InstanceClient.create(instanceSettings);
+								ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, newZone);
+
+								ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
+
+								for (Instance instanceObj : instanceList.iterateAll()) {
+
+									if ((instanceObj.getName().equals(name))
+											&& (instanceObj.getStatus().equals(status))) {
+
+										List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
+
+										if (!CollectionUtils.isEmpty(networkList)) {
+
+											for (NetworkInterface network : networkList) {
+
+												if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
+
+													for (AccessConfig accessConfig : network.getAccessConfigsList()) {
+														externalIp = accessConfig.getNatIP();
+													}
+												}
+											}
+										}
+									}
+
+									deployStatus.setExternalIp(externalIp);
+									this.saveinsdb(deployStatus);
+
+								}
 							}
 						}
 
-					} else if (status.equals("PROVISIONING")) {
-						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-
-					} else if ((status.equals("TERMINATED"))
-							|| (status.equals("DELETED") || (status.equals("DELETING")))) {
-
-						deployStatus.setStatus(DeploymentStatus.ERROR);
 					}
-
-					this.saveclusterdb(deployStatus);
 				}
-
 			}
-
 		}
 
-		for (Instance instance : instanceList.iterateAll()) {
-			DeployStatus deployStatus = new DeployStatus();
-
-			LOGGER.info("In instance status list");
-
-			instanceName = instance.getName();
-			instanceStatus = instance.getStatus();
-
-			List<NetworkInterface> networkList = instance.getNetworkInterfacesList();
-
-			String externalIp = "";
-
-			for (NetworkInterface network : networkList) {
-
-				for (AccessConfig accessConfig : network.getAccessConfigsList()) {
-					externalIp = accessConfig.getNatIP();
-				}
-			}
-
-			LOGGER.info("instance name : " + instanceName + " & instance status : " + instanceStatus
-					+ " & external ip : " + externalIp);
-
-			String name[] = instanceName.split("-");
-
-			if (instanceName.startsWith("gke")) {
-				LOGGER.info("instance name : " + instanceName);
-
-				LOGGER.info("is " + name[1] + " cluster pending : " + nameList.contains(name[1]));
-
-				if (nameList.contains(name[1])) {
-
-					deployStatus.setDeploymentTypeName(instanceName);
-					deployStatus.setType(DeploymentType.INSTANCE);
-
-					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(name[1]);
-					deployStatus.setDeploymentId(dbDeploy);
-
-					if (instanceStatus.equals("RUNNING")) {
-
-						deployStatus.setStatus(DeploymentStatus.SUCCESS);
-
-					} else if (instanceStatus.equals("PROVISIONING")) {
-
-						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-
-					} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETED"))
-							|| (instanceStatus.equals("DELETING"))) {
-
-						deployStatus.setStatus(DeploymentStatus.ERROR);
-					}
-
-					deployStatus.setExternalIp(externalIp);
-					this.saveinsdb(deployStatus);
-				}
-			}
-
-		}
-
-		if (!CollectionUtils.isEmpty(nfsMap)) {
-
-			for (Map.Entry<String, String> entry : nfsMap.entrySet()) {
-				DeployStatus deployStatus = new DeployStatus();
-
-				LOGGER.info("in nfs map");
-
-				nfsName = entry.getKey();
-				nfsStatus = entry.getValue();
-
-				LOGGER.info("nfs name : " + nfsName + " & nfs status : " + nfsStatus);
-
-				LOGGER.info("is " + nfsName + " cluster pending : " + nameList.contains(nfsName));
-
-				if (nameList.contains(nfsName)) {
-
-					deployStatus.setDeploymentTypeName(nfsName);
-					deployStatus.setType(DeploymentType.NFS);
-
-					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(nfsName);
-					deployStatus.setDeploymentId(dbDeploy);
-
-					if (nfsStatus.equals("READY")) {
-
-						deployStatus.setStatus(DeploymentStatus.SUCCESS);
-
-					} else if (nfsStatus.equals("PROVISIONING")) {
-
-						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-
-					} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
-							|| (nfsStatus.equals("DELETED"))) {
-
-						deployStatus.setStatus(DeploymentStatus.ERROR);
-					}
-
-					this.savenfsdb(deployStatus);
-				}
-
-			}
-
-		}
 	}
 
 	private void savenfsdb(DeployStatus deployStatus) {
@@ -279,57 +344,38 @@ public class DeploymentStatusScheduler {
 
 	}
 
-	private void saveclusterdb(DeployStatus deployStatus) {
+	private void saveinsgroupdb(DeployStatus deployStatus) {
 		deployStatusRepository.save(deployStatus);
 
 	}
 
-	// Get the status of cluster from GCP console
-	private Map<String, String> getClusterStatus() throws FileNotFoundException, IOException {
-		LOGGER.info("Getting status of all deployments");
-
-		Map<String, String> clusterMap = new HashMap<String, String>();
-		String clusterName = "";
-		String clusterStatus = "";
+	private ListInstanceGroupManagersPagedResponse getInstanceGroup() throws FileNotFoundException, IOException {
+		LOGGER.info("Getting all the instance groups");
 
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
-		ClusterManagerSettings clusterManagerSettings = ClusterManagerSettings.newBuilder()
+//		InstanceGroupSettings instanceGroupSettings = InstanceGroupSettings.newBuilder()
+//				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+//
+//		InstanceGroupClient instanceGroupClient = InstanceGroupClient.create(instanceGroupSettings);
+//		ProjectZoneName projectZoneNameGroup = ProjectZoneName.of(newProjectId, zone);
+//
+//		ListInstanceGroupsPagedResponse instanceGroupList = instanceGroupClient
+//				.listInstanceGroups(projectZoneNameGroup);
+
+		InstanceGroupManagerSettings instanceGroupManagerSettings = InstanceGroupManagerSettings.newBuilder()
 				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
 
-		ClusterManagerClient clusterManagerClient = ClusterManagerClient.create(clusterManagerSettings);
-		ListClustersResponse response = clusterManagerClient.listClusters(newProjectId, newZone);
+		InstanceGroupManagerClient instanceGroupManagerClient = InstanceGroupManagerClient
+				.create(instanceGroupManagerSettings);
 
-		for (Cluster cluster : response.getClustersList()) {
-			clusterName = cluster.getName();
+		ProjectZoneName projectZoneNameGroup = ProjectZoneName.of(newProjectId, newZone);
+		ListInstanceGroupManagersPagedResponse instanceGroupList = instanceGroupManagerClient
+				.listInstanceGroupManagers(projectZoneNameGroup);
 
-			clusterStatus = cluster.getStatus().toString();
+		return instanceGroupList;
 
-			clusterMap.put(clusterName, clusterStatus);
-		}
-
-		clusterManagerClient.shutdown();
-
-		return clusterMap;
-	}
-
-	// Get the status of instances created by the cluster from GCP console
-	private ListInstancesPagedResponse getInstanceStatus() throws IOException {
-		LOGGER.info("Getting all instances status");
-
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
-				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-
-		InstanceSettings instanceSettings = InstanceSettings.newBuilder()
-				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-
-		InstanceClient instanceClient = InstanceClient.create(instanceSettings);
-		ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, newZone);
-
-		ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
-
-		return instanceList;
 	}
 
 	// Get the status of file store from GCP console

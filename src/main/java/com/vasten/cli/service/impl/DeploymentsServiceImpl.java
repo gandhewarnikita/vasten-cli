@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,6 +26,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.bigquery.FieldValueList;
+import com.google.cloud.bigquery.Job;
+import com.google.cloud.bigquery.JobException;
+import com.google.cloud.bigquery.JobId;
+import com.google.cloud.bigquery.JobInfo;
+import com.google.cloud.bigquery.QueryJobConfiguration;
+import com.google.cloud.bigquery.TableResult;
 import com.google.cloud.billing.v1.CloudBillingClient;
 import com.google.cloud.billing.v1.CloudBillingSettings;
 import com.google.cloud.billing.v1.CloudCatalogClient;
@@ -92,8 +102,11 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	ExecutorService executorService = Executors.newFixedThreadPool(5);
 
-	/* (non-Javadoc)
-	 * @see com.vasten.cli.service.DeploymentsService#createDeployment(int, com.vasten.cli.entity.Deployments)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.vasten.cli.service.DeploymentsService#createDeployment(int,
+	 * com.vasten.cli.entity.Deployments)
 	 */
 	@Override
 	public Deployments createDeployment(int id, Deployments provisionData) {
@@ -243,7 +256,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		return newDeployment;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.vasten.cli.service.DeploymentsService#getAll(int, java.lang.String)
 	 */
 	@Override
@@ -285,7 +300,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.vasten.cli.service.DeploymentsService#getStatus(int)
 	 */
 	@Override
@@ -319,8 +336,11 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		return statusMap;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.vasten.cli.service.DeploymentsService#deProvision(java.lang.Integer, java.lang.Integer)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.vasten.cli.service.DeploymentsService#deProvision(java.lang.Integer,
+	 * java.lang.Integer)
 	 */
 	@Override
 	public void deProvision(Integer userId, Integer deploymentId) {
@@ -362,7 +382,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.vasten.cli.service.DeploymentsService#getCost(int)
 	 */
 	@Override
@@ -390,25 +412,28 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 //		ResponseEntity<Object> resultList = template.exchange(requestUrl, HttpMethod.GET, entity, Object.class);
 //		LOGGER.info("response : " + resultList);
 
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
-				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-
-		CloudBillingSettings cloudBillingSettings = CloudBillingSettings.newBuilder()
-				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-
-		CloudBillingClient cloudBillingClient = CloudBillingClient.create(cloudBillingSettings);
-
-		CloudCatalogSettings cloudCatalogSettings = CloudCatalogSettings.newBuilder()
-				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-
-		CloudCatalogClient cloudCatalogClient = CloudCatalogClient.create(cloudCatalogSettings);
-		ListServicesPagedResponse response = cloudCatalogClient.listServices();
+//		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
+//				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+//
+//		CloudBillingSettings cloudBillingSettings = CloudBillingSettings.newBuilder()
+//				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+//
+//		CloudBillingClient cloudBillingClient = CloudBillingClient.create(cloudBillingSettings);
+//
+//		CloudCatalogSettings cloudCatalogSettings = CloudCatalogSettings.newBuilder()
+//				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+//
+//		CloudCatalogClient cloudCatalogClient = CloudCatalogClient.create(cloudCatalogSettings);
+//		ListServicesPagedResponse response = cloudCatalogClient.listServices();
 
 		return 0;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.vasten.cli.service.DeploymentsService#mountNfs(java.lang.Integer, java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.vasten.cli.service.DeploymentsService#mountNfs(java.lang.Integer,
+	 * java.lang.String)
 	 */
 	@Override
 	public void mountNfs(Integer userId, String deploymentName) {
@@ -446,8 +471,11 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see com.vasten.cli.service.DeploymentsService#deProvisionRemote(java.lang.Integer, java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.vasten.cli.service.DeploymentsService#deProvisionRemote(java.lang.
+	 * Integer, java.lang.String)
 	 */
 	@Override
 	public void deProvisionRemote(Integer userId, String deploymentName) {

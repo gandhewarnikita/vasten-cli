@@ -98,6 +98,10 @@
 			<version>1.0.2</version>
 			<type>pom</type>
 		</dependency>
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-bigquery</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>com.google.cloud</groupId>

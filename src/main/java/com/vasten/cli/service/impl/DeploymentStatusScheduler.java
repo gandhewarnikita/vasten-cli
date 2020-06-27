@@ -89,8 +89,8 @@ public class DeploymentStatusScheduler {
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
 
-//	@Scheduled(cron = "0 0/1 * * * *")
-	@Scheduled(cron = "10 * * * * *")
+	@Scheduled(cron = "0 0/1 * * * *")
+//	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("In the deployment status update scheduler");
 

@@ -84,6 +84,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	@Value("${DESTROY_REMOTE_SHELL_PATH}")
 	public String destroyRemoteShellPath;
+	
+	@Value("${NEW_PROJECT_KEYFILE_PATH}")
+	private String newProjectKeyFilePath;
 
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
@@ -391,7 +394,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	public float getCost(int deploymentId) throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
 
-		String jsonPath = "/home/scriptuit/Downloads/gold-braid-268003-fa0b37fc4447.json";
+//		String jsonPath = "/home/scriptuit/Downloads/gold-braid-268003-fa0b37fc4447.json";
 //
 //		String requestUrl = "https://cloudbilling.googleapis.com/v1/billingAccounts/01463E-59892A-CB4390";
 //

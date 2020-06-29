@@ -229,7 +229,7 @@ public class DeploymentStatusScheduler {
 
 			for (String instanceGroupName : instanceGroupNameList) {
 
-				String requestListUri = uri + "projects/" + newProjectId + "/zones/" + newZone
+				String requestListUri = uri + "projects/" + newProjectId + "/zones/" + zone
 						+ "/instanceGroupManagers/" + instanceGroupName + "/listManagedInstances";
 
 				RestTemplate template = new RestTemplate();
@@ -295,7 +295,7 @@ public class DeploymentStatusScheduler {
 										.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
 
 								InstanceClient instanceClient = InstanceClient.create(instanceSettings);
-								ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, newZone);
+								ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, zone);
 
 								ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
 
@@ -362,7 +362,7 @@ public class DeploymentStatusScheduler {
 		InstanceGroupManagerClient instanceGroupManagerClient = InstanceGroupManagerClient
 				.create(instanceGroupManagerSettings);
 
-		ProjectZoneName projectZoneNameGroup = ProjectZoneName.of(newProjectId, newZone);
+		ProjectZoneName projectZoneNameGroup = ProjectZoneName.of(newProjectId, zone);
 		ListInstanceGroupManagersPagedResponse instanceGroupList = instanceGroupManagerClient
 				.listInstanceGroupManagers(projectZoneNameGroup);
 
@@ -377,7 +377,7 @@ public class DeploymentStatusScheduler {
 		Map<String, String> nfsMap = new HashMap<String, String>();
 
 		String uri = "https://file.googleapis.com/v1/";
-		String requestListUri = uri + "projects/" + newProjectId + "/locations/" + newZone + "/instances";
+		String requestListUri = uri + "projects/" + newProjectId + "/locations/" + zone + "/instances";
 
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));

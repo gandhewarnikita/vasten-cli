@@ -347,7 +347,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	 */
 	@Override
 	public void deProvision(Integer userId, Integer deploymentId) {
-		LOGGER.info("Deleting instance by name of deployment");
+		LOGGER.info("Deleting instance by id of deployment");
 
 		User dbUser = userRepository.findOneById(userId);
 

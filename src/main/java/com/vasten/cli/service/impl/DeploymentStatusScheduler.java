@@ -62,14 +62,14 @@ public class DeploymentStatusScheduler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeploymentStatusScheduler.class);
 
-//	@Value("${PROJECT_ID}")
-//	public String projectId;
+	@Value("${PROJECT_ID}")
+	public String projectId;
 
 	@Value("${ZONE}")
 	private String zone;
 
-//	@Value("${ACCESS_TOKEN}")
-//	private String accessToken;
+	@Value("${ACCESS_TOKEN}")
+	private String accessToken;
 
 	@Value("${NEW_PROJECT_ID}")
 	public String newProjectId;
@@ -77,8 +77,8 @@ public class DeploymentStatusScheduler {
 	@Value("${NEW_ZONE}")
 	private String newZone;
 
-//	@Value("${PROJECT_KEYFILE_PATH}")
-//	private String projectKeyFilePath;
+	@Value("${PROJECT_KEYFILE_PATH}")
+	private String projectKeyFilePath;
 
 	@Value("${NEW_PROJECT_KEYFILE_PATH}")
 	private String newProjectKeyFilePath;

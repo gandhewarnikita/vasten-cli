@@ -47,7 +47,7 @@ import com.vasten.cli.repository.DeploymentsRepository;
 import com.google.cloud.compute.v1.InstanceGroupManager;
 
 /**
- * Scheduler for fetching status of deployment's cluster, instance and nfs from
+ * Scheduler for fetching status of instance groups, instances and nfs from
  * google cloud
  * 
  * @author scriptuit

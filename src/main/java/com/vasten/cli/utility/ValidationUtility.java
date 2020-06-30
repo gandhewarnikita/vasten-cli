@@ -95,28 +95,44 @@ public class ValidationUtility {
 					new ValidationError("clusterMachineType", "Cluster machine type does not contain default value"));
 		}
 
-		if (provisionData.getClusterLocalStoreCapacity() == null) {
-			LOGGER.error("Cluster local store capacity is mandatory");
-			validationErrorList
-					.add(new ValidationError("clusterLocalStoreCapacity", "Cluster local store capacity is mandatory"));
+//		if (provisionData.getClusterLocalStoreCapacity() == null) {
+//			LOGGER.error("Cluster local store capacity is mandatory");
+//			validationErrorList
+//					.add(new ValidationError("clusterLocalStoreCapacity", "Cluster local store capacity is mandatory"));
+//
+//		} else if ((provisionData.getClusterLocalStoreCapacity() < 30)
+//				|| (provisionData.getClusterLocalStoreCapacity() > 1024)) {
+//
+//			LOGGER.error("Cluster local store capacity is not in range min 30 to max 1024");
+//			validationErrorList.add(new ValidationError("clusterLocalStoreCapacity",
+//					"Cluster local store capacity is not in range min 30 to max 1024"));
+//		}
 
-		} else if ((provisionData.getClusterLocalStoreCapacity() < 30)
-				|| (provisionData.getClusterLocalStoreCapacity() > 1024)) {
+		boolean nfsExternal = provisionData.isNfsExternal();
+		LOGGER.info("nfs external in validation utility = " + nfsExternal);
 
-			LOGGER.error("Cluster local store capacity is not in range min 30 to max 1024");
-			validationErrorList.add(new ValidationError("clusterLocalStoreCapacity",
-					"Cluster local store capacity is not in range min 30 to max 1024"));
+		if (nfsExternal == false) {
+			
+			if (provisionData.getNfsCapacity() == null) {
+				LOGGER.error("Nfs capacity is mandatory");
+				validationErrorList.add(new ValidationError("nfscapacity", "Nfs capacity is mandatory"));
+
+			} else if ((provisionData.getNfsCapacity() < 1024) || (provisionData.getNfsCapacity() > 3072)) {
+				LOGGER.error("Nfs capacity is not in range min 1024 to max 3072");
+				validationErrorList
+						.add(new ValidationError("nfscapacity", "Nfs capacity is not in range min 1024 to max 3072"));
+			}
 		}
 
-		if (provisionData.getNfsCapacity() == null) {
-			LOGGER.error("Nfs capacity is mandatory");
-			validationErrorList.add(new ValidationError("nfscapacity", "Nfs capacity is mandatory"));
-
-		} else if ((provisionData.getNfsCapacity() < 1024) || (provisionData.getNfsCapacity() > 3072)) {
-			LOGGER.error("Nfs capacity is not in range min 1024 to max 3072");
-			validationErrorList
-					.add(new ValidationError("nfscapacity", "Nfs capacity is not in range min 1024 to max 3072"));
-		}
+//		if (provisionData.getNfsCapacity() == null) {
+//			LOGGER.error("Nfs capacity is mandatory");
+//			validationErrorList.add(new ValidationError("nfscapacity", "Nfs capacity is mandatory"));
+//
+//		} else if ((provisionData.getNfsCapacity() < 1024) || (provisionData.getNfsCapacity() > 3072)) {
+//			LOGGER.error("Nfs capacity is not in range min 1024 to max 3072");
+//			validationErrorList
+//					.add(new ValidationError("nfscapacity", "Nfs capacity is not in range min 1024 to max 3072"));
+//		}
 
 		if (provisionData.getToolName() == null || provisionData.getToolName().isEmpty()) {
 			LOGGER.error("Tool name is mandatory");

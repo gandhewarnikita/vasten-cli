@@ -85,7 +85,7 @@ public class DeploymentStatusScheduler {
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
 
-	@Scheduled(cron = "0 0/1 * * * *")
+//	@Scheduled(cron = "0 0/1 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("In the deployment status update scheduler");
@@ -153,6 +153,8 @@ public class DeploymentStatusScheduler {
 
 					this.saveinsgroupdb(deployStatus);
 
+					this.getPublicInstanceIp(nameList, instanceGroupName);
+
 					this.getInstanceStatus(nameList, instanceGroupNameList);
 				}
 			}
@@ -162,7 +164,9 @@ public class DeploymentStatusScheduler {
 				for (Map.Entry<String, String> entry : nfsMap.entrySet()) {
 
 					DeployStatus deployStatus = new DeployStatus();
-
+					GoogleCredentials credentials = GoogleCredentials
+							.fromStream(new FileInputStream(newProjectKeyFilePath))
+							.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 					LOGGER.info("in nfs map");
 
 					nfsName = entry.getKey();
@@ -171,28 +175,52 @@ public class DeploymentStatusScheduler {
 					LOGGER.info("nfs name : " + nfsName + " & nfs status : " + nfsStatus);
 
 					if (nameList.contains(nfsName)) {
-
-						deployStatus.setDeploymentTypeName(nfsName);
-						deployStatus.setType(DeploymentType.NFS);
-
 						Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(nfsName);
-						deployStatus.setDeploymentId(dbDeploy);
 
-						if (nfsStatus.equals("READY")) {
+						boolean nfsExternal = dbDeploy.isNfsExternal();
 
-							deployStatus.setStatus(DeploymentStatus.SUCCESS);
+						if (nfsExternal == false) {
 
-						} else if (nfsStatus.equals("PROVISIONING")) {
+							deployStatus.setDeploymentTypeName(nfsName);
+							deployStatus.setType(DeploymentType.NFS);
+							deployStatus.setDeploymentId(dbDeploy);
 
-							deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+							if (nfsStatus.equals("READY")) {
 
-						} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
-								|| (nfsStatus.equals("DELETED"))) {
+								deployStatus.setStatus(DeploymentStatus.SUCCESS);
 
-							deployStatus.setStatus(DeploymentStatus.ERROR);
+							} else if (nfsStatus.equals("PROVISIONING")) {
+
+								deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+
+							} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
+									|| (nfsStatus.equals("DELETED"))) {
+
+								deployStatus.setStatus(DeploymentStatus.ERROR);
+							}
+
+							this.savenfsdb(deployStatus);
 						}
 
-						this.savenfsdb(deployStatus);
+//						deployStatus.setDeploymentTypeName(nfsName);
+//						deployStatus.setType(DeploymentType.NFS);
+//						deployStatus.setDeploymentId(dbDeploy);
+//
+//						if (nfsStatus.equals("READY")) {
+//
+//							deployStatus.setStatus(DeploymentStatus.SUCCESS);
+//
+//						} else if (nfsStatus.equals("PROVISIONING")) {
+//
+//							deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+//
+//						} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
+//								|| (nfsStatus.equals("DELETED"))) {
+//
+//							deployStatus.setStatus(DeploymentStatus.ERROR);
+//						}
+//
+//						this.savenfsdb(deployStatus);
 
 					}
 
@@ -202,12 +230,83 @@ public class DeploymentStatusScheduler {
 		}
 	}
 
+	private void getPublicInstanceIp(List<String> nameList, String instanceGroupName)
+			throws FileNotFoundException, IOException {
+		LOGGER.info("Get the external ip of instance created in public subnet");
+
+		String externalIp = "";
+		String instanceStatus = "";
+
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
+				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+
+		InstanceSettings instanceSettings = InstanceSettings.newBuilder()
+				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+
+		InstanceClient instanceClient = InstanceClient.create(instanceSettings);
+		ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, zone);
+
+		ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
+		
+		DeployStatus deployStatus = new DeployStatus();
+
+		for (Instance instanceObj : instanceList.iterateAll()) {
+
+		//	DeployStatus deployStatus = new DeployStatus();
+
+			instanceStatus = instanceObj.getStatus().toString();
+
+			if ((instanceObj.getName().equals(instanceGroupName)) && (nameList.contains(instanceGroupName))) {
+
+				deployStatus.setDeploymentTypeName(instanceGroupName);
+				deployStatus.setType(DeploymentType.INSTANCE);
+
+				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(instanceGroupName);
+				deployStatus.setDeploymentId(dbDeploy);
+
+				if (instanceStatus.equals("RUNNING")) {
+
+					deployStatus.setStatus(DeploymentStatus.SUCCESS);
+
+				} else if (instanceStatus.equals("PROVISIONING")) {
+
+					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+
+				} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
+						|| (instanceStatus.equals("DELETED"))) {
+
+					deployStatus.setStatus(DeploymentStatus.ERROR);
+				}
+
+				List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
+
+				if (!CollectionUtils.isEmpty(networkList)) {
+
+					for (NetworkInterface network : networkList) {
+
+						if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
+
+							for (AccessConfig accessConfig : network.getAccessConfigsList()) {
+								externalIp = accessConfig.getNatIP();
+							}
+						}
+					}
+				}
+
+			}
+
+			deployStatus.setExternalIp(externalIp);
+			this.saveinsipdb(deployStatus);
+		}
+
+	}
+
 	private void getInstanceStatus(List<String> instanceGroupNameList, List<String> nameList)
 			throws FileNotFoundException, IOException {
 		String name = "";
 		String instance = "";
 		String status = "";
-		String externalIp = "";
+		String externalIp = null;
 
 		String uri = "https://compute.googleapis.com/compute/v1/";
 
@@ -222,8 +321,8 @@ public class DeploymentStatusScheduler {
 
 			for (String instanceGroupName : instanceGroupNameList) {
 
-				String requestListUri = uri + "projects/" + newProjectId + "/zones/" + zone
-						+ "/instanceGroupManagers/" + instanceGroupName + "/listManagedInstances";
+				String requestListUri = uri + "projects/" + newProjectId + "/zones/" + zone + "/instanceGroupManagers/"
+						+ instanceGroupName + "/listManagedInstances";
 
 				RestTemplate template = new RestTemplate();
 
@@ -259,10 +358,10 @@ public class DeploymentStatusScheduler {
 							int index = instanceArr.length - 1;
 							name = instanceArr[index];
 
-							LOGGER.info("name : " + name);
+							LOGGER.info("name of the instance : " + name);
 
 							if (nameList.contains(instanceGroupName)) {
-								
+
 								deployStatus.setDeploymentTypeName(name);
 								deployStatus.setType(DeploymentType.INSTANCE);
 
@@ -338,6 +437,11 @@ public class DeploymentStatusScheduler {
 	}
 
 	private void saveinsgroupdb(DeployStatus deployStatus) {
+		deployStatusRepository.save(deployStatus);
+
+	}
+
+	private void saveinsipdb(DeployStatus deployStatus) {
 		deployStatusRepository.save(deployStatus);
 
 	}

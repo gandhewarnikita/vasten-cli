@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.api.services.bigquery.BigqueryScopes;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
@@ -84,7 +85,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	@Value("${DESTROY_REMOTE_SHELL_PATH}")
 	public String destroyRemoteShellPath;
-	
+
 	@Value("${NEW_PROJECT_KEYFILE_PATH}")
 	private String newProjectKeyFilePath;
 
@@ -182,7 +183,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 			String node = String.valueOf(provisionData.getClusterNodes());
 			String core = String.valueOf(provisionData.getClusterMachineCores());
-			String capacity = String.valueOf(provisionData.getClusterLocalStoreCapacity());
+			// String capacity =
+			// String.valueOf(provisionData.getClusterLocalStoreCapacity());
 			String nfsCapacity = String.valueOf(provisionData.getNfsCapacity());
 			String machineType = provisionData.getClusterMachineType();
 			String nfsExternal = String.valueOf(provisionData.isNfsExternal());
@@ -196,22 +198,18 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 				LOGGER.info("nfs external with host and path : " + provisionData.isNfsExternal());
 
 				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
-						.replaceAll("pqlamz", provisionData.getToolVersion())
-						.replaceAll("ioplkj", provisionData.getImageTag()).replaceAll("qazxsw", deploymentName)
+						.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("qazxsw", deploymentName)
 						.replaceAll("mkoijn", node).replaceAll("qwecxz", machineType).replaceAll("poibnm", core)
-						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
-						.replaceAll("ijnbhu", provisionData.getFileStoreHost())
+						.replaceAll("yuiklj", nfsCapacity).replaceAll("ijnbhu", provisionData.getFileStoreHost())
 						.replaceAll("itungf", provisionData.getFileStorePath()).replaceAll("\"lothxs\"", nfsExternal);
 
 			} else {
 				LOGGER.info("nfs external without host and path : " + provisionData.isNfsExternal());
 
 				newtext = oldtext.replaceAll("ujmnhy", provisionData.getToolName())
-						.replaceAll("pqlamz", provisionData.getToolVersion())
-						.replaceAll("ioplkj", provisionData.getImageTag()).replaceAll("qazxsw", deploymentName)
+						.replaceAll("pqlamz", provisionData.getToolVersion()).replaceAll("qazxsw", deploymentName)
 						.replaceAll("mkoijn", node).replaceAll("qwecxz", machineType).replaceAll("poibnm", core)
-						.replaceAll("tyunbv", capacity).replaceAll("yuiklj", nfsCapacity)
-						.replaceAll("\"lothxs\"", nfsExternal);
+						.replaceAll("yuiklj", nfsCapacity).replaceAll("\"lothxs\"", nfsExternal);
 			}
 
 			FileWriter writer = new FileWriter(outfile);
@@ -394,9 +392,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	public float getCost(int deploymentId) throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
 
-//		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonPath))
-//				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-//
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
+				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+
 //		CloudBillingSettings cloudBillingSettings = CloudBillingSettings.newBuilder()
 //				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
 //
@@ -407,6 +405,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 //
 //		CloudCatalogClient cloudCatalogClient = CloudCatalogClient.create(cloudCatalogSettings);
 //		ListServicesPagedResponse response = cloudCatalogClient.listServices();
+
+		credentials.createScoped(BigqueryScopes.all());
 
 		return 0;
 	}

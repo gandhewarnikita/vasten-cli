@@ -105,7 +105,7 @@ public class DeploymentStatusScheduler {
 			boolean nfsExternal = dbDeployment.isNfsExternal();
 
 			if (nfsExternal == true) {
-				this.getExtInsStatus(nameList);
+				this.getExtInsStatus(dbDeployment.getName());
 			}
 		}
 
@@ -244,93 +244,140 @@ public class DeploymentStatusScheduler {
 		}
 	}
 
-	private void getExtInsStatus(List<String> nameList) throws FileNotFoundException, IOException {
+	private void getExtInsStatus(String deploymentName) throws FileNotFoundException, IOException {
 
-		for (String deployName : nameList) {
-			LOGGER.info("deployment name in getExtInsStatus() method : " + deployName);
+		LOGGER.info("deployment name in getExtInsStatus() method : " + deploymentName);
 
-			Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(deployName);
-			{
-				LOGGER.info("Get the external ip of instance created if the nfs external is true");
+		Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(deploymentName);
 
-				String externalIp = "";
-				String instanceStatus = "";
-				String instanceName = "";
+		LOGGER.info("Get the external ip of instance created if the nfs external is true");
 
-				GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
-						.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+		String externalIp = "";
+		String instanceStatus = "";
+		String instanceName = "";
 
-				InstanceSettings instanceSettings = InstanceSettings.newBuilder()
-						.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
+				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
-				InstanceClient instanceClient = InstanceClient.create(instanceSettings);
-				ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, zone);
+		InstanceSettings instanceSettings = InstanceSettings.newBuilder()
+				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
 
-				ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
+		InstanceClient instanceClient = InstanceClient.create(instanceSettings);
+		ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, zone);
 
-				for (Instance instanceObj : instanceList.iterateAll()) {
+		ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
 
-					DeployStatus deployStatus = new DeployStatus();
+		for (Instance instanceObj : instanceList.iterateAll()) {
 
-					String name = instanceObj.getName();
-					LOGGER.info("name of instance : " + name);
-					String insname[] = name.split("-");
+			DeployStatus deployStatus = new DeployStatus();
 
-					instanceName = deployName + "-nat-instance";
-					// LOGGER.info("nat instance name : " + instanceName);
-					instanceStatus = instanceObj.getStatus().toString();
+			String name = instanceObj.getName();
+			LOGGER.info("name of instance : " + name);
+			String insname[] = name.split("-");
 
-					LOGGER.info("nameList.contains(deployName) : " + nameList.contains(deployName));
+			instanceName = deploymentName + "-nat-instance";
+			// LOGGER.info("nat instance name : " + instanceName);
+			instanceStatus = instanceObj.getStatus().toString();
 
-					if (nameList.contains(deployName)) {
+			DeployStatus dbDeployStatus = deployStatusRepository.findOneByDeploymentTypeName(instanceName);
 
-						if (name.equals(instanceName)) {
+			if (dbDeployStatus != null) {
+				LOGGER.info("Deploy status is present with " + instanceName);
 
-							deployStatus.setDeploymentTypeName(instanceName);
-							deployStatus.setType(DeploymentType.INSTANCE);
+				deployStatusRepository.deleteById(dbDeployStatus.getId());
 
-							deployStatus.setDeploymentId(dbDeploy);
+				if (name.equals(instanceName)) {
 
-							if (instanceStatus.equals("RUNNING")) {
+					deployStatus.setDeploymentTypeName(instanceName);
+					deployStatus.setType(DeploymentType.INSTANCE);
 
-								deployStatus.setStatus(DeploymentStatus.SUCCESS);
+					deployStatus.setDeploymentId(dbDeploy);
 
-							} else if (instanceStatus.equals("PROVISIONING")) {
+					if (instanceStatus.equals("RUNNING")) {
 
-								deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+						deployStatus.setStatus(DeploymentStatus.SUCCESS);
 
-							} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
-									|| (instanceStatus.equals("DELETED"))) {
+					} else if (instanceStatus.equals("PROVISIONING")) {
 
-								deployStatus.setStatus(DeploymentStatus.ERROR);
-							}
+						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
 
-							List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
+					} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
+							|| (instanceStatus.equals("DELETED"))) {
 
-							if (!CollectionUtils.isEmpty(networkList)) {
+						deployStatus.setStatus(DeploymentStatus.ERROR);
+					}
 
-								for (NetworkInterface network : networkList) {
+					List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
 
-									if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
+					if (!CollectionUtils.isEmpty(networkList)) {
 
-										for (AccessConfig accessConfig : network.getAccessConfigsList()) {
+						for (NetworkInterface network : networkList) {
 
-											externalIp = accessConfig.getNatIP();
-										}
-									}
+							if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
+
+								for (AccessConfig accessConfig : network.getAccessConfigsList()) {
+
+									externalIp = accessConfig.getNatIP();
 								}
 							}
-
-							deployStatus.setExternalIp(externalIp);
-
-							this.saveextinsdb(deployStatus);
-
 						}
 					}
+
+					deployStatus.setExternalIp(externalIp);
+
+					this.saveextinsdb(deployStatus);
+
+				}
+
+			} else {
+
+				LOGGER.info("Deploy status is not present with " + instanceName);
+
+				if (name.equals(instanceName)) {
+
+					deployStatus.setDeploymentTypeName(instanceName);
+					deployStatus.setType(DeploymentType.INSTANCE);
+
+					deployStatus.setDeploymentId(dbDeploy);
+
+					if (instanceStatus.equals("RUNNING")) {
+
+						deployStatus.setStatus(DeploymentStatus.SUCCESS);
+
+					} else if (instanceStatus.equals("PROVISIONING")) {
+
+						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+
+					} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
+							|| (instanceStatus.equals("DELETED"))) {
+
+						deployStatus.setStatus(DeploymentStatus.ERROR);
+					}
+
+					List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
+
+					if (!CollectionUtils.isEmpty(networkList)) {
+
+						for (NetworkInterface network : networkList) {
+
+							if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
+
+								for (AccessConfig accessConfig : network.getAccessConfigsList()) {
+
+									externalIp = accessConfig.getNatIP();
+								}
+							}
+						}
+					}
+
+					deployStatus.setExternalIp(externalIp);
+
+					this.saveextinsdb(deployStatus);
+
 				}
 			}
-
 		}
+
 	}
 
 	private void getPublicInstanceIp(List<String> nameList, String instanceGroupName)

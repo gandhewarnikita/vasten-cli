@@ -21,4 +21,6 @@ public interface DeployStatusRepository extends JpaRepository<DeployStatus, Inte
 	List<DeployStatus> findAllByDeploymentId(Deployments dbDeployment);
 
 	DeployStatus findOneByDeploymentIdAndStatus(Deployments dbDeploy, DeploymentType nfs);
+
+	DeployStatus findOneByDeploymentTypeName(String instanceName);
 }

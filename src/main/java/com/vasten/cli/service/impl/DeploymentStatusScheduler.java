@@ -85,8 +85,8 @@ public class DeploymentStatusScheduler {
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
 
-	@Scheduled(cron = "0 0/1 * * * *")
-//	@Scheduled(cron = "10 * * * * *")
+//	@Scheduled(cron = "0 0/1 * * * *")
+	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("In the deployment status update scheduler");
 
@@ -280,47 +280,52 @@ public class DeploymentStatusScheduler {
 					// LOGGER.info("nat instance name : " + instanceName);
 					instanceStatus = instanceObj.getStatus().toString();
 
-					if (name.equals(instanceName)) {
+					LOGGER.info("nameList.contains(deployName) : " + nameList.contains(deployName));
 
-						deployStatus.setDeploymentTypeName(instanceName);
-						deployStatus.setType(DeploymentType.INSTANCE);
+					if (nameList.contains(deployName)) {
 
-						deployStatus.setDeploymentId(dbDeploy);
+						if (name.equals(instanceName)) {
 
-						if (instanceStatus.equals("RUNNING")) {
+							deployStatus.setDeploymentTypeName(instanceName);
+							deployStatus.setType(DeploymentType.INSTANCE);
 
-							deployStatus.setStatus(DeploymentStatus.SUCCESS);
+							deployStatus.setDeploymentId(dbDeploy);
 
-						} else if (instanceStatus.equals("PROVISIONING")) {
+							if (instanceStatus.equals("RUNNING")) {
 
-							deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+								deployStatus.setStatus(DeploymentStatus.SUCCESS);
 
-						} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
-								|| (instanceStatus.equals("DELETED"))) {
+							} else if (instanceStatus.equals("PROVISIONING")) {
 
-							deployStatus.setStatus(DeploymentStatus.ERROR);
-						}
+								deployStatus.setStatus(DeploymentStatus.PROVISIONING);
 
-						List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
+							} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
+									|| (instanceStatus.equals("DELETED"))) {
 
-						if (!CollectionUtils.isEmpty(networkList)) {
+								deployStatus.setStatus(DeploymentStatus.ERROR);
+							}
 
-							for (NetworkInterface network : networkList) {
+							List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
 
-								if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
+							if (!CollectionUtils.isEmpty(networkList)) {
 
-									for (AccessConfig accessConfig : network.getAccessConfigsList()) {
+								for (NetworkInterface network : networkList) {
 
-										externalIp = accessConfig.getNatIP();
+									if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
+
+										for (AccessConfig accessConfig : network.getAccessConfigsList()) {
+
+											externalIp = accessConfig.getNatIP();
+										}
 									}
 								}
 							}
+
+							deployStatus.setExternalIp(externalIp);
+
+							this.saveextinsdb(deployStatus);
+
 						}
-
-						deployStatus.setExternalIp(externalIp);
-
-						this.saveextinsdb(deployStatus);
-
 					}
 				}
 			}

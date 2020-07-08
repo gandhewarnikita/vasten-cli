@@ -281,55 +281,57 @@ public class DeploymentStatusScheduler {
 
 			DeployStatus dbDeployStatus = deployStatusRepository.findOneByDeploymentTypeName(instanceName);
 
-			if (dbDeployStatus != null) {
-				LOGGER.info("Deploy status is present with " + instanceName);
+//			if (dbDeployStatus != null) {
+//				LOGGER.info("Deploy status is present with " + instanceName);
+//
+//				deployStatusRepository.deleteById(dbDeployStatus.getId());
+//
+//				if (name.equals(instanceName)) {
+//
+//					deployStatus.setDeploymentTypeName(instanceName);
+//					deployStatus.setType(DeploymentType.INSTANCE);
+//
+//					deployStatus.setDeploymentId(dbDeploy);
+//
+//					if (instanceStatus.equals("RUNNING")) {
+//
+//						deployStatus.setStatus(DeploymentStatus.SUCCESS);
+//
+//					} else if (instanceStatus.equals("PROVISIONING")) {
+//
+//						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
+//
+//					} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
+//							|| (instanceStatus.equals("DELETED"))) {
+//
+//						deployStatus.setStatus(DeploymentStatus.ERROR);
+//					}
+//
+//					List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
+//
+//					if (!CollectionUtils.isEmpty(networkList)) {
+//
+//						for (NetworkInterface network : networkList) {
+//
+//							if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
+//
+//								for (AccessConfig accessConfig : network.getAccessConfigsList()) {
+//
+//									externalIp = accessConfig.getNatIP();
+//								}
+//							}
+//						}
+//					}
+//
+//					deployStatus.setExternalIp(externalIp);
+//
+//					this.saveextinsdb(deployStatus);
+//
+//				}
+//
+//			} else {
 
-				deployStatusRepository.deleteById(dbDeployStatus.getId());
-
-				if (name.equals(instanceName)) {
-
-					deployStatus.setDeploymentTypeName(instanceName);
-					deployStatus.setType(DeploymentType.INSTANCE);
-
-					deployStatus.setDeploymentId(dbDeploy);
-
-					if (instanceStatus.equals("RUNNING")) {
-
-						deployStatus.setStatus(DeploymentStatus.SUCCESS);
-
-					} else if (instanceStatus.equals("PROVISIONING")) {
-
-						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-
-					} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
-							|| (instanceStatus.equals("DELETED"))) {
-
-						deployStatus.setStatus(DeploymentStatus.ERROR);
-					}
-
-					List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
-
-					if (!CollectionUtils.isEmpty(networkList)) {
-
-						for (NetworkInterface network : networkList) {
-
-							if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
-
-								for (AccessConfig accessConfig : network.getAccessConfigsList()) {
-
-									externalIp = accessConfig.getNatIP();
-								}
-							}
-						}
-					}
-
-					deployStatus.setExternalIp(externalIp);
-
-					this.saveextinsdb(deployStatus);
-
-				}
-
-			} else {
+			if (dbDeployStatus == null) {
 
 				LOGGER.info("Deploy status is not present with " + instanceName);
 

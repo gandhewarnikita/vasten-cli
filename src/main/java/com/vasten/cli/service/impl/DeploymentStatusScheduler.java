@@ -34,6 +34,7 @@ import com.google.cloud.compute.v1.InstanceGroupManagerClient;
 import com.google.cloud.compute.v1.InstanceGroupManagerClient.ListInstanceGroupManagersPagedResponse;
 import com.google.cloud.compute.v1.InstanceGroupManagerSettings;
 import com.google.cloud.compute.v1.InstanceClient.ListInstancesPagedResponse;
+import com.google.cloud.compute.v1.InstanceGroupClient.ListInstanceGroupsPagedResponse;
 import com.google.cloud.compute.v1.InstanceSettings;
 import com.google.cloud.compute.v1.NetworkInterface;
 import com.google.cloud.compute.v1.ProjectZoneName;
@@ -44,6 +45,9 @@ import com.vasten.cli.entity.DeploymentType;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.repository.DeployStatusRepository;
 import com.vasten.cli.repository.DeploymentsRepository;
+
+import net.bytebuddy.asm.Advice.This;
+
 import com.google.cloud.compute.v1.InstanceGroupManager;
 
 /**
@@ -85,676 +89,182 @@ public class DeploymentStatusScheduler {
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
 
-	@Scheduled(cron = "0 0/1 * * * *")
+	final String LABEL_KEY_DEPLOYMENT_NAME = "deployment_name";
+
+	@Scheduled(cron = "0 0/5 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("In the deployment status update scheduler");
 
-		String nfsName = "";
-		String nfsStatus = "";
-
 		List<Deployments> deploymentList = new ArrayList<Deployments>();
 
-		deploymentList = deploymentsRepository.findAllByStatusAndIsDeletedFalse(DeploymentStatus.PENDING);
-
-		List<String> nameList = new ArrayList<String>();
-
-		for (Deployments dbDeployment : deploymentList) {
-			nameList.add(dbDeployment.getName());
-
-			boolean nfsExternal = dbDeployment.isNfsExternal();
-
-			if (nfsExternal == true) {
-				this.getExtInsStatus(dbDeployment.getName());
-			}
-		}
-
-		List<String> instanceGroupNameList = new ArrayList<String>();
-
-		ListInstanceGroupManagersPagedResponse instanceGroupList = this.getInstanceGroup();
-
-		Map<String, String> nfsMap = this.getNfsStatus();
-
-		LOGGER.info("If instance group list contains an instance group : "
-				+ instanceGroupList.iterateAll().iterator().hasNext());
-
-		if (instanceGroupList.iterateAll().iterator().hasNext()) {
-
-			for (InstanceGroupManager element : instanceGroupList.iterateAll()) {
-
-				DeployStatus deployStatus = new DeployStatus();
-
-				String instanceGroupName = "";
-				boolean instanceGroupStatus;
-
-				instanceGroupName = element.getName();
-				LOGGER.info("instanceGroupName from the instanceGroupList : " + instanceGroupName);
-
-				String insname[] = instanceGroupName.split("-");
-				String name = insname[0];
-				// instanceGroupNameList.add(name);
-				instanceGroupNameList.add(instanceGroupName);
-
-				instanceGroupStatus = element.getStatus().getIsStable();
-				LOGGER.info("instance group status : " + instanceGroupStatus);
-
-				if (nameList.contains(name)) {
-
-					deployStatus.setDeploymentTypeName(instanceGroupName);
-					deployStatus.setType(DeploymentType.INSTANCE_GROUP);
-
-					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(name);
-					deployStatus.setDeploymentId(dbDeploy);
-
-					if (instanceGroupStatus) {
-
-						deployStatus.setStatus(DeploymentStatus.SUCCESS);
-
-					} else {
-
-						deployStatus.setStatus(DeploymentStatus.ERROR);
+		// Fetch all instance groups and build instance group map
+		// Key is instance group name and value is instance group stability
+		Map<String, Boolean> instanceGroupMap = new HashMap<String, Boolean>();
+		try {
+			ListInstanceGroupManagersPagedResponse instanceGroupList = this.fetchAllInstanceGroups();
+			if (instanceGroupList != null) {
+				if (instanceGroupList.iterateAll().iterator().hasNext()) {
+					for (InstanceGroupManager element : instanceGroupList.iterateAll()) {
+						String instanceGroupName = element.getName();
+						Boolean instanceGroupStability = element.getStatus().getIsStable();
+						instanceGroupMap.put(instanceGroupName, instanceGroupStability);
 					}
-
-					this.saveinsgroupdb(deployStatus);
-
-					if (dbDeploy.isNfsExternal() == false) {
-						this.getPublicInstanceIp(nameList, name);
-					}
-
-					this.getInstanceStatus(nameList, instanceGroupNameList);
-
-					// if (dbDeploy != null) {
-
-					if (dbDeploy.getStatus().equals(DeploymentStatus.PENDING)) {
-						dbDeploy.setStatus(DeploymentStatus.SUCCESS);
-						deploymentsRepository.save(dbDeploy);
-					}
-					// }
 				}
 			}
-
+		} catch (IOException ex) {
+			LOGGER.error("Error in fetching instance groups list", ex);
 		}
 
-		if (!CollectionUtils.isEmpty(nfsMap)) {
-
-			for (Map.Entry<String, String> entry : nfsMap.entrySet()) {
-
-				DeployStatus deployStatus = new DeployStatus();
-				GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
-						.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-				LOGGER.info("in nfs map");
-
-				nfsName = entry.getKey();
-				nfsStatus = entry.getValue();
-
-				LOGGER.info("nfs name : " + nfsName + " & nfs status : " + nfsStatus);
-
-				if (nameList.contains(nfsName)) {
-					Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(nfsName);
-
-					boolean nfsExternal = dbDeploy.isNfsExternal();
-
-					if (nfsExternal == false) {
-
-						deployStatus.setDeploymentTypeName(nfsName);
-						deployStatus.setType(DeploymentType.NFS);
-						deployStatus.setDeploymentId(dbDeploy);
-
-						if (nfsStatus.equals("READY")) {
-
-							deployStatus.setStatus(DeploymentStatus.SUCCESS);
-
-						} else if (nfsStatus.equals("PROVISIONING")) {
-
-							deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-
-						} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
-								|| (nfsStatus.equals("DELETED"))) {
-
-							deployStatus.setStatus(DeploymentStatus.ERROR);
-						}
-
-						this.savenfsdb(deployStatus);
-					}
-
-//					deployStatus.setDeploymentTypeName(nfsName);
-//					deployStatus.setType(DeploymentType.NFS);
-//					deployStatus.setDeploymentId(dbDeploy);
-//
-//					if (nfsStatus.equals("READY")) {
-//
-//						deployStatus.setStatus(DeploymentStatus.SUCCESS);
-//
-//					} else if (nfsStatus.equals("PROVISIONING")) {
-//
-//						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-//
-//					} else if ((nfsStatus.equals("TERMINATED")) || (nfsStatus.equals("DELETING"))
-//							|| (nfsStatus.equals("DELETED"))) {
-//
-//						deployStatus.setStatus(DeploymentStatus.ERROR);
-//					}
-//
-//					this.savenfsdb(deployStatus);
-
-				}
-
-			}
-
-		}
-	}
-
-	private void getExtInsStatus(String deploymentName) throws FileNotFoundException, IOException {
-
-		LOGGER.info("deployment name in getExtInsStatus() method : " + deploymentName);
-
-		Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(deploymentName);
-
-		LOGGER.info("Get the external ip of instance created if the nfs external is true");
-
-		String externalIp = "";
-		String instanceStatus = "";
-		String instanceName = "";
-
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
-				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-
-		InstanceSettings instanceSettings = InstanceSettings.newBuilder()
-				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-
-		InstanceClient instanceClient = InstanceClient.create(instanceSettings);
-		ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, zone);
-
-		ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
-
-		for (Instance instanceObj : instanceList.iterateAll()) {
-
-			DeployStatus deployStatus = new DeployStatus();
-
-			String name = instanceObj.getName();
-			LOGGER.info("name of instance : " + name);
-			String insname[] = name.split("-");
-
-			instanceName = deploymentName + "-nat-instance";
-			// LOGGER.info("nat instance name : " + instanceName);
-			instanceStatus = instanceObj.getStatus().toString();
-
-			DeployStatus dbDeployStatus = deployStatusRepository.findOneByDeploymentTypeName(instanceName);
-
-//			if (dbDeployStatus != null) {
-//				LOGGER.info("Deploy status is present with " + instanceName);
-//
-//				deployStatusRepository.deleteById(dbDeployStatus.getId());
-//
-//				if (name.equals(instanceName)) {
-//
-//					deployStatus.setDeploymentTypeName(instanceName);
-//					deployStatus.setType(DeploymentType.INSTANCE);
-//
-//					deployStatus.setDeploymentId(dbDeploy);
-//
-//					if (instanceStatus.equals("RUNNING")) {
-//
-//						deployStatus.setStatus(DeploymentStatus.SUCCESS);
-//
-//					} else if (instanceStatus.equals("PROVISIONING")) {
-//
-//						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-//
-//					} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
-//							|| (instanceStatus.equals("DELETED"))) {
-//
-//						deployStatus.setStatus(DeploymentStatus.ERROR);
-//					}
-//
-//					List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
-//
-//					if (!CollectionUtils.isEmpty(networkList)) {
-//
-//						for (NetworkInterface network : networkList) {
-//
-//							if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
-//
-//								for (AccessConfig accessConfig : network.getAccessConfigsList()) {
-//
-//									externalIp = accessConfig.getNatIP();
-//								}
-//							}
-//						}
-//					}
-//
-//					deployStatus.setExternalIp(externalIp);
-//
-//					this.saveextinsdb(deployStatus);
-//
-//				}
-//
-//			} else {
-
-			if (dbDeployStatus == null) {
-
-				LOGGER.info("Deploy status is not present with " + instanceName);
-
-				if (name.equals(instanceName)) {
-
-					deployStatus.setDeploymentTypeName(instanceName);
-					deployStatus.setType(DeploymentType.INSTANCE);
-
-					deployStatus.setDeploymentId(dbDeploy);
-
-					if (instanceStatus.equals("RUNNING")) {
-
-						deployStatus.setStatus(DeploymentStatus.SUCCESS);
-
-					} else if (instanceStatus.equals("PROVISIONING")) {
-
-						deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-
-					} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
-							|| (instanceStatus.equals("DELETED"))) {
-
-						deployStatus.setStatus(DeploymentStatus.ERROR);
-					}
-
-					List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
-
-					if (!CollectionUtils.isEmpty(networkList)) {
-
-						for (NetworkInterface network : networkList) {
-
-							if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
-
-								for (AccessConfig accessConfig : network.getAccessConfigsList()) {
-
-									externalIp = accessConfig.getNatIP();
-								}
+		// Fetch all instances and build instance map
+		// Key is deployment name, value is list of instances
+		Map<String, List<Instance>> instanceMap = new HashMap<String, List<Instance>>();
+		try {
+			ListInstancesPagedResponse instanceList = this.fetchAllInstances();
+			if (instanceList != null) {
+				if (instanceList.iterateAll().iterator().hasNext()) {
+					for (Instance instance : instanceList.iterateAll()) {
+						Map<String, String> labelsMap = instance.getLabelsMap();
+						String deploymentName = labelsMap.get(LABEL_KEY_DEPLOYMENT_NAME);
+						if (deploymentName != null) {
+							if (instanceMap.get(deploymentName) == null) {
+								instanceMap.put(deploymentName, new ArrayList<Instance>());
 							}
+							instanceMap.get(deploymentName).add(instance);
 						}
 					}
-
-					deployStatus.setExternalIp(externalIp);
-
-					this.saveextinsdb(deployStatus);
-
 				}
 			}
+		} catch (IOException ex) {
+			LOGGER.error("Error in fetching instance list", ex);
 		}
 
-	}
-
-	private void getPublicInstanceIp(List<String> nameList, String instanceGroupName)
-			throws FileNotFoundException, IOException {
-		LOGGER.info("Get the external ip of instance created in public subnet");
-
-		String externalIp = "";
-		String instanceStatus = "";
-
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
-				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-
-		InstanceSettings instanceSettings = InstanceSettings.newBuilder()
-				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-
-		InstanceClient instanceClient = InstanceClient.create(instanceSettings);
-		ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, zone);
-
-		ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
-
-		DeployStatus deployStatus = new DeployStatus();
-
-		for (Instance instanceObj : instanceList.iterateAll()) {
-
-			LOGGER.info("instanceObj name : " + instanceObj.getName());
-
-//			String name = instanceObj.getName();
-//			String insname[] = name.split("-");
-//			String insname1 = insname[0];
-//			LOGGER.info("insname1 : " + insname1);
-
-//			String name2 = instanceGroupName;
-//			String insname2[] = name2.split("-");
-//			String insname3 = insname2[0];
-//			LOGGER.info("insname3 : " + insname3);
-//
-//			instanceStatus = instanceObj.getStatus().toString();
-//
-//			if (nameList.contains(insname3)) {
-//
-//				deployStatus.setDeploymentTypeName(instanceObj.getName());
-//				deployStatus.setType(DeploymentType.INSTANCE);
-//
-//				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(insname3);
-//				deployStatus.setDeploymentId(dbDeploy);
-//
-//				if (instanceStatus.equals("RUNNING")) {
-//
-//					deployStatus.setStatus(DeploymentStatus.SUCCESS);
-//
-//				} else if (instanceStatus.equals("PROVISIONING")) {
-//
-//					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-//
-//				} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
-//						|| (instanceStatus.equals("DELETED"))) {
-//
-//					deployStatus.setStatus(DeploymentStatus.ERROR);
-//				}
-//
-//				List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
-//
-//				if (!CollectionUtils.isEmpty(networkList)) {
-//
-//					for (NetworkInterface network : networkList) {
-//
-//						if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
-//
-//							for (AccessConfig accessConfig : network.getAccessConfigsList()) {
-//								externalIp = accessConfig.getNatIP();
-//							}
-//						}
-//					}
-//				}
-//
-//			}
-//
-//			deployStatus.setExternalIp(externalIp);
-//			this.saveinsipdb(deployStatus);
-
-			String name = instanceObj.getName();
-			LOGGER.info("name of instance : " + name);
-			String insname[] = name.split("-");
-			String name1 = insname[0];
-			LOGGER.info("deployment name in getPublicInstanceIp() method : " + name1);
-
-			String instanceName = insname[0] + "-nat-instance";
-			// LOGGER.info("nat instance name : " + instanceName);
-			instanceStatus = instanceObj.getStatus().toString();
-
-			if (nameList.contains(name1)) {
-
-				deployStatus.setDeploymentTypeName(instanceName);
-				deployStatus.setType(DeploymentType.INSTANCE);
-
-				Deployments dbDeploy = deploymentsRepository.findByNameAndIsDeletedFalse(name1);
-				deployStatus.setDeploymentId(dbDeploy);
-
-				if (instanceStatus.equals("RUNNING")) {
-
-					deployStatus.setStatus(DeploymentStatus.SUCCESS);
-
-				} else if (instanceStatus.equals("PROVISIONING")) {
-
-					deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-
-				} else if ((instanceStatus.equals("TERMINATED")) || (instanceStatus.equals("DELETING"))
-						|| (instanceStatus.equals("DELETED"))) {
-
-					deployStatus.setStatus(DeploymentStatus.ERROR);
+		// Fetch all file stores and build filestore map
+		// Key is deployment name and value is list of filestore objects
+		Map<String, List<JSONObject>> filestoreMap = new HashMap<String, List<JSONObject>>();
+		try {
+			JSONArray filestoreList = this.fetchAllFilestores();
+			for (int i = 0; i < filestoreList.length(); i++) {
+				JSONObject filstoreObject = filestoreList.getJSONObject(i);
+				String deploymentName = filstoreObject.query("/labels/" + LABEL_KEY_DEPLOYMENT_NAME).toString();
+				if (deploymentName != null) {
+					if (filestoreMap.get(deploymentName) == null) {
+						filestoreMap.put(deploymentName, new ArrayList<JSONObject>());
+					}
+					filestoreMap.get(deploymentName).add(filstoreObject);
 				}
+			}
+		} catch (IOException ex) {
+			LOGGER.error("Error in fetching filestore list", ex);
+		}
 
-				List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
+		// Fetch Pending deployment list
+		deploymentList = deploymentsRepository.findAllByStatusAndIsDeletedFalse(DeploymentStatus.PENDING);
+		if (deploymentList != null) {
+			for (Deployments deployment : deploymentList) {
+				String deploymentName = deployment.getName();
+				Integer deploymentId = deployment.getId();
+				DeploymentStatus finalDeploymentStatus = deployment.getStatus();
 
-				if (!CollectionUtils.isEmpty(networkList)) {
+				// Save and Update Instance Group Status
+				String deploymentTypeName = deploymentName + "-instance-group";
+				DeployStatus instanceGroupDb = deployStatusRepository.findOneByDeploymentTypeNameAndTypeAndDeploymentId(
+						deploymentTypeName, DeploymentType.INSTANCE_GROUP, deployment);
+				if (instanceGroupDb == null) {
+					instanceGroupDb = new DeployStatus();
+					instanceGroupDb.setDeploymentId(deployment);
+					instanceGroupDb.setDeploymentTypeName(deploymentTypeName);
+					instanceGroupDb.setType(DeploymentType.INSTANCE_GROUP);
+				}
+				instanceGroupDb.setStatus(DeploymentStatus.PENDING);
+				if (instanceGroupMap.containsKey(deploymentTypeName)
+						&& instanceGroupMap.get(deploymentTypeName) == true) {
+					instanceGroupDb.setStatus(DeploymentStatus.SUCCESS);
+					finalDeploymentStatus = DeploymentStatus.SUCCESS;
+				}
+				deployStatusRepository.save(instanceGroupDb);
 
-					for (NetworkInterface network : networkList) {
-
-						if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
-
-							for (AccessConfig accessConfig : network.getAccessConfigsList()) {
-
+				// Save and Update Instances Statuses
+				List<Instance> instanceList = instanceMap.get(deploymentName);
+				if (instanceList != null) {
+					for (Instance instance : instanceList) {
+						DeployStatus instanceDb = deployStatusRepository
+								.findOneByDeploymentTypeNameAndTypeAndDeploymentId(instance.getName(),
+										DeploymentType.INSTANCE, deployment);
+						if (instanceDb == null) {
+							instanceDb = new DeployStatus();
+							instanceDb.setDeploymentId(deployment);
+							instanceDb.setDeploymentTypeName(instance.getName());
+							instanceDb.setType(DeploymentType.INSTANCE);
+						}
+						if (instance.getNetworkInterfacesList() != null
+								&& !instance.getNetworkInterfacesList().isEmpty()
+								&& instance.getNetworkInterfacesList().get(0) != null
+								&& instance.getNetworkInterfacesList().get(0).getAccessConfigsList() != null
+								&& !instance.getNetworkInterfacesList().get(0).getAccessConfigsList().isEmpty()) {
+							String externalIp = "";
+							for (AccessConfig accessConfig : instance.getNetworkInterfacesList().get(0)
+									.getAccessConfigsList()) {
 								externalIp = accessConfig.getNatIP();
 							}
+							instanceDb.setExternalIp(externalIp);
 						}
+						if (instance.getStatus().equals("RUNNING")) {
+							instanceDb.setStatus(DeploymentStatus.SUCCESS);
+							finalDeploymentStatus = DeploymentStatus.SUCCESS;
+						} else if (instance.getStatus().equals("PROVISIONING")) {
+							instanceDb.setStatus(DeploymentStatus.PROVISIONING);
+							finalDeploymentStatus = DeploymentStatus.PENDING;
+						} else if ((instance.getStatus().equals("TERMINATED"))
+								|| (instance.getStatus().equals("DELETING"))
+								|| (instance.getStatus().equals("DELETED"))) {
+							instanceDb.setStatus(DeploymentStatus.ERROR);
+							finalDeploymentStatus = DeploymentStatus.ERROR;
+						} else {
+							instanceDb.setStatus(DeploymentStatus.ERROR);
+							finalDeploymentStatus = DeploymentStatus.ERROR;
+						}
+
+						deployStatusRepository.save(instanceDb);
 					}
 				}
 
-				deployStatus.setExternalIp(externalIp);
-
-				this.saveinsipdb(deployStatus);
-			}
-		}
-
-	}
-
-	private void getInstanceStatus(List<String> instanceGroupNameList, List<String> nameList)
-			throws FileNotFoundException, IOException {
-		String name = "";
-		String instance = "";
-		String status = "";
-		String externalIp = null;
-		String insgp = "";
-		String newInsGpName = "";
-		String requestListUri = "";
-
-		String uri = "https://compute.googleapis.com/compute/v1/";
-
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
-				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-
-		credentials.refresh();
-
-		AccessToken token = credentials.getAccessToken();
-
-		if (!CollectionUtils.isEmpty(instanceGroupNameList)) {
-
-			for (String instanceGroupName : instanceGroupNameList) {
-				LOGGER.info("instanceGroupName in getInstanceStatus() method : " + instanceGroupName);
-
-				if (!instanceGroupName.contains("-instance-group")) {
-//					insgp = instanceGroupName;
-//					LOGGER.info("insgp in if : " + insgp);
-					newInsGpName = instanceGroupName + "-instance-group";
-					LOGGER.info("new instance group name : " + newInsGpName);
-
-					requestListUri = uri + "projects/" + newProjectId + "/zones/" + zone + "/instanceGroupManagers/"
-							+ newInsGpName + "/listManagedInstances";
-				} else {
-//					String name2 = instanceGroupName;
-//					String insname2[] = name2.split("-");
-//					insgp = insname2[0];
-//					LOGGER.info("insgp in else : " + insgp);
-
-					requestListUri = uri + "projects/" + newProjectId + "/zones/" + zone + "/instanceGroupManagers/"
-							+ instanceGroupName + "/listManagedInstances";
-				}
-
-				RestTemplate template = new RestTemplate();
-
-				HttpHeaders headers = new HttpHeaders();
-				headers.set("Authorization", "Bearer " + token.getTokenValue());
-				headers.set("Content-Type", "application/json");
-
-				HttpEntity<Object> entity = new HttpEntity<Object>(null, headers);
-
-				LOGGER.info("requestListUri : " + requestListUri);
-				ResponseEntity<String> resultList = template.exchange(requestListUri, HttpMethod.POST, entity,
-						String.class);
-
-				LOGGER.info("result : " + resultList.getBody());
-
-				JSONObject jobj = new JSONObject(resultList.getBody());
-
-				if (!jobj.isEmpty()) {
-					JSONArray jarr = jobj.getJSONArray("managedInstances");
-
-					for (int i = 0; i < jarr.length(); i++) {
-						DeployStatus deployStatus = new DeployStatus();
-
-						JSONObject jobj2 = jarr.getJSONObject(i);
-
-						instance = jobj2.getString("instance");
-						status = jobj2.getString("instanceStatus");
-
-						LOGGER.info("instance : " + instance + " & status : " + status);
-
-						String instanceArr[] = instance.split("/");
-
-						if (instanceArr.length != 0) {
-							int index = instanceArr.length - 1;
-							name = instanceArr[index];
-
-							String name2 = instanceGroupName;
-							String insname2[] = name2.split("-");
-							String insname = insname2[0];
-							LOGGER.info("insname : " + insname);
-
-							LOGGER.info("name of the instance : " + name);
-
-							// LOGGER.info("nameList.contains(instanceGroupName) : " +
-							// nameList.contains(instanceGroupName));
-							if (!nameList.contains(instanceGroupName)) {
-
-								deployStatus.setDeploymentTypeName(name);
-								deployStatus.setType(DeploymentType.INSTANCE);
-
-								Deployments dbDeploy = deploymentsRepository
-										.findByNameAndIsDeletedFalse(instanceGroupName);
-								deployStatus.setDeploymentId(dbDeploy);
-
-								if (status.equals("RUNNING")) {
-
-									deployStatus.setStatus(DeploymentStatus.SUCCESS);
-
-								} else if (status.equals("PROVISIONING")) {
-
-									deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-
-								} else if ((status.equals("TERMINATED")) || (status.equals("DELETING"))
-										|| (status.equals("DELETED"))) {
-
-									deployStatus.setStatus(DeploymentStatus.ERROR);
-								}
-
-								InstanceSettings instanceSettings = InstanceSettings.newBuilder()
-										.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-
-								InstanceClient instanceClient = InstanceClient.create(instanceSettings);
-								ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, zone);
-
-								ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
-
-								for (Instance instanceObj : instanceList.iterateAll()) {
-
-									if ((instanceObj.getName().equals(name))
-											&& (instanceObj.getStatus().equals(status))) {
-
-										List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
-
-										if (!CollectionUtils.isEmpty(networkList)) {
-
-											for (NetworkInterface network : networkList) {
-
-												if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
-
-													for (AccessConfig accessConfig : network.getAccessConfigsList()) {
-														externalIp = accessConfig.getNatIP();
-													}
-												}
-											}
-										}
-									}
-
-									deployStatus.setExternalIp(externalIp);
-									this.saveinsdb(deployStatus);
-
-								}
-							}
-//							else {
-//
-//								deployStatus.setDeploymentTypeName(name);
-//								deployStatus.setType(DeploymentType.INSTANCE);
-//
-//								Deployments dbDeploy = deploymentsRepository
-//										.findByNameAndIsDeletedFalse(instanceGroupName);
-//								deployStatus.setDeploymentId(dbDeploy);
-//
-//								if (status.equals("RUNNING")) {
-//
-//									deployStatus.setStatus(DeploymentStatus.SUCCESS);
-//
-//								} else if (status.equals("PROVISIONING")) {
-//
-//									deployStatus.setStatus(DeploymentStatus.PROVISIONING);
-//
-//								} else if ((status.equals("TERMINATED")) || (status.equals("DELETING"))
-//										|| (status.equals("DELETED"))) {
-//
-//									deployStatus.setStatus(DeploymentStatus.ERROR);
-//								}
-//
-//								InstanceSettings instanceSettings = InstanceSettings.newBuilder()
-//										.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-//
-//								InstanceClient instanceClient = InstanceClient.create(instanceSettings);
-//								ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, zone);
-//
-//								ListInstancesPagedResponse instanceList = instanceClient.listInstances(projectZoneName);
-//
-//								for (Instance instanceObj : instanceList.iterateAll()) {
-//
-//									if ((instanceObj.getName().equals(name))
-//											&& (instanceObj.getStatus().equals(status))) {
-//
-//										List<NetworkInterface> networkList = instanceObj.getNetworkInterfacesList();
-//
-//										if (!CollectionUtils.isEmpty(networkList)) {
-//
-//											for (NetworkInterface network : networkList) {
-//
-//												if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
-//
-//													for (AccessConfig accessConfig : network.getAccessConfigsList()) {
-//														externalIp = accessConfig.getNatIP();
-//													}
-//												}
-//											}
-//										}
-//									}
-//
-//									deployStatus.setExternalIp(externalIp);
-//									this.saveinsdb(deployStatus);
-//
-//								}
-//
-//							}
+				// Save and Update File store Statuses
+				List<JSONObject> filestoreList = filestoreMap.get(deploymentName);
+				if (filestoreList != null) {
+					for (JSONObject filestore : filestoreList) {
+						DeployStatus filestoreDb = deployStatusRepository
+								.findOneByDeploymentTypeNameAndTypeAndDeploymentId(filestore.getString("name"),
+										DeploymentType.NFS, deployment);
+						if (filestoreDb == null) {
+							filestoreDb = new DeployStatus();
+							filestoreDb.setDeploymentId(deployment);
+							filestoreDb.setDeploymentTypeName(filestore.getString("name"));
+							filestoreDb.setType(DeploymentType.NFS);
+						}
+						if (filestore.getString("state").equals("READY")) {
+							filestoreDb.setStatus(DeploymentStatus.SUCCESS);
+							finalDeploymentStatus = DeploymentStatus.SUCCESS;
+						} else {
+							filestoreDb.setStatus(DeploymentStatus.PENDING);
 						}
 
+						deployStatusRepository.save(filestoreDb);
 					}
 				}
+
+				deployment.setStatus(finalDeploymentStatus);
+				deploymentsRepository.save(deployment);
 			}
 		}
-
 	}
 
-	private void savenfsdb(DeployStatus deployStatus) {
-		deployStatusRepository.save(deployStatus);
-
-	}
-
-	private void saveinsdb(DeployStatus deployStatus) {
-		deployStatusRepository.save(deployStatus);
-
-	}
-
-	private void saveinsgroupdb(DeployStatus deployStatus) {
-		deployStatusRepository.save(deployStatus);
-
-	}
-
-	private void saveinsipdb(DeployStatus deployStatus) {
-		deployStatusRepository.save(deployStatus);
-
-	}
-
-	private void saveextinsdb(DeployStatus deployStatus) {
-		deployStatusRepository.save(deployStatus);
-
-	}
-
-	// Get all instance groups and their status from GCP
-	private ListInstanceGroupManagersPagedResponse getInstanceGroup() throws FileNotFoundException, IOException {
-		LOGGER.info("Getting all the instance groups");
-
+	/**
+	 * Calls cloud for all instance group details
+	 * 
+	 */
+	private ListInstanceGroupManagersPagedResponse fetchAllInstanceGroups() throws IOException {
+		LOGGER.info("Fetching all instance groups details");
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
 
@@ -765,19 +275,32 @@ public class DeploymentStatusScheduler {
 				.create(instanceGroupManagerSettings);
 
 		ProjectZoneName projectZoneNameGroup = ProjectZoneName.of(newProjectId, zone);
-		ListInstanceGroupManagersPagedResponse instanceGroupList = instanceGroupManagerClient
-				.listInstanceGroupManagers(projectZoneNameGroup);
-
-		return instanceGroupList;
-
+		return instanceGroupManagerClient.listInstanceGroupManagers(projectZoneNameGroup);
 	}
 
-	// Get the status of file store from GCP console
-	private Map<String, String> getNfsStatus() throws IOException {
-		LOGGER.info("Getting nfs status");
+	/**
+	 * Calls cloud and fetches all instances
+	 * 
+	 */
+	private ListInstancesPagedResponse fetchAllInstances() throws IOException {
+		LOGGER.info("Fetching all instance details");
+		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
+				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+		InstanceSettings instanceSettings = InstanceSettings.newBuilder()
+				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
 
-		Map<String, String> nfsMap = new HashMap<String, String>();
+		InstanceClient instanceClient = InstanceClient.create(instanceSettings);
+		ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, zone);
 
+		return instanceClient.listInstances(projectZoneName);
+	}
+
+	/**
+	 * Calls cloud for all filestore instances
+	 * 
+	 */
+	private JSONArray fetchAllFilestores() throws IOException {
+		LOGGER.info("Fetching all file store statuses");
 		String uri = "https://file.googleapis.com/v1/";
 		String requestListUri = uri + "projects/" + newProjectId + "/locations/" + zone + "/instances";
 
@@ -796,77 +319,20 @@ public class DeploymentStatusScheduler {
 
 		HttpEntity<Object> entity = new HttpEntity<Object>(null, headers);
 
-		ResponseEntity<String> resultList = template.exchange(requestListUri, HttpMethod.GET, entity, String.class);
+		ResponseEntity<String> result = template.exchange(requestListUri, HttpMethod.GET, entity, String.class);
 
-		if (resultList.getBody() != null || !resultList.getBody().isEmpty()) {
-			String strobj = resultList.getBody();
-			String strnew = strobj.replaceAll("=", ":");
+		JSONArray instanceList = null;
+		if (result != null && result.getBody() != null && !result.getBody().isEmpty()) {
+			LOGGER.info("Response of filestores");
+			String resultStr = result.getBody();
+			String resultJson = resultStr.replaceAll("=", ":");
 
-			JSONObject jobj = new JSONObject(strnew);
+			JSONObject resultobj = new JSONObject(resultJson);
 
-			if (!jobj.isEmpty()) {
-
-				String state = "";
-				String name = "";
-
-				JSONArray jarr = jobj.getJSONArray("instances");
-
-				for (int i = 0; i < jarr.length(); i++) {
-
-					String strobj1 = jarr.get(i).toString();
-
-					String strnew2 = strobj1.substring(1, strobj1.length() - 1);
-
-					int stateIndex = 0;
-					int fileIndex = 0;
-					int tierIndex = 0;
-					int networkIndex = 0;
-
-					if (strnew2.contains("state")) {
-						stateIndex = strobj1.indexOf("state", 0);
-					}
-
-					if (strnew2.contains("fileShares")) {
-						fileIndex = strobj1.indexOf("fileShares", 0);
-					}
-
-					if (strnew2.contains("networks")) {
-						networkIndex = strobj1.indexOf("networks", 0);
-					}
-
-					if (strnew2.contains("tier")) {
-						tierIndex = strobj1.indexOf("tier", 0);
-					}
-
-					String strnew3 = strnew2.substring(fileIndex - 1, tierIndex - 3);
-
-					if (strnew3.contains("name")) {
-						int index2 = strnew3.indexOf("name");
-
-						String substr = strnew3.substring(index2 - 1, strnew3.length() - 2);
-
-						String substr1[] = substr.split(":");
-						String namestr = substr1[1];
-
-						name = namestr.substring(1, namestr.length() - 1);
-
-					}
-
-					String strnew4 = strnew2.substring(stateIndex - 1, networkIndex - 3);
-
-					String substr2[] = strnew4.split(":");
-					String statestr = substr2[1];
-
-					state = statestr.substring(1, statestr.length() - 1);
-
-					nfsMap.put(name, state);
-
-				}
-				return nfsMap;
+			if (!resultobj.isEmpty()) {
+				instanceList = resultobj.getJSONArray("instances");
 			}
-
 		}
-		return null;
+		return instanceList;
 	}
-
 }

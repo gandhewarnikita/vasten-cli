@@ -204,7 +204,7 @@ public class DeploymentStatusScheduler {
 
 					LOGGER.info("instanceGroup status true");
 					instanceGroupDb.setStatus(DeploymentStatus.SUCCESS);
-					finalDeploymentStatus = DeploymentStatus.SUCCESS;
+					// finalDeploymentStatus = DeploymentStatus.SUCCESS;
 				}
 
 				deployStatusRepository.save(instanceGroupDb);
@@ -212,8 +212,10 @@ public class DeploymentStatusScheduler {
 
 				// Save and Update Instances Statuses
 				List<Instance> instanceList = instanceMap.get(deploymentName);
+				LOGGER.info("instance list is empty or not : " + instanceList.size());
 				if (instanceList != null) {
 
+					LOGGER.info("instance list is not null");
 					for (Instance instance : instanceList) {
 
 						LOGGER.info("instance in instanceList : " + instance);
@@ -246,22 +248,22 @@ public class DeploymentStatusScheduler {
 
 							instanceDb.setStatus(DeploymentStatus.SUCCESS);
 							LOGGER.info("SUCCESS");
-							finalDeploymentStatus = DeploymentStatus.SUCCESS;
+							// finalDeploymentStatus = DeploymentStatus.SUCCESS;
 						} else if (instance.getStatus().equals("PROVISIONING")) {
 
 							instanceDb.setStatus(DeploymentStatus.PROVISIONING);
 							LOGGER.info("PROVISIONING");
-							finalDeploymentStatus = DeploymentStatus.PENDING;
+							// finalDeploymentStatus = DeploymentStatus.PENDING;
 						} else if ((instance.getStatus().equals("TERMINATED"))
 								|| (instance.getStatus().equals("DELETING"))
 								|| (instance.getStatus().equals("DELETED"))) {
 
 							instanceDb.setStatus(DeploymentStatus.ERROR);
 							LOGGER.info("ERROR");
-							finalDeploymentStatus = DeploymentStatus.ERROR;
+							// finalDeploymentStatus = DeploymentStatus.ERROR;
 						} else {
 							instanceDb.setStatus(DeploymentStatus.ERROR);
-							finalDeploymentStatus = DeploymentStatus.ERROR;
+							// finalDeploymentStatus = DeploymentStatus.ERROR;
 						}
 
 						deployStatusRepository.save(instanceDb);
@@ -289,7 +291,7 @@ public class DeploymentStatusScheduler {
 						if (filestore.getString("state").equals("READY")) {
 
 							filestoreDb.setStatus(DeploymentStatus.SUCCESS);
-							finalDeploymentStatus = DeploymentStatus.SUCCESS;
+							// finalDeploymentStatus = DeploymentStatus.SUCCESS;
 						} else {
 							filestoreDb.setStatus(DeploymentStatus.PENDING);
 						}
@@ -300,10 +302,18 @@ public class DeploymentStatusScheduler {
 					}
 				}
 
-				deployment.setStatus(finalDeploymentStatus);
-				deploymentsRepository.save(deployment);
-				LOGGER.info("deployment status of " + deployment.getName()
-						+ " is updated and added to the db successfully");
+				// finalDeploymentStatus = DeploymentStatus.SUCCESS;
+//				deployment.setStatus(finalDeploymentStatus);
+//				deploymentsRepository.save(deployment);
+//				LOGGER.info("deployment status of " + deployment.getName()
+//						+ " is updated and added to the db successfully");
+				
+				if(instanceGroupDb.getStatus().equals(DeploymentStatus.SUCCESS)) {
+					deployment.setStatus(DeploymentStatus.SUCCESS);
+					deploymentsRepository.save(deployment);
+					LOGGER.info("deployment status of " + deployment.getName()
+							+ " is updated and added to the db successfully");
+				}
 			}
 		}
 	}

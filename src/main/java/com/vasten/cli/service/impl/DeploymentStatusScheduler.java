@@ -91,7 +91,7 @@ public class DeploymentStatusScheduler {
 
 	final String LABEL_KEY_DEPLOYMENT_NAME = "deployment_name";
 
-	@Scheduled(cron = "0 0/5 * * * *")
+	@Scheduled(cron = "0 0/1 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("In the deployment status update scheduler");
@@ -241,15 +241,21 @@ public class DeploymentStatusScheduler {
 						}
 						if (instance.getStatus().equals("RUNNING")) {
 
+							
 							instanceDb.setStatus(DeploymentStatus.SUCCESS);
+							LOGGER.info("SUCCESS");
 							finalDeploymentStatus = DeploymentStatus.SUCCESS;
 						} else if (instance.getStatus().equals("PROVISIONING")) {
+							
 							instanceDb.setStatus(DeploymentStatus.PROVISIONING);
+							LOGGER.info("PROVISIONING");
 							finalDeploymentStatus = DeploymentStatus.PENDING;
 						} else if ((instance.getStatus().equals("TERMINATED"))
 								|| (instance.getStatus().equals("DELETING"))
 								|| (instance.getStatus().equals("DELETED"))) {
+							
 							instanceDb.setStatus(DeploymentStatus.ERROR);
+							LOGGER.info("ERROR");
 							finalDeploymentStatus = DeploymentStatus.ERROR;
 						} else {
 							instanceDb.setStatus(DeploymentStatus.ERROR);

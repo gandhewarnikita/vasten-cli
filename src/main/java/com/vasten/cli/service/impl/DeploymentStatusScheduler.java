@@ -301,7 +301,6 @@ public class DeploymentStatusScheduler {
 				}
 
 				deployment.setStatus(finalDeploymentStatus);
-				LOGGER.info("deployment : " + deployment.toString());
 				deploymentsRepository.save(deployment);
 				LOGGER.info("deployment status of " + deployment.getName()
 						+ " is updated and added to the db successfully");

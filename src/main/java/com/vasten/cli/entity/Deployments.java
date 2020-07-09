@@ -78,7 +78,7 @@ public class Deployments {
 	private String nfsName;
 
 	@JsonIgnore
-	@OneToMany(mappedBy = "deploymentId", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "deploymentId", fetch = FetchType.LAZY)
 	private List<DeployStatus> deploystatus;
 
 	@Transient

@@ -191,6 +191,7 @@ public class DeploymentStatusScheduler {
 						deploymentTypeName, DeploymentType.INSTANCE_GROUP, deployment);
 				if (instanceGroupDb == null) {
 
+					LOGGER.info("instanceGroupDb is null");
 					instanceGroupDb = new DeployStatus();
 					instanceGroupDb.setDeploymentId(deployment);
 					instanceGroupDb.setDeploymentTypeName(deploymentTypeName);
@@ -201,11 +202,11 @@ public class DeploymentStatusScheduler {
 				if (instanceGroupMap.containsKey(deploymentTypeName)
 						&& instanceGroupMap.get(deploymentTypeName) == true) {
 
+					LOGGER.info("instanceGroup status true");
 					instanceGroupDb.setStatus(DeploymentStatus.SUCCESS);
 					finalDeploymentStatus = DeploymentStatus.SUCCESS;
 				}
-				
-				LOGGER.info("instanceGroupDb : "+instanceGroupDb.toString());
+
 				deployStatusRepository.save(instanceGroupDb);
 				LOGGER.info("instanceGroupDb with " + deploymentTypeName + " is added to the db successfully");
 
@@ -215,11 +216,13 @@ public class DeploymentStatusScheduler {
 
 					for (Instance instance : instanceList) {
 
+						LOGGER.info("instance in instanceList : " + instance);
 						DeployStatus instanceDb = deployStatusRepository
 								.findOneByDeploymentTypeNameAndTypeAndDeploymentId(instance.getName(),
 										DeploymentType.INSTANCE, deployment);
 						if (instanceDb == null) {
 
+							LOGGER.info("instanceDb is null");
 							instanceDb = new DeployStatus();
 							instanceDb.setDeploymentId(deployment);
 							instanceDb.setDeploymentTypeName(instance.getName());
@@ -241,19 +244,18 @@ public class DeploymentStatusScheduler {
 						}
 						if (instance.getStatus().equals("RUNNING")) {
 
-							
 							instanceDb.setStatus(DeploymentStatus.SUCCESS);
 							LOGGER.info("SUCCESS");
 							finalDeploymentStatus = DeploymentStatus.SUCCESS;
 						} else if (instance.getStatus().equals("PROVISIONING")) {
-							
+
 							instanceDb.setStatus(DeploymentStatus.PROVISIONING);
 							LOGGER.info("PROVISIONING");
 							finalDeploymentStatus = DeploymentStatus.PENDING;
 						} else if ((instance.getStatus().equals("TERMINATED"))
 								|| (instance.getStatus().equals("DELETING"))
 								|| (instance.getStatus().equals("DELETED"))) {
-							
+
 							instanceDb.setStatus(DeploymentStatus.ERROR);
 							LOGGER.info("ERROR");
 							finalDeploymentStatus = DeploymentStatus.ERROR;
@@ -262,7 +264,6 @@ public class DeploymentStatusScheduler {
 							finalDeploymentStatus = DeploymentStatus.ERROR;
 						}
 
-						LOGGER.info("instanceDb : "+instanceDb.toString());
 						deployStatusRepository.save(instanceDb);
 						LOGGER.info("instanceDb with " + instance.getName() + " is added to the db successfully");
 					}
@@ -273,6 +274,7 @@ public class DeploymentStatusScheduler {
 				if (filestoreList != null) {
 
 					for (JSONObject filestore : filestoreList) {
+						LOGGER.info("filestore object : " + filestore);
 						DeployStatus filestoreDb = deployStatusRepository
 								.findOneByDeploymentTypeNameAndTypeAndDeploymentId(filestore.getString("name"),
 										DeploymentType.NFS, deployment);
@@ -292,7 +294,6 @@ public class DeploymentStatusScheduler {
 							filestoreDb.setStatus(DeploymentStatus.PENDING);
 						}
 
-						LOGGER.info("filestoreDb : "+filestoreDb.toString());
 						deployStatusRepository.save(filestoreDb);
 						LOGGER.info(
 								"filestoreDb with " + filestore.getString("name") + " is added to the db successfully");
@@ -300,7 +301,7 @@ public class DeploymentStatusScheduler {
 				}
 
 				deployment.setStatus(finalDeploymentStatus);
-				LOGGER.info("deployment : "+deployment.toString());
+				LOGGER.info("deployment : " + deployment.toString());
 				deploymentsRepository.save(deployment);
 				LOGGER.info("deployment status of " + deployment.getName()
 						+ " is updated and added to the db successfully");

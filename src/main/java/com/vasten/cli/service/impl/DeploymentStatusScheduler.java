@@ -212,13 +212,13 @@ public class DeploymentStatusScheduler {
 
 				// Save and Update Instances Statuses
 				List<Instance> instanceList = instanceMap.get(deploymentName);
-				LOGGER.info("instance list is empty or not : " + instanceList.size());
+		//		LOGGER.info("instance list is empty or not : " + instanceList.size());
 				if (instanceList != null) {
 
 					LOGGER.info("instance list is not null");
 					for (Instance instance : instanceList) {
 
-						LOGGER.info("instance in instanceList : " + instance);
+						//LOGGER.info("instance in instanceList : " + instance);
 						DeployStatus instanceDb = deployStatusRepository
 								.findOneByDeploymentTypeNameAndTypeAndDeploymentId(instance.getName(),
 										DeploymentType.INSTANCE, deployment);
@@ -244,6 +244,26 @@ public class DeploymentStatusScheduler {
 							}
 							instanceDb.setExternalIp(externalIp);
 						}
+						
+//						String externalIp = "";
+//						List<NetworkInterface> networkList = instance.getNetworkInterfacesList();
+//
+//						if (!CollectionUtils.isEmpty(networkList)) {
+//
+//							for (NetworkInterface network : networkList) {
+//
+//								if (!CollectionUtils.isEmpty(network.getAccessConfigsList())) {
+//
+//									for (AccessConfig accessConfig : network.getAccessConfigsList()) {
+//
+//										externalIp = accessConfig.getNatIP();
+//										LOGGER.info("external ip of " + instance.getName() + " is : " + externalIp);
+//									}
+//									instanceDb.setExternalIp(externalIp);
+//								}
+//							}
+//						}
+
 						if (instance.getStatus().equals("RUNNING")) {
 
 							instanceDb.setStatus(DeploymentStatus.SUCCESS);
@@ -307,8 +327,8 @@ public class DeploymentStatusScheduler {
 //				deploymentsRepository.save(deployment);
 //				LOGGER.info("deployment status of " + deployment.getName()
 //						+ " is updated and added to the db successfully");
-				
-				if(instanceGroupDb.getStatus().equals(DeploymentStatus.SUCCESS)) {
+
+				if (instanceGroupDb.getStatus().equals(DeploymentStatus.SUCCESS)) {
 					deployment.setStatus(DeploymentStatus.SUCCESS);
 					deploymentsRepository.save(deployment);
 					LOGGER.info("deployment status of " + deployment.getName()

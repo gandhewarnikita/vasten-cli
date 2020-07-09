@@ -2,6 +2,7 @@ package com.vasten.cli.entity;
 
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -77,7 +78,7 @@ public class Deployments {
 	private String nfsName;
 
 	@JsonIgnore
-	@OneToMany(mappedBy = "deploymentId", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "deploymentId", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	private List<DeployStatus> deploystatus;
 
 	@Transient

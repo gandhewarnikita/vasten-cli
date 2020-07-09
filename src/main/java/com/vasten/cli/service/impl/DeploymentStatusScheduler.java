@@ -204,6 +204,8 @@ public class DeploymentStatusScheduler {
 					instanceGroupDb.setStatus(DeploymentStatus.SUCCESS);
 					finalDeploymentStatus = DeploymentStatus.SUCCESS;
 				}
+				
+				LOGGER.info("instanceGroupDb : "+instanceGroupDb.toString());
 				deployStatusRepository.save(instanceGroupDb);
 				LOGGER.info("instanceGroupDb with " + deploymentTypeName + " is added to the db successfully");
 
@@ -254,6 +256,7 @@ public class DeploymentStatusScheduler {
 							finalDeploymentStatus = DeploymentStatus.ERROR;
 						}
 
+						LOGGER.info("instanceDb : "+instanceDb.toString());
 						deployStatusRepository.save(instanceDb);
 						LOGGER.info("instanceDb with " + instance.getName() + " is added to the db successfully");
 					}
@@ -283,6 +286,7 @@ public class DeploymentStatusScheduler {
 							filestoreDb.setStatus(DeploymentStatus.PENDING);
 						}
 
+						LOGGER.info("filestoreDb : "+filestoreDb.toString());
 						deployStatusRepository.save(filestoreDb);
 						LOGGER.info(
 								"filestoreDb with " + filestore.getString("name") + " is added to the db successfully");
@@ -290,6 +294,7 @@ public class DeploymentStatusScheduler {
 				}
 
 				deployment.setStatus(finalDeploymentStatus);
+				LOGGER.info("deployment : "+deployment.toString());
 				deploymentsRepository.save(deployment);
 				LOGGER.info("deployment status of " + deployment.getName()
 						+ " is updated and added to the db successfully");

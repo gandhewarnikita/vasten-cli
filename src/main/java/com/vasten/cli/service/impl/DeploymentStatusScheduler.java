@@ -91,7 +91,7 @@ public class DeploymentStatusScheduler {
 
 	final String LABEL_KEY_DEPLOYMENT_NAME = "deployment_name";
 
-	@Scheduled(cron = "0 0/1 * * * *")
+	@Scheduled(cron = "0 0/5 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	public void statusScheduler() throws IOException, GeneralSecurityException {
 		LOGGER.info("In the deployment status update scheduler");

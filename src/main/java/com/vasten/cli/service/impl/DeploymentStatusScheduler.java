@@ -205,6 +205,7 @@ public class DeploymentStatusScheduler {
 					finalDeploymentStatus = DeploymentStatus.SUCCESS;
 				}
 				deployStatusRepository.save(instanceGroupDb);
+				LOGGER.info("instanceGroupDb with " + deploymentTypeName + " is added to the db successfully");
 
 				// Save and Update Instances Statuses
 				List<Instance> instanceList = instanceMap.get(deploymentName);
@@ -254,6 +255,7 @@ public class DeploymentStatusScheduler {
 						}
 
 						deployStatusRepository.save(instanceDb);
+						LOGGER.info("instanceDb with " + instance.getName() + " is added to the db successfully");
 					}
 				}
 
@@ -282,11 +284,15 @@ public class DeploymentStatusScheduler {
 						}
 
 						deployStatusRepository.save(filestoreDb);
+						LOGGER.info(
+								"filestoreDb with " + filestore.getString("name") + " is added to the db successfully");
 					}
 				}
 
 				deployment.setStatus(finalDeploymentStatus);
 				deploymentsRepository.save(deployment);
+				LOGGER.info("deployment status of " + deployment.getName()
+						+ " is updated and added to the db successfully");
 			}
 		}
 	}

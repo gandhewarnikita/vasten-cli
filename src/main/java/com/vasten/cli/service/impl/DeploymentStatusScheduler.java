@@ -103,11 +103,17 @@ public class DeploymentStatusScheduler {
 		Map<String, Boolean> instanceGroupMap = new HashMap<String, Boolean>();
 		try {
 			ListInstanceGroupManagersPagedResponse instanceGroupList = this.fetchAllInstanceGroups();
+
 			if (instanceGroupList != null) {
+
 				if (instanceGroupList.iterateAll().iterator().hasNext()) {
+
 					for (InstanceGroupManager element : instanceGroupList.iterateAll()) {
+
 						String instanceGroupName = element.getName();
+						LOGGER.info("instanceGroupName : " + instanceGroupName);
 						Boolean instanceGroupStability = element.getStatus().getIsStable();
+						LOGGER.info("instanceGroupStability : " + instanceGroupStability);
 						instanceGroupMap.put(instanceGroupName, instanceGroupStability);
 					}
 				}
@@ -121,16 +127,24 @@ public class DeploymentStatusScheduler {
 		Map<String, List<Instance>> instanceMap = new HashMap<String, List<Instance>>();
 		try {
 			ListInstancesPagedResponse instanceList = this.fetchAllInstances();
+
 			if (instanceList != null) {
+
 				if (instanceList.iterateAll().iterator().hasNext()) {
+
 					for (Instance instance : instanceList.iterateAll()) {
+
+						LOGGER.info("instance name in instance list : " + instance.getName());
+						LOGGER.info("instance status in instance list : " + instance.getStatus());
 						Map<String, String> labelsMap = instance.getLabelsMap();
-						String deploymentName = labelsMap.get(LABEL_KEY_DEPLOYMENT_NAME);
-						if (deploymentName != null) {
-							if (instanceMap.get(deploymentName) == null) {
-								instanceMap.put(deploymentName, new ArrayList<Instance>());
+						if (labelsMap != null) {
+							String deploymentName = labelsMap.get(LABEL_KEY_DEPLOYMENT_NAME);
+							if (deploymentName != null) {
+								if (instanceMap.get(deploymentName) == null) {
+									instanceMap.put(deploymentName, new ArrayList<Instance>());
+								}
+								instanceMap.get(deploymentName).add(instance);
 							}
-							instanceMap.get(deploymentName).add(instance);
 						}
 					}
 				}
@@ -144,14 +158,19 @@ public class DeploymentStatusScheduler {
 		Map<String, List<JSONObject>> filestoreMap = new HashMap<String, List<JSONObject>>();
 		try {
 			JSONArray filestoreList = this.fetchAllFilestores();
-			for (int i = 0; i < filestoreList.length(); i++) {
-				JSONObject filstoreObject = filestoreList.getJSONObject(i);
-				String deploymentName = filstoreObject.query("/labels/" + LABEL_KEY_DEPLOYMENT_NAME).toString();
-				if (deploymentName != null) {
-					if (filestoreMap.get(deploymentName) == null) {
-						filestoreMap.put(deploymentName, new ArrayList<JSONObject>());
+			if (filestoreList != null) {
+
+				for (int i = 0; i < filestoreList.length(); i++) {
+
+					JSONObject filstoreObject = filestoreList.getJSONObject(i);
+					String deploymentName = filstoreObject.query("/labels/" + LABEL_KEY_DEPLOYMENT_NAME).toString();
+
+					if (deploymentName != null) {
+						if (filestoreMap.get(deploymentName) == null) {
+							filestoreMap.put(deploymentName, new ArrayList<JSONObject>());
+						}
+						filestoreMap.get(deploymentName).add(filstoreObject);
 					}
-					filestoreMap.get(deploymentName).add(filstoreObject);
 				}
 			}
 		} catch (IOException ex) {
@@ -171,14 +190,17 @@ public class DeploymentStatusScheduler {
 				DeployStatus instanceGroupDb = deployStatusRepository.findOneByDeploymentTypeNameAndTypeAndDeploymentId(
 						deploymentTypeName, DeploymentType.INSTANCE_GROUP, deployment);
 				if (instanceGroupDb == null) {
+
 					instanceGroupDb = new DeployStatus();
 					instanceGroupDb.setDeploymentId(deployment);
 					instanceGroupDb.setDeploymentTypeName(deploymentTypeName);
 					instanceGroupDb.setType(DeploymentType.INSTANCE_GROUP);
 				}
 				instanceGroupDb.setStatus(DeploymentStatus.PENDING);
+
 				if (instanceGroupMap.containsKey(deploymentTypeName)
 						&& instanceGroupMap.get(deploymentTypeName) == true) {
+
 					instanceGroupDb.setStatus(DeploymentStatus.SUCCESS);
 					finalDeploymentStatus = DeploymentStatus.SUCCESS;
 				}
@@ -187,11 +209,14 @@ public class DeploymentStatusScheduler {
 				// Save and Update Instances Statuses
 				List<Instance> instanceList = instanceMap.get(deploymentName);
 				if (instanceList != null) {
+
 					for (Instance instance : instanceList) {
+
 						DeployStatus instanceDb = deployStatusRepository
 								.findOneByDeploymentTypeNameAndTypeAndDeploymentId(instance.getName(),
 										DeploymentType.INSTANCE, deployment);
 						if (instanceDb == null) {
+
 							instanceDb = new DeployStatus();
 							instanceDb.setDeploymentId(deployment);
 							instanceDb.setDeploymentTypeName(instance.getName());
@@ -202,14 +227,17 @@ public class DeploymentStatusScheduler {
 								&& instance.getNetworkInterfacesList().get(0) != null
 								&& instance.getNetworkInterfacesList().get(0).getAccessConfigsList() != null
 								&& !instance.getNetworkInterfacesList().get(0).getAccessConfigsList().isEmpty()) {
+
 							String externalIp = "";
 							for (AccessConfig accessConfig : instance.getNetworkInterfacesList().get(0)
 									.getAccessConfigsList()) {
 								externalIp = accessConfig.getNatIP();
+								LOGGER.info("external ip of instance : " + externalIp);
 							}
 							instanceDb.setExternalIp(externalIp);
 						}
 						if (instance.getStatus().equals("RUNNING")) {
+
 							instanceDb.setStatus(DeploymentStatus.SUCCESS);
 							finalDeploymentStatus = DeploymentStatus.SUCCESS;
 						} else if (instance.getStatus().equals("PROVISIONING")) {
@@ -232,17 +260,21 @@ public class DeploymentStatusScheduler {
 				// Save and Update File store Statuses
 				List<JSONObject> filestoreList = filestoreMap.get(deploymentName);
 				if (filestoreList != null) {
+
 					for (JSONObject filestore : filestoreList) {
 						DeployStatus filestoreDb = deployStatusRepository
 								.findOneByDeploymentTypeNameAndTypeAndDeploymentId(filestore.getString("name"),
 										DeploymentType.NFS, deployment);
 						if (filestoreDb == null) {
+
 							filestoreDb = new DeployStatus();
 							filestoreDb.setDeploymentId(deployment);
 							filestoreDb.setDeploymentTypeName(filestore.getString("name"));
+							LOGGER.info("file store name : " + filestore.getString("name"));
 							filestoreDb.setType(DeploymentType.NFS);
 						}
 						if (filestore.getString("state").equals("READY")) {
+
 							filestoreDb.setStatus(DeploymentStatus.SUCCESS);
 							finalDeploymentStatus = DeploymentStatus.SUCCESS;
 						} else {

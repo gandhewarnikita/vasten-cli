@@ -321,15 +321,22 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
 
-		for (DeployStatus deployStatusObj : deployStatusList) {
-			StatusCli statusCli = new StatusCli();
+		if (deployStatusList != null || !deployStatusList.isEmpty()) {
 
-			statusCli.setDeploymentTypeName(deployStatusObj.getDeploymentTypeName());
-			statusCli.setExternalIp(deployStatusObj.getExternalIp());
-			statusCli.setStatus(deployStatusObj.getStatus().toString());
-			statusCli.setType(deployStatusObj.getType().toString());
+			for (DeployStatus deployStatusObj : deployStatusList) {
+				StatusCli statusCli = new StatusCli();
 
-			statusCliList.add(statusCli);
+				if (deployStatusObj.getDeploymentTypeName() != null && deployStatusObj.getStatus().toString() != null
+						&& deployStatusObj.getType().toString() != null) {
+
+					statusCli.setDeploymentTypeName(deployStatusObj.getDeploymentTypeName());
+					statusCli.setExternalIp(deployStatusObj.getExternalIp());
+					statusCli.setStatus(deployStatusObj.getStatus().toString());
+					statusCli.setType(deployStatusObj.getType().toString());
+
+					statusCliList.add(statusCli);
+				}
+			}
 		}
 
 		statusMap.put(deploymentName, statusCliList);

@@ -37,7 +37,7 @@ public class DeploymentCostScheduler {
 	private DeploymentsRepository deploymentsRepository;
 
 //	@Scheduled(cron = "0 0/5 * * * *")
-	@Scheduled(cron = "10 * * * * *")
+//	@Scheduled(cron = "10 * * * * *")
 	private void costScheduler() throws JobException, InterruptedException, FileNotFoundException, IOException {
 		LOGGER.info("In the deployment cost scheduler");
 

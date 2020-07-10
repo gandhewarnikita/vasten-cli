@@ -212,13 +212,12 @@ public class DeploymentStatusScheduler {
 
 				// Save and Update Instances Statuses
 				List<Instance> instanceList = instanceMap.get(deploymentName);
-		//		LOGGER.info("instance list is empty or not : " + instanceList.size());
+
 				if (instanceList != null) {
 
 					LOGGER.info("instance list is not null");
 					for (Instance instance : instanceList) {
 
-						//LOGGER.info("instance in instanceList : " + instance);
 						DeployStatus instanceDb = deployStatusRepository
 								.findOneByDeploymentTypeNameAndTypeAndDeploymentId(instance.getName(),
 										DeploymentType.INSTANCE, deployment);
@@ -244,7 +243,7 @@ public class DeploymentStatusScheduler {
 							}
 							instanceDb.setExternalIp(externalIp);
 						}
-						
+
 //						String externalIp = "";
 //						List<NetworkInterface> networkList = instance.getNetworkInterfacesList();
 //

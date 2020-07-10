@@ -1,5 +1,8 @@
 package com.vasten.cli.service.impl;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.JobException;
@@ -23,7 +27,7 @@ import com.vasten.cli.repository.DeploymentsRepository;
 public class DeploymentCostScheduler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeploymentCostScheduler.class);
-	
+
 	@Value("${NEW_PROJECT_KEYFILE_PATH}")
 	private String newProjectKeyFilePath;
 
@@ -33,8 +37,8 @@ public class DeploymentCostScheduler {
 	private DeploymentsRepository deploymentsRepository;
 
 //	@Scheduled(cron = "0 0/5 * * * *")
-//	@Scheduled(cron = "10 * * * * *")
-	private void costScheduler() throws JobException, InterruptedException {
+	@Scheduled(cron = "10 * * * * *")
+	private void costScheduler() throws JobException, InterruptedException, FileNotFoundException, IOException {
 		LOGGER.info("In the deployment cost scheduler");
 
 		List<Deployments> deploymentList = new ArrayList<Deployments>();
@@ -49,12 +53,16 @@ public class DeploymentCostScheduler {
 
 	}
 
-	private void getCost(String name) throws JobException, InterruptedException {
+	private void getCost(String name) throws JobException, InterruptedException, FileNotFoundException, IOException {
 		LOGGER.info("Getting cost of deployment : " + name);
 
 		String deploymentName = name;
 
-		BigQuery bigquery = BigQueryOptions.getDefaultInstance().getService();
+		// BigQuery bigquery = BigQueryOptions.getDefaultInstance().getService();
+
+		BigQuery bigquery = BigQueryOptions.newBuilder()
+				.setCredentials(ServiceAccountCredentials.fromStream(new FileInputStream(newProjectKeyFilePath)))
+				.build().getService();
 
 		String query = "SELECT\n" + "  labels.key as key,\n" + "  labels.value as value,\n" + "    SUM(cost)\n"
 				+ "    + SUM(IFNULL((SELECT SUM(c.amount)\n" + "                  FROM   UNNEST(credits) c), 0))\n"

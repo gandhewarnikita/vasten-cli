@@ -11,6 +11,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -27,106 +28,28 @@ public class DeploymentCost {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer id;
 
-	@Column(name = "start_date")
-	private Date startDate;
+	@OneToOne
+	@JoinColumn(name = "deployment_id")
+	private Deployments deploymentId;
 
-	@Column(name = "end_date")
-	private Date endDate;
+	@Column(name = "deployment_type")
+	@Enumerated(EnumType.STRING)
+	private DeploymentType type;
 
-	@Column(name = "deployment_name")
-	private String deploymentName;
+	@Column(name = "compute_cost")
+	private Double computeCost;
 
-	@Column(name = "nfs_name")
-	private String nfsName;
+	@Column(name = "network_cost")
+	private Double networkCost;
 
-	@Column(name = "cluster_cost")
-	private Double clusterCost;
+	@Column(name = "storage_cost")
+	private Double storageCost;
 
-	@Column(name = "nfs_cost")
-	private Double nfsCost;
+	@Column(name = "cost_last_updated")
+	private Date costLastUpdated;
 
-	@Column(name = "total_cost")
-	private Double totalCost;
-
-//	// Make the changes in Deployments table too
-//	@ManyToOne
-//	@JoinColumn(name = "deployment_id")
-//	private Deployments deploymentId;
-//
-//	@Column(name = "deployment_type")
-//	@Enumerated(EnumType.STRING)
-//	private DeploymentType type;
-//
-//	@Column(name = "compute-cost")
-//	private Double computeCost;
-//
-//	@Column(name = "network_cost")
-//	private Double networkCost;
-//
-//	@Column(name = "storage_cost")
-//	private Double storageCost;
-//
-//	@Column(name = "cost_last_updated")
-//	private Date costLastUpdated;
-//
-//	@Column(name = "deployment_type_name")
-//	private String deploymentTypeName;
-//
-//	public Deployments getDeploymentId() {
-//		return deploymentId;
-//	}
-//
-//	public void setDeploymentId(Deployments deploymentId) {
-//		this.deploymentId = deploymentId;
-//	}
-//
-//	public DeploymentType getType() {
-//		return type;
-//	}
-//
-//	public void setType(DeploymentType type) {
-//		this.type = type;
-//	}
-//
-//	public Double getComputeCost() {
-//		return computeCost;
-//	}
-//
-//	public void setComputeCost(Double computeCost) {
-//		this.computeCost = computeCost;
-//	}
-//
-//	public Double getNetworkCost() {
-//		return networkCost;
-//	}
-//
-//	public void setNetworkCost(Double networkCost) {
-//		this.networkCost = networkCost;
-//	}
-//
-//	public Double getStorageCost() {
-//		return storageCost;
-//	}
-//
-//	public void setStorageCost(Double storageCost) {
-//		this.storageCost = storageCost;
-//	}
-//
-//	public Date getCostLastUpdated() {
-//		return costLastUpdated;
-//	}
-//
-//	public void setCostLastUpdated(Date costLastUpdated) {
-//		this.costLastUpdated = costLastUpdated;
-//	}
-//
-//	public String getDeploymentTypeName() {
-//		return deploymentTypeName;
-//	}
-//
-//	public void setDeploymentTypeName(String deploymentTypeName) {
-//		this.deploymentTypeName = deploymentTypeName;
-//	}
+	@Column(name = "deployment_type_name")
+	private String deploymentTypeName;
 
 	public Integer getId() {
 		return id;
@@ -136,67 +59,67 @@ public class DeploymentCost {
 		this.id = id;
 	}
 
-	public Date getStartDate() {
-		return startDate;
+	public Deployments getDeploymentId() {
+		return deploymentId;
 	}
 
-	public void setStartDate(Date startDate) {
-		this.startDate = startDate;
+	public void setDeploymentId(Deployments deploymentId) {
+		this.deploymentId = deploymentId;
 	}
 
-	public Date getEndDate() {
-		return endDate;
+	public DeploymentType getType() {
+		return type;
 	}
 
-	public void setEndDate(Date endDate) {
-		this.endDate = endDate;
+	public void setType(DeploymentType type) {
+		this.type = type;
 	}
 
-	public String getDeploymentName() {
-		return deploymentName;
+	public Double getComputeCost() {
+		return computeCost;
 	}
 
-	public void setDeploymentName(String deploymentName) {
-		this.deploymentName = deploymentName;
+	public void setComputeCost(Double computeCost) {
+		this.computeCost = computeCost;
 	}
 
-	public String getNfsName() {
-		return nfsName;
+	public Double getNetworkCost() {
+		return networkCost;
 	}
 
-	public void setNfsName(String nfsName) {
-		this.nfsName = nfsName;
+	public void setNetworkCost(Double networkCost) {
+		this.networkCost = networkCost;
 	}
 
-	public Double getClusterCost() {
-		return clusterCost;
+	public Double getStorageCost() {
+		return storageCost;
 	}
 
-	public void setClusterCost(Double clusterCost) {
-		this.clusterCost = clusterCost;
+	public void setStorageCost(Double storageCost) {
+		this.storageCost = storageCost;
 	}
 
-	public Double getNfsCost() {
-		return nfsCost;
+	public Date getCostLastUpdated() {
+		return costLastUpdated;
 	}
 
-	public void setNfsCost(Double nfsCost) {
-		this.nfsCost = nfsCost;
+	public void setCostLastUpdated(Date costLastUpdated) {
+		this.costLastUpdated = costLastUpdated;
 	}
 
-	public Double getTotalCost() {
-		return totalCost;
+	public String getDeploymentTypeName() {
+		return deploymentTypeName;
 	}
 
-	public void setTotalCost(Double totalCost) {
-		this.totalCost = totalCost;
+	public void setDeploymentTypeName(String deploymentTypeName) {
+		this.deploymentTypeName = deploymentTypeName;
 	}
 
 	@Override
 	public String toString() {
-		return "DeploymentCost [id=" + id + ", startDate=" + startDate + ", endDate=" + endDate + ", deploymentName="
-				+ deploymentName + ", nfsName=" + nfsName + ", clusterCost=" + clusterCost + ", nfsCost=" + nfsCost
-				+ ", totalCost=" + totalCost + "]";
+		return "DeploymentCost [id=" + id + ", deploymentId=" + deploymentId + ", type=" + type + ", computeCost="
+				+ computeCost + ", networkCost=" + networkCost + ", storageCost=" + storageCost + ", costLastUpdated="
+				+ costLastUpdated + ", deploymentTypeName=" + deploymentTypeName + "]";
 	}
 
 }

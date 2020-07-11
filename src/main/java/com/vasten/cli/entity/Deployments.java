@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -80,6 +81,10 @@ public class Deployments {
 	@JsonIgnore
 	@OneToMany(mappedBy = "deploymentId", fetch = FetchType.LAZY)
 	private List<DeployStatus> deploystatus;
+
+	@JsonIgnore
+	@OneToOne(mappedBy = "deploymentId", fetch = FetchType.LAZY)
+	private DeploymentCost deploymentcost;
 
 	@Transient
 	private String toolName;

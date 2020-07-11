@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vasten.cli.entity.CostCli;
+import com.vasten.cli.entity.DeploymentCost;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.StatusCli;
 import com.vasten.cli.entity.User;
@@ -96,10 +98,10 @@ public class DeploymentsController {
 	 * @throws FileNotFoundException
 	 */
 	@RequestMapping(value = "/cost/deploymentId/{deploymentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public float getCost(@PathVariable int deploymentId) throws FileNotFoundException, IOException {
-		LOGGER.info("Api received to get cost of deployment between start date and end date");
-		float deploymentCost = deploymentsService.getCost(deploymentId);
-		return deploymentCost;
+	public Map<String, CostCli> getCost(@PathVariable int deploymentId) throws FileNotFoundException, IOException {
+		LOGGER.info("Api received to get cost of deployment");
+		Map<String, CostCli> deploymentCostList = deploymentsService.getCost(deploymentId);
+		return deploymentCostList;
 	}
 
 	/**

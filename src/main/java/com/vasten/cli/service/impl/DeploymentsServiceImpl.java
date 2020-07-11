@@ -43,7 +43,9 @@ import com.google.cloud.billing.v1.CloudCatalogClient.ListServicesPagedResponse;
 import com.google.cloud.billing.v1.CloudCatalogSettings;
 import com.google.common.collect.Lists;
 import com.vasten.cli.entity.Clients;
+import com.vasten.cli.entity.CostCli;
 import com.vasten.cli.entity.DeployStatus;
+import com.vasten.cli.entity.DeploymentCost;
 import com.vasten.cli.entity.DeploymentStatus;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.StatusCli;
@@ -52,6 +54,7 @@ import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
 import com.vasten.cli.repository.ClientsRepository;
 import com.vasten.cli.repository.DeployStatusRepository;
+import com.vasten.cli.repository.DeploymentCostRepository;
 import com.vasten.cli.repository.DeploymentsRepository;
 import com.vasten.cli.repository.UserRepository;
 import com.vasten.cli.service.DeploymentsService;
@@ -103,6 +106,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private DeploymentCostRepository deploymentCostRepository;
 
 	ExecutorService executorService = Executors.newFixedThreadPool(5);
 
@@ -396,26 +402,28 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	 * @see com.vasten.cli.service.DeploymentsService#getCost(int)
 	 */
 	@Override
-	public float getCost(int deploymentId) throws FileNotFoundException, IOException {
+	public Map<String, CostCli> getCost(int deploymentId) throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
 
-		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
-				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+		validationUtility.validateDeploymentId(deploymentId);
 
-//		CloudBillingSettings cloudBillingSettings = CloudBillingSettings.newBuilder()
-//				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-//
-//		CloudBillingClient cloudBillingClient = CloudBillingClient.create(cloudBillingSettings);
-//
-//		CloudCatalogSettings cloudCatalogSettings = CloudCatalogSettings.newBuilder()
-//				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-//
-//		CloudCatalogClient cloudCatalogClient = CloudCatalogClient.create(cloudCatalogSettings);
-//		ListServicesPagedResponse response = cloudCatalogClient.listServices();
+		Map<String, CostCli> costCliMap = new HashMap<String, CostCli>();
 
-		credentials.createScoped(BigqueryScopes.all());
+		CostCli costCli = new CostCli();
 
-		return 0;
+		Deployments dbDeployment = deploymentsRepository.findOneById(deploymentId);
+
+		DeploymentCost dbCost = deploymentCostRepository.findOneByDeploymentId(dbDeployment);
+
+		costCli.setComputeCost(dbCost.getComputeCost());
+		costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
+		costCli.setNetworkCost(dbCost.getNetworkCost());
+		costCli.setStorageCost(dbCost.getStorageCost());
+		costCli.setType(dbCost.getType().toString());
+
+		costCliMap.put(dbDeployment.getName(), costCli);
+
+		return costCliMap;
 	}
 
 	/*

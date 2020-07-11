@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.vasten.cli.entity.CostCli;
+import com.vasten.cli.entity.DeploymentCost;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.StatusCli;
 
@@ -50,7 +52,7 @@ public interface DeploymentsService {
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public float getCost(int deploymentId) throws FileNotFoundException, IOException;
+	public Map<String, CostCli> getCost(int deploymentId) throws FileNotFoundException, IOException;
 
 	/**
 	 * Delete a deployment of user

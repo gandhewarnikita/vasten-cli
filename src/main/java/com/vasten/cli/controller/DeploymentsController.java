@@ -82,10 +82,10 @@ public class DeploymentsController {
 	 * @param name
 	 * @return
 	 */
-	@RequestMapping(value = "/status/deploymentId/{deploymentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Map<String, List<StatusCli>> getStatus(@PathVariable int deploymentId) {
+	@RequestMapping(value = "/status/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public Map<String, List<StatusCli>> getStatus(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to get status of deployment");
-		Map<String, List<StatusCli>> deploymentStatus = deploymentsService.getStatus(deploymentId);
+		Map<String, List<StatusCli>> deploymentStatus = deploymentsService.getStatus(deploymentName);
 		return deploymentStatus;
 	}
 
@@ -97,10 +97,10 @@ public class DeploymentsController {
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
-	@RequestMapping(value = "/cost/deploymentId/{deploymentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Map<String, CostCli> getCost(@PathVariable int deploymentId) throws FileNotFoundException, IOException {
+	@RequestMapping(value = "/cost/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public Map<String, CostCli> getCost(@PathVariable String deploymentName) throws FileNotFoundException, IOException {
 		LOGGER.info("Api received to get cost of deployment");
-		Map<String, CostCli> deploymentCostList = deploymentsService.getCost(deploymentId);
+		Map<String, CostCli> deploymentCostList = deploymentsService.getCost(deploymentName);
 		return deploymentCostList;
 	}
 
@@ -109,13 +109,13 @@ public class DeploymentsController {
 	 * 
 	 * @param name
 	 */
-	@RequestMapping(value = "/deploymentId/{deploymentId}", method = RequestMethod.DELETE)
-	public void deProvision(@PathVariable Integer deploymentId) {
+	@RequestMapping(value = "/deploymentName/{deploymentName}", method = RequestMethod.DELETE)
+	public void deProvision(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to delete deployment");
 
 		User user = securityUtil.getLoggedInUser();
 
-		deploymentsService.deProvision(user.getId(), deploymentId);
+		deploymentsService.deProvision(user.getId(), deploymentName);
 	}
 
 	/**

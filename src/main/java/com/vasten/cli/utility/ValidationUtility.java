@@ -112,7 +112,7 @@ public class ValidationUtility {
 		LOGGER.info("nfs external in validation utility = " + nfsExternal);
 
 		if (nfsExternal == false) {
-			
+
 			if (provisionData.getNfsCapacity() == null) {
 				LOGGER.error("Nfs capacity is mandatory");
 				validationErrorList.add(new ValidationError("nfscapacity", "Nfs capacity is mandatory"));
@@ -248,7 +248,9 @@ public class ValidationUtility {
 	public void validateDeploymentName(String deploymentName) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
-		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(deploymentName);
+		String name = deploymentName.toLowerCase();
+
+		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
 
 		if (dbDeployment == null) {
 			LOGGER.error("Deployment does not exist with this name");
@@ -270,7 +272,9 @@ public class ValidationUtility {
 	public void validateDeployment(Integer id, String deploymentName) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
-		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(deploymentName);
+		String name = deploymentName.toLowerCase();
+
+		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
 
 		if (dbDeployment == null) {
 			LOGGER.error("Deployment does not exist with this name");
@@ -296,7 +300,25 @@ public class ValidationUtility {
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
 			throw new CliBadRequestException("Bad Request", validationErrorList);
 		}
-		
+
+	}
+
+	public void validateDeploymentNameForCost(String deploymentName) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		String name = deploymentName.toLowerCase();
+
+		Deployments dbDeployment = deploymentsRepository.findOneByName(name);
+
+		if (dbDeployment == null) {
+			LOGGER.error("Deployment does not exist with this name");
+			validationErrorList.add(new ValidationError("name", "Deployment does not exist with this name"));
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
 	}
 
 }

@@ -284,14 +284,16 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		} else {
 
-			Deployments dbDeployments = deploymentsRepository.findByName(name);
+			String deploymentName = name.toLowerCase();
+			Deployments dbDeployments = deploymentsRepository.findByName(deploymentName);
 
 			if (dbDeployments == null) {
 				LOGGER.error("Deployment with this name does not exist");
 				validationErrorList.add(new ValidationError("name", "Deployment with this name does not exist"));
 
 			} else {
-				Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, name);
+				Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser,
+						deploymentName);
 
 				if (dbDeployment != null) {
 					deploymentList.add(dbDeployment);
@@ -313,17 +315,17 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	 * @see com.vasten.cli.service.DeploymentsService#getStatus(int)
 	 */
 	@Override
-	public Map<String, List<StatusCli>> getStatus(int deploymentId) {
+	public Map<String, List<StatusCli>> getStatus(String deploymentName) {
 		LOGGER.info("Getting status of a deployment");
 
-		validationUtility.validateDeploymentId(deploymentId);
+		validationUtility.validateDeploymentName(deploymentName);
 
-		String deploymentName = "";
+		String deployName = "";
 		Map<String, List<StatusCli>> statusMap = new HashMap<String, List<StatusCli>>();
 		List<StatusCli> statusCliList = new ArrayList<StatusCli>();
 
-		Deployments dbDeployment = deploymentsRepository.findOneByIdAndIsDeletedFalse(deploymentId);
-		deploymentName = dbDeployment.getName();
+		Deployments dbDeployment = deploymentsRepository.findOneByNameAndIsDeletedFalse(deploymentName);
+		deployName = dbDeployment.getName().toLowerCase();
 
 		List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
 
@@ -357,12 +359,15 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	 * java.lang.Integer)
 	 */
 	@Override
-	public void deProvision(Integer userId, Integer deploymentId) {
+	public void deProvision(Integer userId, String deploymentName) {
 		LOGGER.info("Deleting instance by id of deployment");
 
 		User dbUser = userRepository.findOneById(userId);
 
-		validationUtility.validateDeployment(dbUser.getId(), deploymentId);
+		validationUtility.validateDeployment(dbUser.getId(), deploymentName);
+
+		Deployments deployment = deploymentsRepository.findOneByName(deploymentName);
+		int deploymentId = deployment.getId();
 
 		Deployments dbDeployment = deploymentsRepository.findByUserAndIdAndIsDeletedFalse(dbUser, deploymentId);
 		String propertyFile = dbDeployment.getFileName();
@@ -402,12 +407,15 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	 * @see com.vasten.cli.service.DeploymentsService#getCost(int)
 	 */
 	@Override
-	public Map<String, CostCli> getCost(int deploymentId) throws FileNotFoundException, IOException {
+	public Map<String, CostCli> getCost(String deploymentName) throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
 
-		validationUtility.validateDeploymentIdForCost(deploymentId);
+		validationUtility.validateDeploymentNameForCost(deploymentName);
 
 		Map<String, CostCli> costCliMap = new HashMap<String, CostCli>();
+
+		Deployments deployment = deploymentsRepository.findOneByName(deploymentName);
+		int deploymentId = deployment.getId();
 
 		Deployments dbDeployment = deploymentsRepository.findOneById(deploymentId);
 
@@ -444,7 +452,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		validationUtility.validateDeploymentName(deploymentName);
 
 		User dbUser = userRepository.findOneById(userId);
-		Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, deploymentName);
+		String name = deploymentName.toLowerCase();
+		Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, name);
 
 		String propertyFile = dbDeployment.getFileName();
 
@@ -487,7 +496,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		validationUtility.validateDeployment(dbUser.getId(), deploymentName);
 
-		Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, deploymentName);
+		String name = deploymentName.toLowerCase();
+		Deployments dbDeployment = deploymentsRepository.findByUserAndNameAndIsDeletedFalse(dbUser, name);
 		String propertyFile = dbDeployment.getFileName();
 
 		dbDeployment.setDeleted(true);

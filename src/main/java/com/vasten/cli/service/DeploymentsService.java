@@ -39,28 +39,28 @@ public interface DeploymentsService {
 	/**
 	 * Get status of cluster, instances and file store of a deployment
 	 * 
-	 * @param deploymentId
+	 * @param deploymentName
 	 * @return
 	 */
-	public Map<String, List<StatusCli>> getStatus(int deploymentId);
+	public Map<String, List<StatusCli>> getStatus(String deploymentName);
 
 	/**
 	 * Get cost of a deployment
 	 * 
-	 * @param deploymentId
+	 * @param deploymentName
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public Map<String, CostCli> getCost(int deploymentId) throws FileNotFoundException, IOException;
+	public Map<String, CostCli> getCost(String deploymentName) throws FileNotFoundException, IOException;
 
 	/**
 	 * Delete a deployment of user
 	 * 
 	 * @param id
-	 * @param deploymentId
+	 * @param deploymentName
 	 */
-	public void deProvision(Integer userId, Integer deploymentId);
+	public void deProvision(Integer userId, String deploymentName);
 
 	/**
 	 * Mount external file store for a user

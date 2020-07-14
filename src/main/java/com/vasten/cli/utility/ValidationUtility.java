@@ -283,4 +283,20 @@ public class ValidationUtility {
 
 	}
 
+	public void validateDeploymentIdForCost(int deploymentId) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		Deployments dbDeployment = deploymentsRepository.findOneById(deploymentId);
+
+		if (dbDeployment == null) {
+			LOGGER.error("Deployment does not exist with this id");
+			validationErrorList.add(new ValidationError("id", "Deployment does not exist with this id"));
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+		
+	}
+
 }

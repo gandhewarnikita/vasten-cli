@@ -405,7 +405,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	public Map<String, CostCli> getCost(int deploymentId) throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
 
-		validationUtility.validateDeploymentId(deploymentId);
+		validationUtility.validateDeploymentIdForCost(deploymentId);
 
 		Map<String, CostCli> costCliMap = new HashMap<String, CostCli>();
 

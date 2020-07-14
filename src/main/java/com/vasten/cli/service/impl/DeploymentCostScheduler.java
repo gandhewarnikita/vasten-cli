@@ -106,7 +106,7 @@ public class DeploymentCostScheduler {
 			}
 		}
 
-		if (objList != null || !objList.isEmpty()) {
+		if (objList != null && !objList.isEmpty()) {
 
 			String cost = objList.get(2).toString();
 			Double computeCost = Double.valueOf(cost);
@@ -187,7 +187,7 @@ public class DeploymentCostScheduler {
 			}
 		}
 
-		if (objList != null || !objList.isEmpty()) {
+		if (objList != null && !objList.isEmpty()) {
 
 			String cost = objList.get(2).toString();
 			Double filestoreCost = Double.valueOf(cost);

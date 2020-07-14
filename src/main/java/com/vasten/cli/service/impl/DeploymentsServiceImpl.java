@@ -409,19 +409,24 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		Map<String, CostCli> costCliMap = new HashMap<String, CostCli>();
 
-		CostCli costCli = new CostCli();
-
 		Deployments dbDeployment = deploymentsRepository.findOneById(deploymentId);
 
 		DeploymentCost dbCost = deploymentCostRepository.findOneByDeploymentId(dbDeployment);
 
-		costCli.setComputeCost(dbCost.getComputeCost());
-		costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
-		costCli.setNetworkCost(dbCost.getNetworkCost());
-		costCli.setStorageCost(dbCost.getStorageCost());
-		costCli.setType(dbCost.getType().toString());
+		if (dbCost != null) {
 
-		costCliMap.put(dbDeployment.getName(), costCli);
+			CostCli costCli = new CostCli();
+
+			Double totalCost = dbCost.getNetworkCost() + dbCost.getStorageCost();
+
+			costCli.setComputeCost(dbCost.getComputeCost());
+			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
+			costCli.setTotalCost(totalCost);
+			costCli.setType(dbCost.getType().toString());
+
+			costCliMap.put(dbDeployment.getName(), costCli);
+
+		}
 
 		return costCliMap;
 	}

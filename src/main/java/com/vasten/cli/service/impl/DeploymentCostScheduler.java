@@ -45,8 +45,8 @@ public class DeploymentCostScheduler {
 	@Autowired
 	private DeploymentCostRepository deploymentCostRepository;
 
-//	@Scheduled(cron = "0 0/5 * * * *")
-	@Scheduled(cron = "10 * * * * *")
+	@Scheduled(cron = "0 0/5 * * * *")
+//	@Scheduled(cron = "10 * * * * *")
 	private void costScheduler() throws JobException, InterruptedException, FileNotFoundException, IOException {
 		LOGGER.info("In the deployment cost scheduler");
 
@@ -56,19 +56,22 @@ public class DeploymentCostScheduler {
 
 		if (deploymentList != null) {
 			for (Deployments deployment : deploymentList) {
-				this.getCost(deployment);
+				this.getComputeCost(deployment);
+				this.getFilestoreCost(deployment);
 			}
 		}
 
 	}
 
-	private void getCost(Deployments deployment)
+	private void getComputeCost(Deployments deployment)
 			throws JobException, InterruptedException, FileNotFoundException, IOException {
-		LOGGER.info("Getting cost of deployment : " + deployment.getName());
+		LOGGER.info("Getting compute cost of deployment : " + deployment.getName());
 
 		String deploymentName = deployment.getName();
 
-		// BigQuery bigquery = BigQueryOptions.getDefaultInstance().getService();
+		List<Object> objList = new ArrayList<Object>();
+
+		DeploymentCost dbDeploymentCost = null;
 
 		BigQuery bigquery = BigQueryOptions.newBuilder()
 				.setCredentials(ServiceAccountCredentials.fromStream(new FileInputStream(newProjectKeyFilePath)))
@@ -89,56 +92,71 @@ public class DeploymentCostScheduler {
 		QueryJobConfiguration computeQueryConfig = QueryJobConfiguration.newBuilder(computeQuery).setUseLegacySql(false)
 				.build();
 
-//		TableResult results = bigquery.query(queryConfig);
-//
-//		results.iterateAll().forEach(row -> row.forEach(val -> LOGGER.info("%s,", val.toString())));
-//
-//		LOGGER.info("Query with named parameters performed successfully.");
+		TableResult dataList = bigquery.query(computeQueryConfig);
 
-		// Print the results.
-		for (FieldValueList row : bigquery.query(computeQueryConfig).iterateAll()) {
-			for (FieldValue val : row) {
-				LOGGER.info("\n");
-				LOGGER.info("value : " + val.toString());
-				LOGGER.info("val.getValue() : " + val.getValue());
-				LOGGER.info("\n");
-
-				Double computeCost = 0.0;
-
-				String var = val.getValue().toString();
-				LOGGER.info("var = " + var);
-
-				if (var.matches("[0-9.]*")) {
-					computeCost = Double.valueOf(var);
-					LOGGER.info("Compute Cost : " + computeCost);
-					break;
-				}
-
-				if (val.getValue().equals(deploymentName)) {
-					// Store the cost of the deployment in Db
-					DeploymentCost dbDeploymentCost = deploymentCostRepository
-							.findOneByDeploymentTypeNameAndTypeAndDeploymentId(deploymentName, DeploymentType.INSTANCE,
-									deployment);
-
-					if (dbDeploymentCost == null) {
-						LOGGER.info("dbDeploymentCost is null");
-						dbDeploymentCost = new DeploymentCost();
-						dbDeploymentCost.setDeploymentId(deployment);
-						dbDeploymentCost.setDeploymentTypeName(deploymentName);
-						dbDeploymentCost.setType(DeploymentType.INSTANCE);
-						dbDeploymentCost.setComputeCost(computeCost);
-						dbDeploymentCost.setCostLastUpdated(new Date());
-					} else {
-						dbDeploymentCost.setComputeCost(computeCost);
-						dbDeploymentCost.setCostLastUpdated(new Date());
+		if (dataList != null) {
+			if (dataList.iterateAll().iterator().hasNext()) {
+				for (FieldValueList row : dataList.iterateAll()) {
+					for (FieldValue val : row) {
+						LOGGER.info("value of computeQuery : " + val);
+						objList.add(val.getValue());
 					}
+					LOGGER.info("\n");
+				}
+			}
+		}
 
-					deploymentCostRepository.save(dbDeploymentCost);
+		if (objList != null) {
+
+			String cost = objList.get(2).toString();
+			Double computeCost = Double.valueOf(cost);
+			LOGGER.info("computeCost : " + computeCost);
+
+			dbDeploymentCost = deploymentCostRepository.findOneByDeploymentTypeNameAndTypeAndDeploymentId(
+					deploymentName, DeploymentType.INSTANCE, deployment);
+
+			if (dbDeploymentCost == null) {
+				LOGGER.info("dbDeploymentCost is null");
+				dbDeploymentCost = new DeploymentCost();
+
+				String name = (String) objList.get(1);
+
+				if (name.equals(deploymentName)) {
+					dbDeploymentCost.setDeploymentId(deployment);
+					dbDeploymentCost.setDeploymentTypeName(deploymentName);
 				}
 
+				dbDeploymentCost.setType(DeploymentType.INSTANCE);
+				dbDeploymentCost.setComputeCost(computeCost);
+				dbDeploymentCost.setNetworkCost(0.0);
+				dbDeploymentCost.setStorageCost(0.0);
+				dbDeploymentCost.setCostLastUpdated(new Date());
+
+			} else {
+				dbDeploymentCost.setComputeCost(computeCost);
+				dbDeploymentCost.setCostLastUpdated(new Date());
 			}
-			LOGGER.info("\n");
+
+			LOGGER.info("compute cost of deployment " + deploymentName + " is = " + computeCost);
+			deploymentCostRepository.save(dbDeploymentCost);
+
 		}
+
+	}
+
+	private void getFilestoreCost(Deployments deployment)
+			throws JobException, InterruptedException, FileNotFoundException, IOException {
+		LOGGER.info("Getting filestore cost of deployment : " + deployment.getName());
+
+		String deploymentName = deployment.getName();
+
+		List<Object> objList = new ArrayList<Object>();
+
+		DeploymentCost dbDeploymentCost = null;
+
+		BigQuery bigquery = BigQueryOptions.newBuilder()
+				.setCredentials(ServiceAccountCredentials.fromStream(new FileInputStream(newProjectKeyFilePath)))
+				.build().getService();
 
 		String fileStoreQuery = "SELECT labels.key as key, labels.value as value,\n"
 				+ "SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM   UNNEST(credits) c), 0)) AS total, (SUM(CAST(cost * 1000000 AS int64))+\n"
@@ -152,49 +170,57 @@ public class DeploymentCostScheduler {
 		QueryJobConfiguration filestoreQueryConfig = QueryJobConfiguration.newBuilder(fileStoreQuery)
 				.setUseLegacySql(false).build();
 
-		for (FieldValueList row : bigquery.query(filestoreQueryConfig).iterateAll()) {
-			for (FieldValue val : row) {
-				LOGGER.info("\n");
-				LOGGER.info("\n");
-				LOGGER.info("value gugu : " + val.toString());
-				LOGGER.info("val.getValue() hgyugiu : " + val.getValue());
-				LOGGER.info("\n");
+		LOGGER.info("filestore Query : " + filestoreQueryConfig);
+		LOGGER.info("\n");
 
-				Double networkCost = 0.0;
+		TableResult dataList = bigquery.query(filestoreQueryConfig);
 
-				String var = val.getValue().toString();
-				LOGGER.info("var huhui = " + var);
-
-				if (var.matches("[0-9.]*")) {
-					networkCost = Double.valueOf(var);
-					LOGGER.info("Network Cost : " + networkCost);
-					break;
-				}
-
-				if (val.getValue().equals(deploymentName)) {
-					// Store the cost of the deployment in Db
-					DeploymentCost dbDeploymentCost = deploymentCostRepository
-							.findOneByDeploymentTypeNameAndTypeAndDeploymentId(deploymentName, DeploymentType.INSTANCE,
-									deployment);
-
-					if (dbDeploymentCost == null) {
-						LOGGER.info("dbDeploymentCost is null");
-						dbDeploymentCost = new DeploymentCost();
-						dbDeploymentCost.setDeploymentId(deployment);
-						dbDeploymentCost.setDeploymentTypeName(deploymentName);
-						dbDeploymentCost.setType(DeploymentType.INSTANCE);
-						dbDeploymentCost.setNetworkCost(networkCost);
-						dbDeploymentCost.setCostLastUpdated(new Date());
-					} else {
-						dbDeploymentCost.setNetworkCost(networkCost);
-						dbDeploymentCost.setCostLastUpdated(new Date());
+		if (dataList != null) {
+			if (dataList.iterateAll().iterator().hasNext()) {
+				for (FieldValueList row : dataList.iterateAll()) {
+					for (FieldValue val : row) {
+						LOGGER.info("value of filestore query : " + val);
+						objList.add(val.getValue());
 					}
+					LOGGER.info("\n");
+				}
+			}
+		}
 
-					deploymentCostRepository.save(dbDeploymentCost);
+		if (objList != null) {
+
+			String cost = objList.get(2).toString();
+			Double filestoreCost = Double.valueOf(cost);
+			LOGGER.info("filestoreCost : " + filestoreCost);
+
+			dbDeploymentCost = deploymentCostRepository.findOneByDeploymentTypeNameAndTypeAndDeploymentId(
+					deploymentName, DeploymentType.INSTANCE, deployment);
+
+			if (dbDeploymentCost == null) {
+				LOGGER.info("dbDeploymentCost is null");
+				dbDeploymentCost = new DeploymentCost();
+
+				String name = (String) objList.get(1);
+
+				if (name.equals(deploymentName)) {
+					dbDeploymentCost.setDeploymentId(deployment);
+					dbDeploymentCost.setDeploymentTypeName(deploymentName);
 				}
 
+				dbDeploymentCost.setType(DeploymentType.INSTANCE);
+				dbDeploymentCost.setComputeCost(0.0);
+				dbDeploymentCost.setNetworkCost(filestoreCost);
+				dbDeploymentCost.setStorageCost(0.0);
+				dbDeploymentCost.setCostLastUpdated(new Date());
+
+			} else {
+				dbDeploymentCost.setNetworkCost(filestoreCost);
+				dbDeploymentCost.setCostLastUpdated(new Date());
 			}
-			LOGGER.info("\n");
+
+			LOGGER.info("filestore cost of deployment " + deploymentName + " is = " + filestoreCost);
+			deploymentCostRepository.save(dbDeploymentCost);
+
 		}
 
 	}

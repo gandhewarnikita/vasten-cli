@@ -1,5 +1,6 @@
 package com.vasten.cli.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,5 +19,14 @@ public interface DeploymentCostRepository extends JpaRepository<DeploymentCost, 
 	public List<DeploymentCost> findByDeploymentId(Deployments dbDeployment);
 
 	public DeploymentCost findOneByDeploymentId(Deployments dbDeployment);
+
+	public DeploymentCost findOneByDeploymentTypeNameAndTypeAndDeploymentIdAndUsageDataCost(String deploymentName,
+			DeploymentType instance, Deployments deployment, LocalDate date);
+
+	public DeploymentCost findOneByDeploymentTypeNameAndDeploymentIdAndUsageDataCost(String deploymentName,
+			Deployments deployment, LocalDate date);
+
+	public List<DeploymentCost> findByDeploymentIdAndUsageDataCostBetween(Deployments deployment,
+			LocalDate localStartDate, LocalDate date);
 
 }

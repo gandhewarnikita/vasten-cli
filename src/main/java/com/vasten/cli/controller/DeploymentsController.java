@@ -98,9 +98,11 @@ public class DeploymentsController {
 	 * @throws FileNotFoundException
 	 */
 	@RequestMapping(value = "/cost/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Map<String, CostCli> getCost(@PathVariable String deploymentName) throws FileNotFoundException, IOException {
+	public Map<String, CostCli> getCost(@PathVariable String deploymentName,
+			@RequestParam(value = "startDate", required = false) Long startDate)
+			throws FileNotFoundException, IOException {
 		LOGGER.info("Api received to get cost of deployment");
-		Map<String, CostCli> deploymentCostList = deploymentsService.getCost(deploymentName);
+		Map<String, CostCli> deploymentCostList = deploymentsService.getCost(deploymentName, startDate);
 		return deploymentCostList;
 	}
 
@@ -140,5 +142,12 @@ public class DeploymentsController {
 		LOGGER.info("Api received to delete mounted nfs");
 		User user = securityUtil.getLoggedInUser();
 		deploymentsService.deProvisionRemote(user.getId(), deploymentName);
+	}
+
+	@RequestMapping(value = "/run/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public void runTool(@PathVariable String deploymentName) {
+		LOGGER.info("Api received to run tool");
+		User user = securityUtil.getLoggedInUser();
+		deploymentsService.runTool(user.getId(), deploymentName);
 	}
 }

@@ -3,6 +3,13 @@ package com.vasten.cli.service.impl;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -45,7 +52,7 @@ public class DeploymentCostScheduler {
 	@Autowired
 	private DeploymentCostRepository deploymentCostRepository;
 
-	@Scheduled(cron = "0 0/5 * * * *")
+//	@Scheduled(cron = "0 0/5 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	private void costScheduler() throws JobException, InterruptedException, FileNotFoundException, IOException {
 		LOGGER.info("In the deployment cost scheduler");
@@ -68,6 +75,7 @@ public class DeploymentCostScheduler {
 		LOGGER.info("Getting compute cost of deployment : " + deployment.getName());
 
 		String deploymentName = deployment.getName();
+		// String deploymentName = "vasten";
 
 		List<Object> objList = new ArrayList<Object>();
 
@@ -77,6 +85,28 @@ public class DeploymentCostScheduler {
 				.setCredentials(ServiceAccountCredentials.fromStream(new FileInputStream(newProjectKeyFilePath)))
 				.build().getService();
 
+		LocalDate date = LocalDate.now();
+		ZonedDateTime startOfDay = date.atStartOfDay(ZoneId.of("UTC"));
+		ZonedDateTime endOfDay = ZonedDateTime.of(date, LocalTime.MAX, ZoneId.of("UTC"));
+
+		DateTimeFormatter startformatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+		// String startformatter1 = startOfDay.format(startformatter);
+
+		DateTimeFormatter endformatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+		// String endformatter1 = endOfDay.format(endformatter);
+
+		String startformatter1 = "2020-07-20 00:00:00 UTC";
+		String endformatter1 = "2020-07-20 23:59:59 UTC";
+
+//		String computeQuery = "SELECT labels.key as key, labels.value as value,\n"
+//				+ "SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM   UNNEST(credits) c), 0)) AS total, (SUM(CAST(cost * 1000000 AS int64))+\n"
+//				+ "SUM(IFNULL((SELECT SUM(CAST(c.amount * 1000000 as int64))\n"
+//				+ "			 FROM UNNEST(credits) c), 0))) / 1000000 AS total_exact\n"
+//				+ "				FROM `tactile-acolyte-282822.MyFirstProject_Dataset.gcp_billing_export_v1_017421_A19C6D_252A9A`\n"
+//				+ "	LEFT JOIN UNNEST(labels) as labels\n"
+//				+ "			WHERE service.description = \"Compute Engine\" AND key = \"deployment_name\" AND value = \""
+//				+ deploymentName + "\" GROUP BY key, value";
+
 		String computeQuery = "SELECT labels.key as key, labels.value as value,\n"
 				+ "SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM   UNNEST(credits) c), 0)) AS total, (SUM(CAST(cost * 1000000 AS int64))+\n"
 				+ "SUM(IFNULL((SELECT SUM(CAST(c.amount * 1000000 as int64))\n"
@@ -84,7 +114,8 @@ public class DeploymentCostScheduler {
 				+ "				FROM `tactile-acolyte-282822.MyFirstProject_Dataset.gcp_billing_export_v1_017421_A19C6D_252A9A`\n"
 				+ "	LEFT JOIN UNNEST(labels) as labels\n"
 				+ "			WHERE service.description = \"Compute Engine\" AND key = \"deployment_name\" AND value = \""
-				+ deploymentName + "\" GROUP BY key, value";
+				+ deploymentName + "\" AND usage_start_time >= \"" + startformatter1 + "\" AND usage_end_time <= \""
+				+ endformatter1 + "\" GROUP BY key, value";
 
 		LOGGER.info("computeQuery : " + computeQuery);
 		LOGGER.info("\n");
@@ -100,6 +131,7 @@ public class DeploymentCostScheduler {
 					for (FieldValue val : row) {
 						LOGGER.info("value of computeQuery : " + val);
 						objList.add(val.getValue());
+						LOGGER.info("\n");
 					}
 					LOGGER.info("\n");
 				}
@@ -112,8 +144,11 @@ public class DeploymentCostScheduler {
 			Double computeCost = Double.valueOf(cost);
 			LOGGER.info("computeCost : " + computeCost);
 
-			dbDeploymentCost = deploymentCostRepository.findOneByDeploymentTypeNameAndTypeAndDeploymentId(
-					deploymentName, DeploymentType.INSTANCE, deployment);
+//			dbDeploymentCost = deploymentCostRepository.findOneByDeploymentTypeNameAndTypeAndDeploymentId(
+//					deploymentName, DeploymentType.INSTANCE, deployment);
+
+			dbDeploymentCost = deploymentCostRepository
+					.findOneByDeploymentTypeNameAndDeploymentIdAndUsageDataCost(deploymentName, deployment, date);
 
 			if (dbDeploymentCost == null) {
 				LOGGER.info("dbDeploymentCost is null");
@@ -121,16 +156,15 @@ public class DeploymentCostScheduler {
 
 				String name = (String) objList.get(1);
 
-				if (name.equals(deploymentName)) {
-					dbDeploymentCost.setDeploymentId(deployment);
-					dbDeploymentCost.setDeploymentTypeName(deploymentName);
-				}
+				dbDeploymentCost.setDeploymentId(deployment);
+				dbDeploymentCost.setDeploymentTypeName(name);
 
 				dbDeploymentCost.setType(DeploymentType.INSTANCE);
 				dbDeploymentCost.setComputeCost(computeCost);
 				dbDeploymentCost.setNetworkCost(0.0);
 				dbDeploymentCost.setStorageCost(0.0);
-				dbDeploymentCost.setCostLastUpdated(new Date());
+				// dbDeploymentCost.setCostLastUpdated(new Date());
+				// dbDeploymentCost.setUsageDataCost(date);
 
 			} else {
 				dbDeploymentCost.setComputeCost(computeCost);
@@ -149,6 +183,7 @@ public class DeploymentCostScheduler {
 		LOGGER.info("Getting filestore cost of deployment : " + deployment.getName());
 
 		String deploymentName = deployment.getName();
+		// String deploymentName = "vasten";
 
 		List<Object> objList = new ArrayList<Object>();
 
@@ -158,6 +193,32 @@ public class DeploymentCostScheduler {
 				.setCredentials(ServiceAccountCredentials.fromStream(new FileInputStream(newProjectKeyFilePath)))
 				.build().getService();
 
+//		LocalDate date = LocalDate.now();
+//		LocalDateTime startOfDay = date.atStartOfDay();
+//		LocalDateTime endOfDay = LocalDateTime.of(date, LocalTime.MAX);
+
+		LocalDate date = LocalDate.now();
+		ZonedDateTime startOfDay = date.atStartOfDay(ZoneId.of("UTC"));
+		ZonedDateTime endOfDay = ZonedDateTime.of(date, LocalTime.MAX, ZoneId.of("UTC"));
+
+		DateTimeFormatter startformatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+		// String startformatter1 = startOfDay.format(startformatter);
+
+		DateTimeFormatter endformatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+		// String endformatter1 = endOfDay.format(endformatter);
+
+		String startformatter1 = "2020-07-20 00:00:00 UTC";
+		String endformatter1 = "2020-07-20 23:59:59 UTC";
+
+//		String fileStoreQuery = "SELECT labels.key as key, labels.value as value,\n"
+//				+ "SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM   UNNEST(credits) c), 0)) AS total, (SUM(CAST(cost * 1000000 AS int64))+\n"
+//				+ "SUM(IFNULL((SELECT SUM(CAST(c.amount * 1000000 as int64))\n"
+//				+ "			 FROM UNNEST(credits) c), 0))) / 1000000 AS total_exact\n"
+//				+ "				FROM `tactile-acolyte-282822.MyFirstProject_Dataset.gcp_billing_export_v1_017421_A19C6D_252A9A`\n"
+//				+ "	LEFT JOIN UNNEST(labels) as labels\n"
+//				+ "			WHERE service.description = \"Cloud Filestore\" AND key = \"deployment_name\" AND value = \""
+//				+ deploymentName + "\" GROUP BY key, value";
+
 		String fileStoreQuery = "SELECT labels.key as key, labels.value as value,\n"
 				+ "SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM   UNNEST(credits) c), 0)) AS total, (SUM(CAST(cost * 1000000 AS int64))+\n"
 				+ "SUM(IFNULL((SELECT SUM(CAST(c.amount * 1000000 as int64))\n"
@@ -165,7 +226,8 @@ public class DeploymentCostScheduler {
 				+ "				FROM `tactile-acolyte-282822.MyFirstProject_Dataset.gcp_billing_export_v1_017421_A19C6D_252A9A`\n"
 				+ "	LEFT JOIN UNNEST(labels) as labels\n"
 				+ "			WHERE service.description = \"Cloud Filestore\" AND key = \"deployment_name\" AND value = \""
-				+ deploymentName + "\" GROUP BY key, value";
+				+ deploymentName + "\" AND usage_start_time >= \"" + startformatter1 + "\" AND usage_end_time <= \""
+				+ endformatter1 + "\" GROUP BY key, value";
 
 		QueryJobConfiguration filestoreQueryConfig = QueryJobConfiguration.newBuilder(fileStoreQuery)
 				.setUseLegacySql(false).build();
@@ -181,6 +243,7 @@ public class DeploymentCostScheduler {
 					for (FieldValue val : row) {
 						LOGGER.info("value of filestore query : " + val);
 						objList.add(val.getValue());
+						LOGGER.info("\n");
 					}
 					LOGGER.info("\n");
 				}
@@ -193,8 +256,11 @@ public class DeploymentCostScheduler {
 			Double filestoreCost = Double.valueOf(cost);
 			LOGGER.info("filestoreCost : " + filestoreCost);
 
-			dbDeploymentCost = deploymentCostRepository.findOneByDeploymentTypeNameAndTypeAndDeploymentId(
-					deploymentName, DeploymentType.INSTANCE, deployment);
+//			dbDeploymentCost = deploymentCostRepository.findOneByDeploymentTypeNameAndTypeAndDeploymentId(
+//					deploymentName, DeploymentType.INSTANCE, deployment);
+
+			dbDeploymentCost = deploymentCostRepository
+					.findOneByDeploymentTypeNameAndDeploymentIdAndUsageDataCost(deploymentName, deployment, date);
 
 			if (dbDeploymentCost == null) {
 				LOGGER.info("dbDeploymentCost is null");
@@ -202,16 +268,14 @@ public class DeploymentCostScheduler {
 
 				String name = (String) objList.get(1);
 
-				if (name.equals(deploymentName)) {
-					dbDeploymentCost.setDeploymentId(deployment);
-					dbDeploymentCost.setDeploymentTypeName(deploymentName);
-				}
-
+				dbDeploymentCost.setDeploymentId(deployment);
+				dbDeploymentCost.setDeploymentTypeName(name);
 				dbDeploymentCost.setType(DeploymentType.INSTANCE);
 				dbDeploymentCost.setComputeCost(0.0);
 				dbDeploymentCost.setNetworkCost(filestoreCost);
 				dbDeploymentCost.setStorageCost(0.0);
-				dbDeploymentCost.setCostLastUpdated(new Date());
+				// dbDeploymentCost.setCostLastUpdated(new Date());
+				// dbDeploymentCost.setUsageDataCost(date);
 
 			} else {
 				dbDeploymentCost.setNetworkCost(filestoreCost);

@@ -1,5 +1,6 @@
 package com.vasten.cli.entity;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -50,6 +51,9 @@ public class DeploymentCost {
 
 	@Column(name = "deployment_type_name")
 	private String deploymentTypeName;
+
+	@Column(name = "usage_data_cost")
+	private LocalDate usageDataCost;
 
 	public Integer getId() {
 		return id;
@@ -115,11 +119,20 @@ public class DeploymentCost {
 		this.deploymentTypeName = deploymentTypeName;
 	}
 
+	public LocalDate getUsageDataCost() {
+		return usageDataCost;
+	}
+
+	public void setUsageDataCost(LocalDate usageDataCost) {
+		this.usageDataCost = usageDataCost;
+	}
+
 	@Override
 	public String toString() {
 		return "DeploymentCost [id=" + id + ", deploymentId=" + deploymentId + ", type=" + type + ", computeCost="
 				+ computeCost + ", networkCost=" + networkCost + ", storageCost=" + storageCost + ", costLastUpdated="
-				+ costLastUpdated + ", deploymentTypeName=" + deploymentTypeName + "]";
+				+ costLastUpdated + ", deploymentTypeName=" + deploymentTypeName + ", usageDataCost=" + usageDataCost
+				+ "]";
 	}
 
 }

@@ -9,6 +9,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -91,6 +94,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	@Value("${NEW_PROJECT_KEYFILE_PATH}")
 	private String newProjectKeyFilePath;
+
+	@Value("${TOOLRUN_SHELL_PATH}")
+	private String toolrunShellPath;
 
 	@Autowired
 	private DeployStatusRepository deployStatusRepository;
@@ -407,33 +413,131 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	 * @see com.vasten.cli.service.DeploymentsService#getCost(int)
 	 */
 	@Override
-	public Map<String, CostCli> getCost(String deploymentName) throws FileNotFoundException, IOException {
+	public Map<String, CostCli> getCost(String deploymentName, Long startDate)
+			throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
 
 		validationUtility.validateDeploymentNameForCost(deploymentName);
+		Deployments deployment = deploymentsRepository.findOneByName(deploymentName);
+
+		LOGGER.info("start date : " + startDate);
+//		Long startDateInMillis = startDate * 1000;
+//		LOGGER.info("startDateInMillis : " + startDateInMillis);
+//
+//		LocalDate localStartDate = Instant.ofEpochMilli(startDateInMillis).atZone(ZoneId.systemDefault()).toLocalDate();
+//		LOGGER.info("local date : " + localStartDate);
+//
+//		LocalDate date = LocalDate.now();
 
 		Map<String, CostCli> costCliMap = new HashMap<String, CostCli>();
+		List<Double> computeCostList = new ArrayList<Double>();
+		List<Double> networkCostList = new ArrayList<Double>();
+		List<Double> storageCostList = new ArrayList<Double>();
+		Double totalComputeCost = 0.0;
+		Double totalCost = 0.0;
 
-		Deployments deployment = deploymentsRepository.findOneByName(deploymentName);
-		int deploymentId = deployment.getId();
+		DeploymentCost dbCost = deploymentCostRepository.findOneByDeploymentId(deployment);
 
-		Deployments dbDeployment = deploymentsRepository.findOneById(deploymentId);
+//		Deployments deployment = deploymentsRepository.findOneByName(deploymentName);
+//		int deploymentId = deployment.getId();
+//
+//		Deployments dbDeployment = deploymentsRepository.findOneById(deploymentId);
+//
+//		DeploymentCost dbCost = deploymentCostRepository.findOneByDeploymentId(dbDeployment);
+//
+//		if (dbCost != null) {
+//
+//			CostCli costCli = new CostCli();
+//
+//			Double totalCost = dbCost.getNetworkCost() + dbCost.getStorageCost();
+//
+//			costCli.setComputeCost(dbCost.getComputeCost());
+//			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
+//			costCli.setTotalCost(totalCost);
+//			costCli.setType(dbCost.getType().toString());
+//
+//			costCliMap.put(dbDeployment.getName(), costCli);
+//
+//		}
 
-		DeploymentCost dbCost = deploymentCostRepository.findOneByDeploymentId(dbDeployment);
+		if (startDate != null) {
+			LOGGER.info("start date is present");
 
-		if (dbCost != null) {
+			Long startDateInMillis = startDate * 1000;
+			LOGGER.info("startDateInMillis : " + startDateInMillis);
+
+			LocalDate localStartDate = Instant.ofEpochMilli(startDateInMillis).atZone(ZoneId.systemDefault())
+					.toLocalDate();
+			LOGGER.info("local date : " + localStartDate);
+
+			LocalDate date = LocalDate.now();
+
+			List<DeploymentCost> dbCostList = deploymentCostRepository
+					.findByDeploymentIdAndUsageDataCostBetween(deployment, localStartDate, date);
+
+			if (dbCostList != null) {
+				for (DeploymentCost deploymentCost : dbCostList) {
+					computeCostList.add(deploymentCost.getComputeCost());
+					networkCostList.add(deploymentCost.getNetworkCost());
+					storageCostList.add(deploymentCost.getStorageCost());
+				}
+			}
+
+			for (Double computeCost : computeCostList) {
+				totalComputeCost += computeCost;
+			}
+
+			LOGGER.info("totalComputeCost = " + totalComputeCost);
+
+			networkCostList.addAll(storageCostList);
+
+			for (Double networkCost : networkCostList) {
+				totalCost += networkCost;
+			}
+
+			LOGGER.info("totalCost = " + totalCost);
 
 			CostCli costCli = new CostCli();
 
-			Double totalCost = dbCost.getNetworkCost() + dbCost.getStorageCost();
-
-			costCli.setComputeCost(dbCost.getComputeCost());
+			costCli.setComputeCost(totalComputeCost);
 			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
 			costCli.setTotalCost(totalCost);
 			costCli.setType(dbCost.getType().toString());
 
-			costCliMap.put(dbDeployment.getName(), costCli);
+			costCliMap.put(deployment.getName(), costCli);
 
+		} else {
+
+			LOGGER.info("start date is not present");
+
+			List<DeploymentCost> dbCostList = deploymentCostRepository.findByDeploymentId(deployment);
+
+			if (dbCostList != null) {
+				for (DeploymentCost deploymentCost : dbCostList) {
+					computeCostList.add(deploymentCost.getComputeCost());
+					networkCostList.add(deploymentCost.getNetworkCost());
+					storageCostList.add(deploymentCost.getStorageCost());
+				}
+			}
+
+			for (Double computeCost : computeCostList) {
+				totalComputeCost += computeCost;
+			}
+
+			networkCostList.addAll(storageCostList);
+
+			for (Double networkCost : networkCostList) {
+				totalCost += networkCost;
+			}
+
+			CostCli costCli = new CostCli();
+
+			costCli.setComputeCost(totalComputeCost);
+			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
+			costCli.setTotalCost(totalCost);
+			costCli.setType(dbCost.getType().toString());
+
+			costCliMap.put(deployment.getName(), costCli);
 		}
 
 		return costCliMap;
@@ -505,6 +609,94 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		deploymentsRepository.save(dbDeployment);
 
 		String[] cmdarr = { destroyRemoteShellPath, propertyFile };
+
+		executorService.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				ProcessBuilder pbs = new ProcessBuilder(cmdarr);
+
+				try {
+					Process process = pbs.start();
+					int exitCode = process.waitFor();
+					LOGGER.info("exit code : " + exitCode);
+					LOGGER.info("end of script execution");
+				} catch (IOException e) {
+					LOGGER.error("error");
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+			}
+		});
+
+	}
+
+	@Override
+	public void runTool(Integer id, String deploymentName) {
+		LOGGER.info("Run tool using cluster instances");
+
+		validationUtility.validateDeploymentName(deploymentName);
+
+		List<String> instanceNameList = new ArrayList<String>();
+		String insName1 = "";
+		String insName2 = "";
+
+		String name = deploymentName.toLowerCase();
+
+		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
+
+		boolean nfsExternal = dbDeployment.isNfsExternal();
+
+		if (nfsExternal == true) {
+			LOGGER.info("nfs is external");
+
+			List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+
+			if (deployStatusList != null) {
+				for (DeployStatus deployStatus : deployStatusList) {
+					if ((!deployStatus.getDeploymentTypeName().contains("-nat-instance"))
+							&& (!deployStatus.getDeploymentTypeName().contains("-instance-group"))) {
+
+						instanceNameList.add(deployStatus.getDeploymentTypeName());
+					}
+				}
+			}
+		} else {
+			LOGGER.info("nfs is internal");
+
+			List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+
+			if (deployStatusList != null) {
+				for (DeployStatus deployStatus : deployStatusList) {
+					if ((!deployStatus.getDeploymentTypeName().contains("-nat-instance"))
+							&& (!deployStatus.getDeploymentTypeName().contains("-instance-group"))
+							&& (!deployStatus.getDeploymentTypeName().contains("projects"))) {
+
+						instanceNameList.add(deployStatus.getDeploymentTypeName());
+					}
+				}
+			}
+		}
+
+		for (String insname : instanceNameList) {
+			LOGGER.info("name : " + insname);
+		}
+
+		insName1 = instanceNameList.get(0);
+		insName2 = instanceNameList.get(1);
+		String nodes = String.valueOf(dbDeployment.getClusterNodes());
+		LOGGER.info("nodes : " + nodes);
+		String insarr[] = instanceNameList.toArray(new String[instanceNameList.size()]);
+
+		String insString = String.join(",", instanceNameList);
+		LOGGER.info("insString : " + insString);
+
+//		String[] cmdarr = { toolrunShellPath, insName1, nodes, insString };
+//		LOGGER.info("cmdarr : " + cmdarr);
+
+		String[] cmdarr = { toolrunShellPath, insName1, nodes, insString };
 
 		executorService.execute(new Runnable() {
 

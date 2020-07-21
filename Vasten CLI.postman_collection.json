@@ -116,7 +116,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\" : \"nikita.gandhewar1@gmail.com\",\n\t\"password\" : \"nikita\",\n\t\"clients\" : {\n\t\t\"id\" : 1\n\t}\n}",
+					"raw": "{\n\t\"email\" : \"nikita.gandhewar1@scriptuit.com\",\n\t\"password\" : \"nikita\",\n\t\"clients\" : {\n\t\t\"id\" : 1\n\t}\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -156,7 +156,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"newdemovasten53-cluster\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024,\n\t\"clusterMachineCores\" : 3\n}"
+					"raw": "{\n\t\"name\" : \"vasten0s\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest.01\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"nfsCapacity\" : 1024,\n\t\"clusterMachineCores\" : 2,\n\t\"toolName\" : \"vasten\",\n\t\"fileStorePath\" : \"home/ec2-user/test\",\n\t\"fileStoreHost\" : \"100.26.246.146\",\n\t\"isNfsExternal\" : false\n}"
 				},
 				"url": {
 					"raw": "http://localhost:8092/api/provision",
@@ -174,7 +174,7 @@
 			"response": []
 		},
 		{
-			"name": "Get status of deployment",
+			"name": "Get status of deployment using deployment name",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -218,12 +218,12 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Bearer 21832d70-6b62-441e-a667-49a5765a8803",
+						"value": "Bearer a55f7b6c-b54a-4925-bd09-2e5e18977fe3",
 						"type": "text"
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8092/api/profile?name=ekscluster",
+					"raw": "http://localhost:8092/api/profile",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -232,12 +232,6 @@
 					"path": [
 						"api",
 						"profile"
-					],
-					"query": [
-						{
-							"key": "name",
-							"value": "ekscluster"
-						}
 					]
 				},
 				"description": "Get profile of deployment with user id and deployment name as well"
@@ -257,7 +251,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"TechsolPvt. Ltd.\"\n}",
+					"raw": "{\n\t\"name\" : \"Techno Pvt. Ltd.\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -265,13 +259,13 @@
 					}
 				},
 				"url": {
-					"raw": "http://35.212.206.2:8092/api/client",
+					"raw": "http://34.105.36.27:8092/api/client",
 					"protocol": "http",
 					"host": [
-						"35",
-						"212",
-						"206",
-						"2"
+						"34",
+						"105",
+						"36",
+						"27"
 					],
 					"port": "8092",
 					"path": [
@@ -295,7 +289,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\" : \"nikita.gandhewar@scriptuit.com\",\n\t\"password\" : \"nikita\",\n\t\"clients\" : {\n\t\t\"id\" : 38\n\t}\n}",
+					"raw": "{\n\t\"email\" : \"nikita.gandhewar@scriptuit.com\",\n\t\"password\" : \"nikita\",\n\t\"clients\" : {\n\t\t\"id\" : 1\n\t}\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -303,13 +297,13 @@
 					}
 				},
 				"url": {
-					"raw": "http://35.212.206.2:8092/api/user",
+					"raw": "http://35.230.87.116:8092/api/user",
 					"protocol": "http",
 					"host": [
 						"35",
-						"212",
-						"206",
-						"2"
+						"230",
+						"87",
+						"116"
 					],
 					"port": "8092",
 					"path": [
@@ -341,13 +335,13 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://35.212.206.2:8092/oauth/token?username=nikita.gandhewar@scriptuit.com&grant_type=password&password=nikita",
+					"raw": "http://35.230.87.116:8092/oauth/token?username=nikita.gandhewar@scriptuit.com&grant_type=password&password=nikita",
 					"protocol": "http",
 					"host": [
 						"35",
-						"212",
-						"206",
-						"2"
+						"230",
+						"87",
+						"116"
 					],
 					"port": "8092",
 					"path": [
@@ -384,22 +378,22 @@
 					},
 					{
 						"key": "Authorization",
-						"value": "Bearer efd1de21-b17d-4333-a121-7aeb124712ac",
+						"value": "Bearer 1782e4f5-58a9-414b-ab4f-d7512ddeef12",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"newdemovasten52-cluster\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024\n}"
+					"raw": "{\n\t\"name\" : \"vasten10\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"2.3x\",\n\t\"imageTag\" : \"latest08\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"clusterLocalStoreCapacity\" : 30,\n\t\"nfsCapacity\" : 1024,\n\t\"clusterMachineCores\" : 2,\n\t\"fileStorePath\" : \"home/ec2-user/test3\",\n\t\"toolName\" : \"vasten\",\n\t\"isNfsExternal\" : false\n}"
 				},
 				"url": {
-					"raw": "http://35.212.206.2:8092/api/provision",
+					"raw": "http://35.203.145.148:8092/api/provision",
 					"protocol": "http",
 					"host": [
 						"35",
-						"212",
-						"206",
-						"2"
+						"203",
+						"145",
+						"148"
 					],
 					"port": "8092",
 					"path": [
@@ -422,7 +416,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8092/api/name/cluster4",
+					"raw": "http://localhost:8092/api/deploymentId/964",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -430,8 +424,8 @@
 					"port": "8092",
 					"path": [
 						"api",
-						"name",
-						"cluster4"
+						"deploymentId",
+						"964"
 					]
 				}
 			},
@@ -473,20 +467,166 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://35.212.206.2:8092/api/status/name/newdemovasten52-cluster",
+					"raw": "http://34.105.36.27:8092/api/status/deploymentId/50",
 					"protocol": "http",
 					"host": [
-						"35",
-						"212",
-						"206",
-						"2"
+						"34",
+						"105",
+						"36",
+						"27"
 					],
 					"port": "8092",
 					"path": [
 						"api",
 						"status",
-						"name",
-						"newdemovasten52-cluster"
+						"deploymentId",
+						"50"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Status Of Deployment API",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer a55f7b6c-b54a-4925-bd09-2e5e18977fe3",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8092/api/status/deploymentName/vasten2h",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"status",
+						"deploymentName",
+						"vasten2h"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Mount API",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8092/api/mount/deploymentName/vastrtestnew2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"mount",
+						"deploymentName",
+						"vastrtestnew2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Mount API 2",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8092/api/mount/deploymentName/vasten61",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"mount",
+						"deploymentName",
+						"vasten61"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get status of deployment API using VM ip and access token",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 3bda73a7-0c1f-4a7a-99b1-2c9a673f3ff6",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://34.83.234.21:8092/api/status/deploymentId/100",
+					"protocol": "http",
+					"host": [
+						"34",
+						"83",
+						"234",
+						"21"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"status",
+						"deploymentId",
+						"100"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Cost Of Deployment API",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer a55f7b6c-b54a-4925-bd09-2e5e18977fe3",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8092/api/cost/deploymentName/vasten2h",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"cost",
+						"deploymentName",
+						"vasten2h"
 					]
 				}
 			},

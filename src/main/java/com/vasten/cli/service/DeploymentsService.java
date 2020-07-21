@@ -48,11 +48,12 @@ public interface DeploymentsService {
 	 * Get cost of a deployment
 	 * 
 	 * @param deploymentName
+	 * @param startDate 
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public Map<String, CostCli> getCost(String deploymentName) throws FileNotFoundException, IOException;
+	public Map<String, CostCli> getCost(String deploymentName, Long startDate) throws FileNotFoundException, IOException;
 
 	/**
 	 * Delete a deployment of user
@@ -78,5 +79,7 @@ public interface DeploymentsService {
 	 * @param deploymentName
 	 */
 	public void deProvisionRemote(Integer userId, String deploymentName);
+
+	public void runTool(Integer id, String deploymentName);
 
 }

@@ -144,6 +144,11 @@ public class DeploymentsController {
 		deploymentsService.deProvisionRemote(user.getId(), deploymentName);
 	}
 
+	/**
+	 * Run tool for a deployment
+	 * 
+	 * @param deploymentName
+	 */
 	@RequestMapping(value = "/run/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public void runTool(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to run tool");

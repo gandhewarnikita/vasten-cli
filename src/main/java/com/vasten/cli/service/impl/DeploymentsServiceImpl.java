@@ -640,8 +640,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		validationUtility.validateDeploymentName(deploymentName);
 
 		List<String> instanceNameList = new ArrayList<String>();
-		String insName1 = "";
-		String insName2 = "";
+		String insname1 = "";
+		String clusternodes = "";
 
 		String name = deploymentName.toLowerCase();
 
@@ -680,23 +680,19 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			}
 		}
 
-		for (String insname : instanceNameList) {
-			LOGGER.info("name : " + insname);
+		if (instanceNameList != null && !instanceNameList.isEmpty()) {
+			insname1 = instanceNameList.get(0);
+			int nodes = instanceNameList.size();
+			clusternodes = String.valueOf(nodes);
 		}
 
-		insName1 = instanceNameList.get(0);
-		insName2 = instanceNameList.get(1);
-		String nodes = String.valueOf(dbDeployment.getClusterNodes());
-		LOGGER.info("nodes : " + nodes);
-		String insarr[] = instanceNameList.toArray(new String[instanceNameList.size()]);
+		LOGGER.info("insname1 = " + insname1);
+		LOGGER.info("clusternodes = " + clusternodes);
 
 		String insString = String.join(",", instanceNameList);
 		LOGGER.info("insString : " + insString);
 
-//		String[] cmdarr = { toolrunShellPath, insName1, nodes, insString };
-//		LOGGER.info("cmdarr : " + cmdarr);
-
-		String[] cmdarr = { toolrunShellPath, insName1, nodes, insString };
+		String[] cmdarr = { toolrunShellPath, insname1, clusternodes, insString };
 
 		executorService.execute(new Runnable() {
 
@@ -720,5 +716,4 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		});
 
 	}
-
 }

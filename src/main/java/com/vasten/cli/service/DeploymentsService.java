@@ -80,6 +80,12 @@ public interface DeploymentsService {
 	 */
 	public void deProvisionRemote(Integer userId, String deploymentName);
 
+	/**
+	 * Run tool for a deployment
+	 * 
+	 * @param id
+	 * @param deploymentName
+	 */
 	public void runTool(Integer id, String deploymentName);
 
 }

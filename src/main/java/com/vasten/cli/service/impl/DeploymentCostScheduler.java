@@ -52,7 +52,7 @@ public class DeploymentCostScheduler {
 	@Autowired
 	private DeploymentCostRepository deploymentCostRepository;
 
-//	@Scheduled(cron = "0 0/5 * * * *")
+	@Scheduled(cron = "0 0/5 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	private void costScheduler() throws JobException, InterruptedException, FileNotFoundException, IOException {
 		LOGGER.info("In the deployment cost scheduler");
@@ -90,13 +90,13 @@ public class DeploymentCostScheduler {
 		ZonedDateTime endOfDay = ZonedDateTime.of(date, LocalTime.MAX, ZoneId.of("UTC"));
 
 		DateTimeFormatter startformatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
-		// String startformatter1 = startOfDay.format(startformatter);
+		String startformatter1 = startOfDay.format(startformatter);
 
 		DateTimeFormatter endformatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
-		// String endformatter1 = endOfDay.format(endformatter);
+		String endformatter1 = endOfDay.format(endformatter);
 
-		String startformatter1 = "2020-07-20 00:00:00 UTC";
-		String endformatter1 = "2020-07-20 23:59:59 UTC";
+//		String startformatter1 = "2020-07-20 00:00:00 UTC";
+//		String endformatter1 = "2020-07-20 23:59:59 UTC";
 
 //		String computeQuery = "SELECT labels.key as key, labels.value as value,\n"
 //				+ "SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM   UNNEST(credits) c), 0)) AS total, (SUM(CAST(cost * 1000000 AS int64))+\n"
@@ -163,8 +163,8 @@ public class DeploymentCostScheduler {
 				dbDeploymentCost.setComputeCost(computeCost);
 				dbDeploymentCost.setNetworkCost(0.0);
 				dbDeploymentCost.setStorageCost(0.0);
-				// dbDeploymentCost.setCostLastUpdated(new Date());
-				// dbDeploymentCost.setUsageDataCost(date);
+				dbDeploymentCost.setCostLastUpdated(new Date());
+				dbDeploymentCost.setUsageDataCost(date);
 
 			} else {
 				dbDeploymentCost.setComputeCost(computeCost);
@@ -202,13 +202,13 @@ public class DeploymentCostScheduler {
 		ZonedDateTime endOfDay = ZonedDateTime.of(date, LocalTime.MAX, ZoneId.of("UTC"));
 
 		DateTimeFormatter startformatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
-		// String startformatter1 = startOfDay.format(startformatter);
+		String startformatter1 = startOfDay.format(startformatter);
 
 		DateTimeFormatter endformatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
-		// String endformatter1 = endOfDay.format(endformatter);
+		String endformatter1 = endOfDay.format(endformatter);
 
-		String startformatter1 = "2020-07-20 00:00:00 UTC";
-		String endformatter1 = "2020-07-20 23:59:59 UTC";
+//		String startformatter1 = "2020-07-20 00:00:00 UTC";
+//		String endformatter1 = "2020-07-20 23:59:59 UTC";
 
 //		String fileStoreQuery = "SELECT labels.key as key, labels.value as value,\n"
 //				+ "SUM(cost) + SUM(IFNULL((SELECT SUM(c.amount) FROM   UNNEST(credits) c), 0)) AS total, (SUM(CAST(cost * 1000000 AS int64))+\n"
@@ -274,8 +274,8 @@ public class DeploymentCostScheduler {
 				dbDeploymentCost.setComputeCost(0.0);
 				dbDeploymentCost.setNetworkCost(filestoreCost);
 				dbDeploymentCost.setStorageCost(0.0);
-				// dbDeploymentCost.setCostLastUpdated(new Date());
-				// dbDeploymentCost.setUsageDataCost(date);
+				dbDeploymentCost.setCostLastUpdated(new Date());
+				dbDeploymentCost.setUsageDataCost(date);
 
 			} else {
 				dbDeploymentCost.setNetworkCost(filestoreCost);

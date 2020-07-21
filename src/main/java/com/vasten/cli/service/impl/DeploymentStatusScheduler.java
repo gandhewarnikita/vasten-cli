@@ -352,7 +352,7 @@ public class DeploymentStatusScheduler {
 		InstanceGroupManagerClient instanceGroupManagerClient = InstanceGroupManagerClient
 				.create(instanceGroupManagerSettings);
 
-		ProjectZoneName projectZoneNameGroup = ProjectZoneName.of(newProjectId, zone);
+		ProjectZoneName projectZoneNameGroup = ProjectZoneName.of(newProjectId, newZone);
 		return instanceGroupManagerClient.listInstanceGroupManagers(projectZoneNameGroup);
 	}
 
@@ -368,7 +368,7 @@ public class DeploymentStatusScheduler {
 				.setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
 
 		InstanceClient instanceClient = InstanceClient.create(instanceSettings);
-		ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, zone);
+		ProjectZoneName projectZoneName = ProjectZoneName.of(newProjectId, newZone);
 
 		return instanceClient.listInstances(projectZoneName);
 	}
@@ -380,7 +380,7 @@ public class DeploymentStatusScheduler {
 	private JSONArray fetchAllFilestores() throws IOException {
 		LOGGER.info("Fetching all file store statuses");
 		String uri = "https://file.googleapis.com/v1/";
-		String requestListUri = uri + "projects/" + newProjectId + "/locations/" + zone + "/instances";
+		String requestListUri = uri + "projects/" + newProjectId + "/locations/" + newZone + "/instances";
 
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(newProjectKeyFilePath))
 				.createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));

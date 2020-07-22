@@ -644,6 +644,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 							&& (!deployStatus.getDeploymentTypeName().contains("-instance-group"))) {
 
 						instanceNameList.add(deployStatus.getDeploymentTypeName());
+						instanceIpList.add(deployStatus.getPrivateIp());
 					}
 				}
 			}

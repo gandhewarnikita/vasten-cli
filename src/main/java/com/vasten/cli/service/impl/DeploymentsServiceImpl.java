@@ -423,13 +423,6 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		Deployments deployment = deploymentsRepository.findOneByName(deploymentName);
 
 		LOGGER.info("start date : " + startDate);
-//		Long startDateInMillis = startDate * 1000;
-//		LOGGER.info("startDateInMillis : " + startDateInMillis);
-//
-//		LocalDate localStartDate = Instant.ofEpochMilli(startDateInMillis).atZone(ZoneId.systemDefault()).toLocalDate();
-//		LOGGER.info("local date : " + localStartDate);
-//
-//		LocalDate date = LocalDate.now();
 
 		Map<String, CostCli> costCliMap = new HashMap<String, CostCli>();
 		List<Double> computeCostList = new ArrayList<Double>();
@@ -438,42 +431,12 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		Double totalComputeCost = 0.0;
 		Double totalCost = 0.0;
 
-		// DeploymentCost dbCost =
-		// deploymentCostRepository.findOneByDeploymentId(deployment);
-
-//		Deployments deployment = deploymentsRepository.findOneByName(deploymentName);
-//		int deploymentId = deployment.getId();
-//
-//		Deployments dbDeployment = deploymentsRepository.findOneById(deploymentId);
-//
-//		DeploymentCost dbCost = deploymentCostRepository.findOneByDeploymentId(dbDeployment);
-//
-//		if (dbCost != null) {
-//
-//			CostCli costCli = new CostCli();
-//
-//			Double totalCost = dbCost.getNetworkCost() + dbCost.getStorageCost();
-//
-//			costCli.setComputeCost(dbCost.getComputeCost());
-//			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
-//			costCli.setTotalCost(totalCost);
-//			costCli.setType(dbCost.getType().toString());
-//
-//			costCliMap.put(dbDeployment.getName(), costCli);
-//
-//		}
-
 		if (startDate != null) {
 			LOGGER.info("start date is present");
 
 			validationUtility.validateStartDate(startDate);
 
-//			Long startDateInMillis = startDate * 1000;
-//			LOGGER.info("startDateInMillis : " + startDateInMillis);
-//
-//			LocalDate localStartDate = Instant.ofEpochMilli(startDateInMillis).atZone(ZoneId.systemDefault())
-//					.toLocalDate();
-//			LOGGER.info("local date : " + localStartDate);
+			DeploymentCost dbCost = null;
 
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 			LocalDate localStartDate = LocalDate.parse(startDate, formatter);
@@ -483,7 +446,10 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			List<DeploymentCost> dbCostList = deploymentCostRepository
 					.findByDeploymentIdAndUsageDataCostBetween(deployment, localStartDate, date);
 
-			if (dbCostList != null) {
+			if (dbCostList != null && !dbCostList.isEmpty()) {
+				int index = dbCostList.size() - 1;
+				dbCost = dbCostList.get(index);
+
 				for (DeploymentCost deploymentCost : dbCostList) {
 					computeCostList.add(deploymentCost.getComputeCost());
 					networkCostList.add(deploymentCost.getNetworkCost());
@@ -508,9 +474,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			CostCli costCli = new CostCli();
 
 			costCli.setComputeCost(totalComputeCost);
-			// costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
+			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
 			costCli.setTotalCost(totalCost);
-			// costCli.setType(dbCost.getType().toString());
+			costCli.setType(dbCost.getType().toString());
 
 			costCliMap.put(deployment.getName(), costCli);
 
@@ -519,8 +485,12 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			LOGGER.info("start date is not present");
 
 			List<DeploymentCost> dbCostList = deploymentCostRepository.findByDeploymentId(deployment);
+			DeploymentCost dbCost = null;
 
-			if (dbCostList != null) {
+			if (dbCostList != null && !dbCostList.isEmpty()) {
+				int index = dbCostList.size() - 1;
+				dbCost = dbCostList.get(index);
+
 				for (DeploymentCost deploymentCost : dbCostList) {
 					computeCostList.add(deploymentCost.getComputeCost());
 					networkCostList.add(deploymentCost.getNetworkCost());
@@ -532,18 +502,22 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 				totalComputeCost += computeCost;
 			}
 
+			LOGGER.info("totalComputeCost = " + totalComputeCost);
+
 			networkCostList.addAll(storageCostList);
 
 			for (Double networkCost : networkCostList) {
 				totalCost += networkCost;
 			}
 
+			LOGGER.info("totalCost = " + totalCost);
+
 			CostCli costCli = new CostCli();
 
 			costCli.setComputeCost(totalComputeCost);
-			// costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
+			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
 			costCli.setTotalCost(totalCost);
-			// costCli.setType(dbCost.getType().toString());
+			costCli.setType(dbCost.getType().toString());
 
 			costCliMap.put(deployment.getName(), costCli);
 		}

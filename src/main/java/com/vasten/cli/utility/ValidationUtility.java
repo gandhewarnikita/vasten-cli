@@ -1,6 +1,9 @@
 package com.vasten.cli.utility;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -317,6 +320,22 @@ public class ValidationUtility {
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
 			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
+	}
+
+	public void validateStartDate(String startDate) {
+
+		SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd");
+		sdfrmt.setLenient(false);
+
+		try {
+			Date javaDate = sdfrmt.parse(startDate);
+			LOGGER.info("Valid date : " + javaDate);
+
+		} catch (ParseException e) {
+			LOGGER.error("Invalid date");
+			e.printStackTrace();
 		}
 
 	}

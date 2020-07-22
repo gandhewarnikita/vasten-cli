@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -347,6 +348,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 					statusCli.setExternalIp(deployStatusObj.getExternalIp());
 					statusCli.setStatus(deployStatusObj.getStatus().toString());
 					statusCli.setType(deployStatusObj.getType().toString());
+					statusCli.setPrivateIp(deployStatusObj.getPrivateIp());
 
 					statusCliList.add(statusCli);
 				}
@@ -413,7 +415,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	 * @see com.vasten.cli.service.DeploymentsService#getCost(int)
 	 */
 	@Override
-	public Map<String, CostCli> getCost(String deploymentName, Long startDate)
+	public Map<String, CostCli> getCost(String deploymentName, String startDate)
 			throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
 
@@ -436,7 +438,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		Double totalComputeCost = 0.0;
 		Double totalCost = 0.0;
 
-		DeploymentCost dbCost = deploymentCostRepository.findOneByDeploymentId(deployment);
+		// DeploymentCost dbCost =
+		// deploymentCostRepository.findOneByDeploymentId(deployment);
 
 //		Deployments deployment = deploymentsRepository.findOneByName(deploymentName);
 //		int deploymentId = deployment.getId();
@@ -463,12 +466,17 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		if (startDate != null) {
 			LOGGER.info("start date is present");
 
-			Long startDateInMillis = startDate * 1000;
-			LOGGER.info("startDateInMillis : " + startDateInMillis);
+			validationUtility.validateStartDate(startDate);
 
-			LocalDate localStartDate = Instant.ofEpochMilli(startDateInMillis).atZone(ZoneId.systemDefault())
-					.toLocalDate();
-			LOGGER.info("local date : " + localStartDate);
+//			Long startDateInMillis = startDate * 1000;
+//			LOGGER.info("startDateInMillis : " + startDateInMillis);
+//
+//			LocalDate localStartDate = Instant.ofEpochMilli(startDateInMillis).atZone(ZoneId.systemDefault())
+//					.toLocalDate();
+//			LOGGER.info("local date : " + localStartDate);
+
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			LocalDate localStartDate = LocalDate.parse(startDate, formatter);
 
 			LocalDate date = LocalDate.now();
 
@@ -500,9 +508,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			CostCli costCli = new CostCli();
 
 			costCli.setComputeCost(totalComputeCost);
-			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
+			// costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
 			costCli.setTotalCost(totalCost);
-			costCli.setType(dbCost.getType().toString());
+			// costCli.setType(dbCost.getType().toString());
 
 			costCliMap.put(deployment.getName(), costCli);
 
@@ -533,9 +541,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			CostCli costCli = new CostCli();
 
 			costCli.setComputeCost(totalComputeCost);
-			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
+			// costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
 			costCli.setTotalCost(totalCost);
-			costCli.setType(dbCost.getType().toString());
+			// costCli.setType(dbCost.getType().toString());
 
 			costCliMap.put(deployment.getName(), costCli);
 		}
@@ -640,8 +648,10 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		validationUtility.validateDeploymentName(deploymentName);
 
 		List<String> instanceNameList = new ArrayList<String>();
+		List<String> instanceIpList = new ArrayList<String>();
 		String insname1 = "";
 		String clusternodes = "";
+		String insip1 = "";
 
 		String name = deploymentName.toLowerCase();
 
@@ -675,24 +685,35 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 							&& (!deployStatus.getDeploymentTypeName().contains("projects"))) {
 
 						instanceNameList.add(deployStatus.getDeploymentTypeName());
+						instanceIpList.add(deployStatus.getPrivateIp());
 					}
 				}
 			}
 		}
 
-		if (instanceNameList != null && !instanceNameList.isEmpty()) {
-			insname1 = instanceNameList.get(0);
+		for (String insip : instanceIpList) {
+			LOGGER.info("insip : " + insip);
+		}
+
+		if (instanceIpList != null && !instanceIpList.isEmpty()) {
+			insip1 = instanceIpList.get(0);
 			int nodes = instanceNameList.size();
 			clusternodes = String.valueOf(nodes);
 		}
 
-		LOGGER.info("insname1 = " + insname1);
+//		if (instanceNameList != null && !instanceNameList.isEmpty()) {
+//			insname1 = instanceNameList.get(0);
+//			int nodes = instanceNameList.size();
+//			clusternodes = String.valueOf(nodes);
+//		}
+
+		LOGGER.info("insip1 = " + insip1);
 		LOGGER.info("clusternodes = " + clusternodes);
 
-		String insString = String.join(",", instanceNameList);
+		String insString = String.join(",", instanceIpList);
 		LOGGER.info("insString : " + insString);
 
-		String[] cmdarr = { toolrunShellPath, insname1, clusternodes, insString };
+		String[] cmdarr = { toolrunShellPath, insip1, clusternodes, insString };
 
 		executorService.execute(new Runnable() {
 

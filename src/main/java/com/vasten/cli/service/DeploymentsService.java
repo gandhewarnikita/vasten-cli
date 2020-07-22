@@ -53,7 +53,7 @@ public interface DeploymentsService {
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public Map<String, CostCli> getCost(String deploymentName, Long startDate) throws FileNotFoundException, IOException;
+	public Map<String, CostCli> getCost(String deploymentName, String startDate) throws FileNotFoundException, IOException;
 
 	/**
 	 * Delete a deployment of user

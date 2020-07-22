@@ -99,7 +99,7 @@ public class DeploymentsController {
 	 */
 	@RequestMapping(value = "/cost/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, CostCli> getCost(@PathVariable String deploymentName,
-			@RequestParam(value = "startDate", required = false) Long startDate)
+			@RequestParam(value = "startDate", required = false) String startDate)
 			throws FileNotFoundException, IOException {
 		LOGGER.info("Api received to get cost of deployment");
 		Map<String, CostCli> deploymentCostList = deploymentsService.getCost(deploymentName, startDate);

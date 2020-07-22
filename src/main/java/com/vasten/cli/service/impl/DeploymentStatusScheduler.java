@@ -218,6 +218,8 @@ public class DeploymentStatusScheduler {
 					LOGGER.info("instance list is not null");
 					for (Instance instance : instanceList) {
 
+						LOGGER.info("instance : " + instance);
+
 						DeployStatus instanceDb = deployStatusRepository
 								.findOneByDeploymentTypeNameAndTypeAndDeploymentId(instance.getName(),
 										DeploymentType.INSTANCE, deployment);
@@ -229,6 +231,20 @@ public class DeploymentStatusScheduler {
 							instanceDb.setDeploymentTypeName(instance.getName());
 							instanceDb.setType(DeploymentType.INSTANCE);
 						}
+
+						if (instance.getNetworkInterfacesList() != null
+								&& !instance.getNetworkInterfacesList().isEmpty()
+								&& instance.getNetworkInterfacesList().get(0) != null
+								&& instance.getNetworkInterfacesList().get(0).getNetworkIP() != null
+								&& !instance.getNetworkInterfacesList().get(0).getNetworkIP().isEmpty()) {
+
+							String privateIp = instance.getNetworkInterfacesList().get(0).getNetworkIP();
+
+							LOGGER.info("private ip of instance : " + privateIp);
+
+							instanceDb.setPrivateIp(privateIp);
+						}
+
 						if (instance.getNetworkInterfacesList() != null
 								&& !instance.getNetworkInterfacesList().isEmpty()
 								&& instance.getNetworkInterfacesList().get(0) != null

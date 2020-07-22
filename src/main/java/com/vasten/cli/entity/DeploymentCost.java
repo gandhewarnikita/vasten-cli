@@ -29,7 +29,7 @@ public class DeploymentCost {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer id;
 
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name = "deployment_id")
 	private Deployments deploymentId;
 

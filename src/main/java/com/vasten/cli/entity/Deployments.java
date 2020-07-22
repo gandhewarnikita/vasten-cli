@@ -83,8 +83,8 @@ public class Deployments {
 	private List<DeployStatus> deploystatus;
 
 	@JsonIgnore
-	@OneToOne(mappedBy = "deploymentId", fetch = FetchType.LAZY)
-	private DeploymentCost deploymentcost;
+	@OneToMany(mappedBy = "deploymentId", fetch = FetchType.LAZY)
+	private List<DeploymentCost> deploymentcost;
 
 	@Transient
 	private String toolName;

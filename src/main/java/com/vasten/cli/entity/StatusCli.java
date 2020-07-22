@@ -12,6 +12,7 @@ public class StatusCli {
 	private String status;
 	private String deploymentTypeName;
 	private String externalIp;
+	private String privateIp;
 
 	public String getStatus() {
 		return status;
@@ -45,10 +46,18 @@ public class StatusCli {
 		this.externalIp = externalIp;
 	}
 
+	public String getPrivateIp() {
+		return privateIp;
+	}
+
+	public void setPrivateIp(String privateIp) {
+		this.privateIp = privateIp;
+	}
+
 	@Override
 	public String toString() {
 		return "StatusCli [type=" + type + ", status=" + status + ", deploymentTypeName=" + deploymentTypeName
-				+ ", externalIp=" + externalIp + "]";
+				+ ", externalIp=" + externalIp + ", privateIp=" + privateIp + "]";
 	}
 
 }

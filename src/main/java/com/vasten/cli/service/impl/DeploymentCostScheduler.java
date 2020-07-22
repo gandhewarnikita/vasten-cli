@@ -52,7 +52,7 @@ public class DeploymentCostScheduler {
 	@Autowired
 	private DeploymentCostRepository deploymentCostRepository;
 
-//	@Scheduled(cron = "0 0/5 * * * *")
+	@Scheduled(cron = "0 0/5 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
 	private void costScheduler() throws JobException, InterruptedException, FileNotFoundException, IOException {
 		LOGGER.info("In the deployment cost scheduler");

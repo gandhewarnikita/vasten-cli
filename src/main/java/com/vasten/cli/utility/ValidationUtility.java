@@ -333,9 +333,8 @@ public class ValidationUtility {
 			Date javaDate = sdfrmt.parse(startDate);
 			LOGGER.info("Valid date : " + javaDate);
 
-		} catch (ParseException e) {
-			LOGGER.error("Invalid date");
-			e.printStackTrace();
+		} catch (ParseException ex) {
+			LOGGER.error("Date cannot be parsed", ex);
 		}
 
 	}

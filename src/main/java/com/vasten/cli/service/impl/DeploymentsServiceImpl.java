@@ -431,8 +431,10 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		Double totalComputeCost = 0.0;
 		Double totalCost = 0.0;
 
-		if (startDate != null) {
+		if (startDate != null && !startDate.isEmpty()) {
 			LOGGER.info("start date is present");
+
+			validationUtility.validateStartDateFormat(startDate);
 
 			validationUtility.validateStartDate(startDate);
 
@@ -443,8 +445,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 			LocalDate date = LocalDate.now();
 
-			List<DeploymentCost> dbCostList = deploymentCostRepository
-					.findByDeploymentIdAndUsageDataCostBetween(deployment, localStartDate, date);
+			List<DeploymentCost> dbCostList = deploymentCostRepository.findByDeploymentIdAndUsageDateBetween(deployment,
+					localStartDate, date);
 
 			if (dbCostList != null && !dbCostList.isEmpty()) {
 				int index = dbCostList.size() - 1;

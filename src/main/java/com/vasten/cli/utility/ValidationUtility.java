@@ -2,6 +2,7 @@ package com.vasten.cli.utility;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -325,18 +326,49 @@ public class ValidationUtility {
 	}
 
 	public void validateStartDate(String startDate) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
-		SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd");
-		sdfrmt.setLenient(false);
+		LocalDate localStartDate = LocalDate.parse(startDate);
+		LocalDate currentDate = LocalDate.now();
 
-		try {
-			Date javaDate = sdfrmt.parse(startDate);
-			LOGGER.info("Valid date : " + javaDate);
-
-		} catch (ParseException ex) {
-			LOGGER.error("Date cannot be parsed", ex);
+		if ((localStartDate.isAfter(currentDate)) || (localStartDate.isEqual(currentDate))) {
+			LOGGER.error("Start date should not be equal or after the current date");
+			validationErrorList
+					.add(new ValidationError("startDate", "Start date should not be equal or after the current date"));
 		}
 
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
+	}
+
+	public void validateStartDateFormat(String startDate) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		String datePattern = "\\d{4}-\\d{2}-\\d{2}";
+
+		if (!startDate.matches(datePattern)) {
+
+			LOGGER.error(startDate + " is Invalid Date format");
+			validationErrorList.add(new ValidationError("startDate", startDate + " is Invalid Date format"));
+
+		} else {
+			SimpleDateFormat sdfrmt = new SimpleDateFormat("yyyy-MM-dd");
+			sdfrmt.setLenient(false);
+
+			try {
+				Date javaDate = sdfrmt.parse(startDate);
+				LOGGER.info(javaDate + " is valid date");
+			} catch (ParseException e) {
+				LOGGER.error(startDate + " is Invalid Date");
+				validationErrorList.add(new ValidationError("startDate", startDate + " is Invalid Date"));
+			}
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
 	}
 
 }

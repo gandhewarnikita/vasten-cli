@@ -20,13 +20,19 @@ public interface DeploymentCostRepository extends JpaRepository<DeploymentCost, 
 
 	public DeploymentCost findOneByDeploymentId(Deployments dbDeployment);
 
-	public DeploymentCost findOneByDeploymentTypeNameAndTypeAndDeploymentIdAndUsageDataCost(String deploymentName,
-			DeploymentType instance, Deployments deployment, LocalDate date);
+//	public DeploymentCost findOneByDeploymentTypeNameAndTypeAndDeploymentIdAndUsageDataCost(String deploymentName,
+//			DeploymentType instance, Deployments deployment, LocalDate date);
 
-	public DeploymentCost findOneByDeploymentTypeNameAndDeploymentIdAndUsageDataCost(String deploymentName,
+//	public DeploymentCost findOneByDeploymentTypeNameAndDeploymentIdAndUsageDataCost(String deploymentName,
+//			Deployments deployment, LocalDate date);
+//
+//	public List<DeploymentCost> findByDeploymentIdAndUsageDataCostBetween(Deployments deployment,
+//			LocalDate localStartDate, LocalDate date);
+
+	public List<DeploymentCost> findByDeploymentIdAndUsageDateBetween(Deployments deployment, LocalDate localStartDate,
+			LocalDate date);
+
+	public DeploymentCost findOneByDeploymentTypeNameAndDeploymentIdAndUsageDate(String deploymentName,
 			Deployments deployment, LocalDate date);
-
-	public List<DeploymentCost> findByDeploymentIdAndUsageDataCostBetween(Deployments deployment,
-			LocalDate localStartDate, LocalDate date);
 
 }

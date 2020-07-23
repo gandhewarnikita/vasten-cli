@@ -52,8 +52,8 @@ public class DeploymentCost {
 	@Column(name = "deployment_type_name")
 	private String deploymentTypeName;
 
-	@Column(name = "usage_data_cost")
-	private LocalDate usageDataCost;
+	@Column(name = "usage_date")
+	private LocalDate usageDate;
 
 	public Integer getId() {
 		return id;
@@ -119,20 +119,19 @@ public class DeploymentCost {
 		this.deploymentTypeName = deploymentTypeName;
 	}
 
-	public LocalDate getUsageDataCost() {
-		return usageDataCost;
+	public LocalDate getUsageDate() {
+		return usageDate;
 	}
 
-	public void setUsageDataCost(LocalDate usageDataCost) {
-		this.usageDataCost = usageDataCost;
+	public void setUsageDate(LocalDate usageDate) {
+		this.usageDate = usageDate;
 	}
 
 	@Override
 	public String toString() {
 		return "DeploymentCost [id=" + id + ", deploymentId=" + deploymentId + ", type=" + type + ", computeCost="
 				+ computeCost + ", networkCost=" + networkCost + ", storageCost=" + storageCost + ", costLastUpdated="
-				+ costLastUpdated + ", deploymentTypeName=" + deploymentTypeName + ", usageDataCost=" + usageDataCost
-				+ "]";
+				+ costLastUpdated + ", deploymentTypeName=" + deploymentTypeName + ", usageDate=" + usageDate + "]";
 	}
 
 }

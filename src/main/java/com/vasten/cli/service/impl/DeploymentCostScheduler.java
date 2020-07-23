@@ -130,7 +130,7 @@ public class DeploymentCostScheduler {
 			LOGGER.info("computeCost : " + computeCost);
 
 			dbDeploymentCost = deploymentCostRepository
-					.findOneByDeploymentTypeNameAndDeploymentIdAndUsageDataCost(deploymentName, deployment, date);
+					.findOneByDeploymentTypeNameAndDeploymentIdAndUsageDate(deploymentName, deployment, date);
 
 			if (dbDeploymentCost == null) {
 				LOGGER.info("dbDeploymentCost is null");
@@ -146,7 +146,7 @@ public class DeploymentCostScheduler {
 				dbDeploymentCost.setNetworkCost(0.0);
 				dbDeploymentCost.setStorageCost(0.0);
 				dbDeploymentCost.setCostLastUpdated(new Date());
-				dbDeploymentCost.setUsageDataCost(date);
+				dbDeploymentCost.setUsageDate(date);
 
 			} else {
 				dbDeploymentCost.setComputeCost(computeCost);
@@ -220,7 +220,7 @@ public class DeploymentCostScheduler {
 			LOGGER.info("filestoreCost : " + filestoreCost);
 
 			dbDeploymentCost = deploymentCostRepository
-					.findOneByDeploymentTypeNameAndDeploymentIdAndUsageDataCost(deploymentName, deployment, date);
+					.findOneByDeploymentTypeNameAndDeploymentIdAndUsageDate(deploymentName, deployment, date);
 
 			if (dbDeploymentCost == null) {
 				LOGGER.info("dbDeploymentCost is null");
@@ -235,7 +235,7 @@ public class DeploymentCostScheduler {
 				dbDeploymentCost.setNetworkCost(filestoreCost);
 				dbDeploymentCost.setStorageCost(0.0);
 				dbDeploymentCost.setCostLastUpdated(new Date());
-				dbDeploymentCost.setUsageDataCost(date);
+				dbDeploymentCost.setUsageDate(date);
 
 			} else {
 				dbDeploymentCost.setNetworkCost(filestoreCost);

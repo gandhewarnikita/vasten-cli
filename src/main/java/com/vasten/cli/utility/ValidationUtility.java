@@ -13,11 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.vasten.cli.entity.Clients;
+import com.vasten.cli.entity.DeployStatus;
 import com.vasten.cli.entity.Deployments;
 import com.vasten.cli.entity.User;
 import com.vasten.cli.error.ValidationError;
 import com.vasten.cli.exception.CliBadRequestException;
 import com.vasten.cli.repository.ClientsRepository;
+import com.vasten.cli.repository.DeployStatusRepository;
 import com.vasten.cli.repository.DeploymentsRepository;
 import com.vasten.cli.repository.UserRepository;
 
@@ -40,6 +42,9 @@ public class ValidationUtility {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private DeployStatusRepository deployStatusRepository;
 
 	/**
 	 * Validation for create deployment
@@ -364,6 +369,99 @@ public class ValidationUtility {
 				LOGGER.error(startDate + " is Invalid Date");
 				validationErrorList.add(new ValidationError("startDate", startDate + " is Invalid Date"));
 			}
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+	}
+
+	public void validateQueryData(Integer clusternodes, List<String> iplist) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+//		if ((clusternodes != null && iplist.isEmpty()) || (clusternodes == null && !iplist.isEmpty())) {
+//			LOGGER.error("clusternodes and iplist both parameters should be present");
+//			validationErrorList.add(new ValidationError("clusternodes and iplist",
+//					"clusternodes and iplist both parameters should be present"));
+//		}
+
+//		if ((clusternodes != null && iplist == null) || (clusternodes != null && iplist.isEmpty())) {
+//			LOGGER.error("clusternodes and iplist both parameters should be present");
+//			validationErrorList.add(new ValidationError("clusternodes and iplist",
+//					"clusternodes and iplist both parameters should be present"));
+//
+//		} else if ((clusternodes == null && iplist != null) || (clusternodes == null && !iplist.isEmpty())) {
+//			LOGGER.error("clusternodes and iplist both parameters should be present");
+//			validationErrorList.add(new ValidationError("clusternodes and iplist",
+//					"clusternodes and iplist both parameters should be present"));
+//		}
+
+		if (clusternodes != null && !iplist.isEmpty()) {
+			if (clusternodes < 0) {
+				LOGGER.error("clusternodes should not be less than zero");
+				validationErrorList
+						.add(new ValidationError("clusternodes", "clusternodes should not be less than zero"));
+
+			} else if (clusternodes != iplist.size()) {
+				LOGGER.error("clusternodes should be as equal as number of private ip's in iplist");
+				validationErrorList.add(new ValidationError("clusternodes",
+						"clusternodes should be as equal as number of private ip's in iplist"));
+			}
+
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+	}
+
+	public void validateIplist(List<String> iplist, String deploymentName) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		String name = deploymentName.toLowerCase();
+
+		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
+
+		List<String> instanceIpList = new ArrayList<String>();
+
+		boolean nfsExternal = dbDeployment.isNfsExternal();
+
+		if (nfsExternal == true) {
+			LOGGER.info("nfs is external");
+
+			List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+
+			if (deployStatusList != null) {
+				for (DeployStatus deployStatus : deployStatusList) {
+					if ((!deployStatus.getDeploymentTypeName().contains("-nat-instance"))
+							&& (!deployStatus.getDeploymentTypeName().contains("-instance-group"))) {
+
+						// instanceNameList.add(deployStatus.getDeploymentTypeName());
+						instanceIpList.add(deployStatus.getPrivateIp());
+					}
+				}
+			}
+		} else {
+			LOGGER.info("nfs is internal");
+
+			List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+
+			if (deployStatusList != null) {
+				for (DeployStatus deployStatus : deployStatusList) {
+					if ((!deployStatus.getDeploymentTypeName().contains("-nat-instance"))
+							&& (!deployStatus.getDeploymentTypeName().contains("-instance-group"))
+							&& (!deployStatus.getDeploymentTypeName().contains("projects"))) {
+
+						// instanceNameList.add(deployStatus.getDeploymentTypeName());
+						instanceIpList.add(deployStatus.getPrivateIp());
+					}
+				}
+			}
+		}
+
+		if (!instanceIpList.containsAll(iplist)) {
+			LOGGER.error("Invalid private ip list");
+			validationErrorList.add(new ValidationError("iplist", "Invalid private ip list"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {

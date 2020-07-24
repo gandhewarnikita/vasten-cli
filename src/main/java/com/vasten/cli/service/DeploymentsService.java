@@ -85,7 +85,10 @@ public interface DeploymentsService {
 	 * 
 	 * @param id
 	 * @param deploymentName
+	 * @param filename 
+	 * @param iplist 
+	 * @param clusternodes 
 	 */
-	public void runTool(Integer id, String deploymentName);
+	public void runTool(Integer id, String deploymentName, Integer clusternodes, List<String> iplist, String filename);
 
 }

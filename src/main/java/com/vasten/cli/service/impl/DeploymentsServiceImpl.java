@@ -618,100 +618,159 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public void runTool(Integer id, String deploymentName) {
+	public void runTool(Integer id, String deploymentName, Integer clusternodes, List<String> iplist, String filename) {
 		LOGGER.info("Run tool using cluster instances");
 
 		validationUtility.validateDeploymentName(deploymentName);
 
+		validationUtility.validateQueryData(clusternodes, iplist);
+
+//		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+//
+//		if (clusternodes != null && iplist.isEmpty()) {
+//			LOGGER.error("clusternodes and iplist both parameters should be present");
+//			validationErrorList.add(new ValidationError("clusternodes and iplist",
+//					"clusternodes and iplist both parameters should be present"));
+//
+//		} else if (clusternodes == null && !iplist.isEmpty()) {
+//			LOGGER.error("clusternodes and iplist both parameters should be present");
+//			validationErrorList.add(new ValidationError("clusternodes and iplist",
+//					"clusternodes and iplist both parameters should be present"));
+//		}
+//
+//		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+//			throw new CliBadRequestException("Bad Request", validationErrorList);
+//		}
+
 		List<String> instanceNameList = new ArrayList<String>();
 		List<String> instanceIpList = new ArrayList<String>();
 		String insname1 = "";
-		String clusternodes = "";
+		String clusternodecount = "";
 		String insip1 = "";
 
-		String name = deploymentName.toLowerCase();
+		if (clusternodes != null && !iplist.isEmpty()) {
+			LOGGER.info("clusternodes and iplist both are present");
 
-		Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
+			validationUtility.validateIplist(iplist, deploymentName);
 
-		boolean nfsExternal = dbDeployment.isNfsExternal();
+			insip1 = iplist.get(0);
 
-		if (nfsExternal == true) {
-			LOGGER.info("nfs is external");
+			String insString = String.join(",", iplist);
+			LOGGER.info("insString : " + insString);
 
-			List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+			clusternodecount = String.valueOf(clusternodes);
 
-			if (deployStatusList != null) {
-				for (DeployStatus deployStatus : deployStatusList) {
-					if ((!deployStatus.getDeploymentTypeName().contains("-nat-instance"))
-							&& (!deployStatus.getDeploymentTypeName().contains("-instance-group"))) {
+			String[] cmdarr = { toolrunShellPath, insip1, clusternodecount, insString, filename };
 
-						instanceNameList.add(deployStatus.getDeploymentTypeName());
-						instanceIpList.add(deployStatus.getPrivateIp());
-					}
-				}
+			for (String element : cmdarr) {
+				LOGGER.info("element (if clusternodes and iplist is present) = " + element);
 			}
+
+			executorService.execute(new Runnable() {
+
+				@Override
+				public void run() {
+					ProcessBuilder pbs = new ProcessBuilder(cmdarr);
+
+					try {
+						Process process = pbs.start();
+						int exitCode = process.waitFor();
+						LOGGER.info("exit code : " + exitCode);
+						LOGGER.info("end of script execution");
+					} catch (IOException e) {
+						LOGGER.error("error");
+						e.printStackTrace();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+
+				}
+			});
+
 		} else {
-			LOGGER.info("nfs is internal");
+			LOGGER.info("clusternodes and iplist both are not present");
 
-			List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+			String name = deploymentName.toLowerCase();
 
-			if (deployStatusList != null) {
-				for (DeployStatus deployStatus : deployStatusList) {
-					if ((!deployStatus.getDeploymentTypeName().contains("-nat-instance"))
-							&& (!deployStatus.getDeploymentTypeName().contains("-instance-group"))
-							&& (!deployStatus.getDeploymentTypeName().contains("projects"))) {
+			Deployments dbDeployment = deploymentsRepository.findByNameAndIsDeletedFalse(name);
 
-						instanceNameList.add(deployStatus.getDeploymentTypeName());
-						instanceIpList.add(deployStatus.getPrivateIp());
+			boolean nfsExternal = dbDeployment.isNfsExternal();
+
+			if (nfsExternal == true) {
+				LOGGER.info("nfs is external");
+
+				List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+
+				if (deployStatusList != null) {
+					for (DeployStatus deployStatus : deployStatusList) {
+						if ((!deployStatus.getDeploymentTypeName().contains("-nat-instance"))
+								&& (!deployStatus.getDeploymentTypeName().contains("-instance-group"))) {
+
+							instanceNameList.add(deployStatus.getDeploymentTypeName());
+							instanceIpList.add(deployStatus.getPrivateIp());
+						}
+					}
+				}
+			} else {
+				LOGGER.info("nfs is internal");
+
+				List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+
+				if (deployStatusList != null) {
+					for (DeployStatus deployStatus : deployStatusList) {
+						if ((!deployStatus.getDeploymentTypeName().contains("-nat-instance"))
+								&& (!deployStatus.getDeploymentTypeName().contains("-instance-group"))
+								&& (!deployStatus.getDeploymentTypeName().contains("projects"))) {
+
+							instanceNameList.add(deployStatus.getDeploymentTypeName());
+							instanceIpList.add(deployStatus.getPrivateIp());
+						}
 					}
 				}
 			}
-		}
 
-		for (String insip : instanceIpList) {
-			LOGGER.info("insip : " + insip);
-		}
-
-		if (instanceIpList != null && !instanceIpList.isEmpty()) {
-			insip1 = instanceIpList.get(0);
-			int nodes = instanceNameList.size();
-			clusternodes = String.valueOf(nodes);
-		}
-
-//		if (instanceNameList != null && !instanceNameList.isEmpty()) {
-//			insname1 = instanceNameList.get(0);
-//			int nodes = instanceNameList.size();
-//			clusternodes = String.valueOf(nodes);
-//		}
-
-		LOGGER.info("insip1 = " + insip1);
-		LOGGER.info("clusternodes = " + clusternodes);
-
-		String insString = String.join(",", instanceIpList);
-		LOGGER.info("insString : " + insString);
-
-		String[] cmdarr = { toolrunShellPath, insip1, clusternodes, insString };
-
-		executorService.execute(new Runnable() {
-
-			@Override
-			public void run() {
-				ProcessBuilder pbs = new ProcessBuilder(cmdarr);
-
-				try {
-					Process process = pbs.start();
-					int exitCode = process.waitFor();
-					LOGGER.info("exit code : " + exitCode);
-					LOGGER.info("end of script execution");
-				} catch (IOException e) {
-					LOGGER.error("error");
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-
+			for (String insip : instanceIpList) {
+				LOGGER.info("insip : " + insip);
 			}
-		});
+
+			if (instanceIpList != null && !instanceIpList.isEmpty()) {
+				insip1 = instanceIpList.get(0);
+				int nodes = instanceIpList.size();
+				clusternodecount = String.valueOf(nodes);
+			}
+
+			LOGGER.info("insip1 = " + insip1);
+
+			String insString = String.join(",", instanceIpList);
+			LOGGER.info("insString : " + insString);
+
+			String[] cmdarr = { toolrunShellPath, insip1, clusternodecount, insString, filename };
+
+			for (String element : cmdarr) {
+				LOGGER.info("element (if clusternodes and iplist is not present) = " + element);
+			}
+
+			executorService.execute(new Runnable() {
+
+				@Override
+				public void run() {
+					ProcessBuilder pbs = new ProcessBuilder(cmdarr);
+
+					try {
+						Process process = pbs.start();
+						int exitCode = process.waitFor();
+						LOGGER.info("exit code : " + exitCode);
+						LOGGER.info("end of script execution");
+					} catch (IOException e) {
+						LOGGER.error("error");
+						e.printStackTrace();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+
+				}
+			});
+		}
 
 	}
 }

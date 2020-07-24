@@ -149,10 +149,13 @@ public class DeploymentsController {
 	 * 
 	 * @param deploymentName
 	 */
-	@RequestMapping(value = "/run/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public void runTool(@PathVariable String deploymentName) {
+	@RequestMapping(value = "/run/deploymentName/{deploymentName}/filename/{filename}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public void runTool(@PathVariable String deploymentName,
+			@RequestParam(value = "clusternodes", required = false) Integer clusternodes,
+			@RequestParam(value = "iplist", required = false) List<String> iplist, @PathVariable String filename) {
+
 		LOGGER.info("Api received to run tool");
 		User user = securityUtil.getLoggedInUser();
-		deploymentsService.runTool(user.getId(), deploymentName);
+		deploymentsService.runTool(user.getId(), deploymentName, clusternodes, iplist, filename);
 	}
 }

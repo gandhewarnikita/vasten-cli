@@ -13,8 +13,8 @@ import com.vasten.cli.entity.Deployments;
 @Repository
 public interface DeploymentCostRepository extends JpaRepository<DeploymentCost, Integer> {
 
-	public DeploymentCost findOneByDeploymentTypeNameAndTypeAndDeploymentId(String deploymentName,
-			DeploymentType instance, Deployments deployment);
+//	public DeploymentCost findOneByDeploymentTypeNameAndTypeAndDeploymentId(String deploymentName,
+//			DeploymentType instance, Deployments deployment);
 
 	public List<DeploymentCost> findByDeploymentId(Deployments dbDeployment);
 

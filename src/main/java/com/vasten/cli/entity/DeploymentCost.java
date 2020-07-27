@@ -33,18 +33,8 @@ public class DeploymentCost {
 	@JoinColumn(name = "deployment_id")
 	private Deployments deploymentId;
 
-	@Column(name = "deployment_type")
-	@Enumerated(EnumType.STRING)
-	private DeploymentType type;
-
-	@Column(name = "compute_cost")
-	private Double computeCost;
-
-	@Column(name = "network_cost")
-	private Double networkCost;
-
-	@Column(name = "storage_cost")
-	private Double storageCost;
+	@Column(name = "total_cost")
+	private Double totalCost;
 
 	@Column(name = "cost_last_updated")
 	private Date costLastUpdated;
@@ -71,36 +61,12 @@ public class DeploymentCost {
 		this.deploymentId = deploymentId;
 	}
 
-	public DeploymentType getType() {
-		return type;
+	public Double getTotalCost() {
+		return totalCost;
 	}
 
-	public void setType(DeploymentType type) {
-		this.type = type;
-	}
-
-	public Double getComputeCost() {
-		return computeCost;
-	}
-
-	public void setComputeCost(Double computeCost) {
-		this.computeCost = computeCost;
-	}
-
-	public Double getNetworkCost() {
-		return networkCost;
-	}
-
-	public void setNetworkCost(Double networkCost) {
-		this.networkCost = networkCost;
-	}
-
-	public Double getStorageCost() {
-		return storageCost;
-	}
-
-	public void setStorageCost(Double storageCost) {
-		this.storageCost = storageCost;
+	public void setTotalCost(Double totalCost) {
+		this.totalCost = totalCost;
 	}
 
 	public Date getCostLastUpdated() {
@@ -129,9 +95,9 @@ public class DeploymentCost {
 
 	@Override
 	public String toString() {
-		return "DeploymentCost [id=" + id + ", deploymentId=" + deploymentId + ", type=" + type + ", computeCost="
-				+ computeCost + ", networkCost=" + networkCost + ", storageCost=" + storageCost + ", costLastUpdated="
-				+ costLastUpdated + ", deploymentTypeName=" + deploymentTypeName + ", usageDate=" + usageDate + "]";
+		return "DeploymentCost [id=" + id + ", deploymentId=" + deploymentId + ", totalCost=" + totalCost
+				+ ", costLastUpdated=" + costLastUpdated + ", deploymentTypeName=" + deploymentTypeName + ", usageDate="
+				+ usageDate + "]";
 	}
 
 }

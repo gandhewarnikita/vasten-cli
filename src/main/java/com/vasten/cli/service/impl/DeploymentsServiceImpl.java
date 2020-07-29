@@ -596,26 +596,8 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		validationUtility.validateQueryData(clusternodes, iplist);
 
-//		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
-//
-//		if (clusternodes != null && iplist.isEmpty()) {
-//			LOGGER.error("clusternodes and iplist both parameters should be present");
-//			validationErrorList.add(new ValidationError("clusternodes and iplist",
-//					"clusternodes and iplist both parameters should be present"));
-//
-//		} else if (clusternodes == null && !iplist.isEmpty()) {
-//			LOGGER.error("clusternodes and iplist both parameters should be present");
-//			validationErrorList.add(new ValidationError("clusternodes and iplist",
-//					"clusternodes and iplist both parameters should be present"));
-//		}
-//
-//		if (validationErrorList != null && !validationErrorList.isEmpty()) {
-//			throw new CliBadRequestException("Bad Request", validationErrorList);
-//		}
-
 		List<String> instanceNameList = new ArrayList<String>();
 		List<String> instanceIpList = new ArrayList<String>();
-		String insname1 = "";
 		String clusternodecount = "";
 		String insip1 = "";
 

@@ -32,7 +32,7 @@ public class ClientsController {
 	 * @param clientData
 	 * @return
 	 */
-	@RequestMapping(value = "/api/client", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/client", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public Clients createClient(@RequestBody Clients clientData) {
 		LOGGER.info("Api received to create new client");
 		Clients newClient = clientsService.createClient(clientData);

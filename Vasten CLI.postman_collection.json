@@ -26,7 +26,7 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8092/oauth/token?username=nikita.gandhewar@gmail.com&grant_type=password&password=nikita",
+					"raw": "http://localhost:8092/oauth/token?username=nikita1234@gmail.com&grant_type=password&password=Nik@1234",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -39,7 +39,7 @@
 					"query": [
 						{
 							"key": "username",
-							"value": "nikita.gandhewar@gmail.com"
+							"value": "nikita1234@gmail.com"
 						},
 						{
 							"key": "grant_type",
@@ -47,7 +47,7 @@
 						},
 						{
 							"key": "password",
-							"value": "nikita"
+							"value": "Nik@1234"
 						}
 					]
 				}
@@ -61,18 +61,19 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Bearer 21832d70-6b62-441e-a667-49a5765a8803",
+						"value": "Bearer a55f7b6c-b54a-4925-bd09-2e5e18977fe3",
 						"type": "text"
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8092/loggedIn",
+					"raw": "http://localhost:8092/api/loggedIn",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8092",
 					"path": [
+						"api",
 						"loggedIn"
 					]
 				}
@@ -95,14 +96,13 @@
 					"raw": "{\n\t\"name\" : \"TechGig\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8092/api/client",
+					"raw": "http://localhost:8092/client",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8092",
 					"path": [
-						"api",
 						"client"
 					]
 				}
@@ -116,7 +116,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\" : \"nikita.gandhewar1@scriptuit.com\",\n\t\"password\" : \"nikita\",\n\t\"clients\" : {\n\t\t\"id\" : 1\n\t}\n}",
+					"raw": "{\n\t\"email\" : \"nikita1234@gmail.com\",\n\t\"password\" : \"Nik@1234\",\n\t\"clients\" : {\n\t\t\"id\" : 1\n\t}\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -124,14 +124,13 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8092/api/user",
+					"raw": "http://localhost:8092/user",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8092",
 					"path": [
-						"api",
 						"user"
 					]
 				}
@@ -156,7 +155,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\" : \"vasten0s\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest.01\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"nfsCapacity\" : 1024,\n\t\"clusterMachineCores\" : 2,\n\t\"toolName\" : \"vasten\",\n\t\"fileStorePath\" : \"home/ec2-user/test\",\n\t\"fileStoreHost\" : \"100.26.246.146\",\n\t\"isNfsExternal\" : false\n}"
+					"raw": "{\n\t\"name\" : \"vasten0n\",\n\t\"clusterNodes\" : 2,\n\t\"toolVersion\" : \"latest.01\",\n\t\"clusterMachineType\" : \"n1-standard\",\n\t\"nfsCapacity\" : 1024,\n\t\"clusterMachineCores\" : 2,\n\t\"toolName\" : \"vasten\",\n\t\"fileStorePath\" : \"home/ec2-user/test\",\n\t\"fileStoreHost\" : \"100.26.246.146\",\n\t\"isNfsExternal\" : false\n}"
 				},
 				"url": {
 					"raw": "http://localhost:8092/api/provision",
@@ -168,39 +167,6 @@
 					"path": [
 						"api",
 						"provision"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get status of deployment using deployment name",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "Authorization",
-						"value": "Bearer 21832d70-6b62-441e-a667-49a5765a8803",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "http://localhost:8092/api/status/name/ekscluster",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8092",
-					"path": [
-						"api",
-						"status",
-						"name",
-						"ekscluster"
 					]
 				}
 			},
@@ -335,13 +301,13 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://35.230.87.116:8092/oauth/token?username=nikita.gandhewar@scriptuit.com&grant_type=password&password=nikita",
+					"raw": "http://34.83.165.207:8092/oauth/token?username=nikita.gandhewar@gmail.com&grant_type=password&password=nikita",
 					"protocol": "http",
 					"host": [
-						"35",
-						"230",
-						"87",
-						"116"
+						"34",
+						"83",
+						"165",
+						"207"
 					],
 					"port": "8092",
 					"path": [
@@ -351,7 +317,7 @@
 					"query": [
 						{
 							"key": "username",
-							"value": "nikita.gandhewar@scriptuit.com"
+							"value": "nikita.gandhewar@gmail.com"
 						},
 						{
 							"key": "grant_type",
@@ -411,12 +377,12 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Bearer a55f7b6c-b54a-4925-bd09-2e5e18977fe3",
+						"value": "Bearer 11e00849-72cd-4c97-9745-d9093e6d7ba0",
 						"type": "text"
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8092/api/deploymentId/964",
+					"raw": "http://localhost:8092/api/deploymentName/vasten0n",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -424,8 +390,8 @@
 					"port": "8092",
 					"path": [
 						"api",
-						"deploymentId",
-						"964"
+						"deploymentName",
+						"vasten0n"
 					]
 				}
 			},
@@ -503,7 +469,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8092/api/status/deploymentName/vasten2h",
+					"raw": "http://localhost:8092/api/status/deploymentName/vasten3f",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -513,19 +479,25 @@
 						"api",
 						"status",
 						"deploymentName",
-						"vasten2h"
+						"vasten3f"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Mount API",
+			"name": "Mount Deployment API",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 11e00849-72cd-4c97-9745-d9093e6d7ba0",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "http://localhost:8092/api/mount/deploymentName/vastrtestnew2",
+					"raw": "http://localhost:8092/api/mount/deploymentName/vasten0n",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -535,29 +507,7 @@
 						"api",
 						"mount",
 						"deploymentName",
-						"vastrtestnew2"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Mount API 2",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8092/api/mount/deploymentName/vasten61",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8092",
-					"path": [
-						"api",
-						"mount",
-						"deploymentName",
-						"vasten61"
+						"vasten0n"
 					]
 				}
 			},
@@ -616,7 +566,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8092/api/cost/deploymentName/vasten2h",
+					"raw": "http://localhost:8092/api/cost/deploymentName/vasten3i",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -626,7 +576,87 @@
 						"api",
 						"cost",
 						"deploymentName",
-						"vasten2h"
+						"vasten3i"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Tool Run API For A Deployment",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer a55f7b6c-b54a-4925-bd09-2e5e18977fe3",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8092/api/run/deploymentName/vasten3f/filename/nikita.sh?clusternodes=1&iplist=10.0.16.2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"run",
+						"deploymentName",
+						"vasten3f",
+						"filename",
+						"nikita.sh"
+					],
+					"query": [
+						{
+							"key": "clusternodes",
+							"value": "1"
+						},
+						{
+							"key": "iplist",
+							"value": "10.0.16.2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User Password API",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 21c27661-f80e-4dbb-b5bb-f2797506016e",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"newPassword\" : \"Niki@431\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8092/api/updatepassword",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8092",
+					"path": [
+						"api",
+						"updatepassword"
 					]
 				}
 			},

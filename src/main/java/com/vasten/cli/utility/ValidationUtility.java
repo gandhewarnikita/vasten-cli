@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +77,7 @@ public class ValidationUtility {
 
 			String deploymentName = provisionData.getName().toLowerCase();
 
-			Deployments dbDeployment = deploymentsRepository.findByName(deploymentName);
+			Deployments dbDeployment = deploymentsRepository.findOneByNameAndIsDeletedFalse(deploymentName);
 
 			if (dbDeployment != null) {
 				LOGGER.error("Deployment with this name already exists");
@@ -118,7 +120,6 @@ public class ValidationUtility {
 //		}
 
 		boolean nfsExternal = provisionData.isNfsExternal();
-		LOGGER.info("nfs external in validation utility = " + nfsExternal);
 
 		if (nfsExternal == false) {
 
@@ -467,6 +468,108 @@ public class ValidationUtility {
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
 			throw new CliBadRequestException("Bad Request", validationErrorList);
 		}
+	}
+
+	public void validateUserData(User userData) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		if (userData.getEmail() == null || userData.getEmail().isEmpty()) {
+			LOGGER.error("Email is mandatory");
+			validationErrorList.add(new ValidationError("email", "Email is mandatory"));
+
+		} else if (testEmail(userData.getEmail())) {
+			User dbUser = userRepository.findOneByEmail(userData.getEmail());
+
+			if (dbUser != null) {
+				LOGGER.error("User already exists");
+				validationErrorList.add(new ValidationError("email", "User already exists"));
+			}
+		} else {
+			// if not a valid email address
+			validationErrorList.add(new ValidationError("email", "Email is not a valid address"));
+		}
+
+		if (userData.getPassword() == null || userData.getPassword().isEmpty()) {
+			LOGGER.error("Password is mandatory");
+			validationErrorList.add(new ValidationError("password", "Password is mandatory"));
+			
+		} else {
+			String regex = "^(?=.*[0-9])" + "(?=.*[a-z])(?=.*[A-Z])" + "(?=.*[@#$%^&+=_])" + "(?=\\S+$).{8}$";
+
+			String password = userData.getPassword().trim();
+
+			Pattern pat = Pattern.compile(regex);
+
+			if (pat.matcher(password).matches()) {
+				LOGGER.info("Valid password");
+			} else {
+				LOGGER.error("Invalid password");
+				validationErrorList.add(new ValidationError("password", "Invalid password"));
+			}
+		}
+
+		if (userData.getClients() == null || userData.getClients().getId() == null) {
+			LOGGER.error("Client id is mandatory");
+			validationErrorList.add(new ValidationError("clientId", "Client id is mandatory"));
+
+		} else {
+			Clients dbClient = clientsRepository.findOneById(userData.getClients().getId());
+
+			if (dbClient == null) {
+				LOGGER.error("Client does not exist");
+				validationErrorList.add(new ValidationError("clientId", "Client does not exist"));
+			}
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
+	}
+
+	private boolean testEmail(String email) {
+		String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\." + "[a-zA-Z0-9_+&*-]+)*@" + "(?:[a-zA-Z0-9-]+\\.)+[a-z"
+				+ "A-Z]{2,7}$";
+
+		Pattern pat = Pattern.compile(emailRegex);
+		if (email == null)
+			return false;
+		return pat.matcher(email).matches();
+	}
+
+	public void validateUpdateData(String email, Map<String, String> passwordData) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		User dbUser = userRepository.findOneByEmail(email);
+
+		if (dbUser == null) {
+			LOGGER.error("User does not exists");
+			validationErrorList.add(new ValidationError("email", "User does not exists"));
+		}
+
+		if (passwordData == null || passwordData.get("newPassword").isEmpty()) {
+			LOGGER.error("Password is mandatory");
+			validationErrorList.add(new ValidationError("password", "Password is mandatory"));
+
+		} else {
+			String regex = "^(?=.*[0-9])" + "(?=.*[a-z])(?=.*[A-Z])" + "(?=.*[@#$%^&+=_])" + "(?=\\S+$).{8}$";
+
+			String password = passwordData.get("newPassword").trim();
+
+			Pattern pat = Pattern.compile(regex);
+
+			if (pat.matcher(password).matches()) {
+				LOGGER.info("Valid password");
+			} else {
+				LOGGER.error("Invalid password");
+				validationErrorList.add(new ValidationError("password", "Invalid password"));
+			}
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
 	}
 
 }

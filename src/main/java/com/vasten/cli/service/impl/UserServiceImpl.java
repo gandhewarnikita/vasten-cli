@@ -3,11 +3,17 @@ package com.vasten.cli.service.impl;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2RefreshToken;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.stereotype.Service;
 
 import com.vasten.cli.entity.Clients;
@@ -17,6 +23,7 @@ import com.vasten.cli.exception.CliBadRequestException;
 import com.vasten.cli.repository.ClientsRepository;
 import com.vasten.cli.repository.UserRepository;
 import com.vasten.cli.service.UserService;
+import com.vasten.cli.utility.ValidationUtility;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -29,11 +36,20 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private ClientsRepository clientsRepository;
 
+	@Autowired
+	private ValidationUtility validationUtility;
+
+	@Autowired
+	private HttpServletRequest request;
+
+	@Autowired
+	private TokenStore tokenStore;
+
 	@Override
 	public User create(User userData) {
 		LOGGER.info("Creating user");
 
-		validateUserData(userData);
+		validationUtility.validateUserData(userData);
 
 		User newUser = new User();
 
@@ -50,43 +66,41 @@ public class UserServiceImpl implements UserService {
 		return userRepository.save(newUser);
 	}
 
-	private void validateUserData(User userData) {
-		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+	@Override
+	public void updatePassword(String email, Map<String, String> passwordData) {
+		LOGGER.info("Updating user password");
 
-		if (userData.getEmail() == null || userData.getEmail().isEmpty()) {
-			LOGGER.error("Email is mandatory");
-			validationErrorList.add(new ValidationError("email", "Email is mandatory"));
-		} else {
-			User dbUser = userRepository.findByEmail(userData.getEmail());
+		validationUtility.validateUpdateData(email, passwordData);
 
-			if (dbUser != null) {
-				LOGGER.error("User already exists");
-				validationErrorList.add(new ValidationError("email", "User already exists"));
-			}
+		User dbUser = userRepository.findOneByEmail(email);
+
+		String password = passwordData.get("newPassword");
+		BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+		String newPassword = bCryptPasswordEncoder.encode(password);
+
+		dbUser.setPassword(newPassword);
+
+		userRepository.save(dbUser);
+
+		this.logout(request);
+	}
+
+	private void logout(HttpServletRequest request2) {
+		LOGGER.info("Deleting old tokens");
+
+		String authHeader = request.getHeader("Authorization");
+
+		if (authHeader != null) {
+			String tokenValue = authHeader.replace("Bearer", "").trim();
+
+			OAuth2AccessToken accessToken = tokenStore.readAccessToken(tokenValue);
+			tokenStore.removeAccessToken(accessToken);
+			LOGGER.info("access token removed");
+
+			OAuth2RefreshToken refreshToken = accessToken.getRefreshToken();
+			tokenStore.removeRefreshToken(refreshToken);
+			LOGGER.info("refresh token removed");
 		}
-
-//		if (userData.getPassword() == null || userData.getPassword().isEmpty()) {
-//			LOGGER.error("Password is mandatory");
-//			validationErrorList.add(new ValidationError("password", "Password is mandatory"));
-//		}
-
-		if (userData.getClients() == null || userData.getClients().getId() == null) {
-			LOGGER.error("Client id is mandatory");
-			validationErrorList.add(new ValidationError("clientId", "Client id is mandatory"));
-
-		} else {
-			Clients dbClient = clientsRepository.findOneById(userData.getClients().getId());
-
-			if (dbClient == null) {
-				LOGGER.error("Client does not exist");
-				validationErrorList.add(new ValidationError("clientId", "Client does not exist"));
-			}
-		}
-
-		if (validationErrorList != null && !validationErrorList.isEmpty()) {
-			throw new CliBadRequestException("Bad Request", validationErrorList);
-		}
-
 	}
 
 }

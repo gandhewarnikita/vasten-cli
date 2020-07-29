@@ -2,15 +2,10 @@ package com.vasten.cli.controller;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2RefreshToken;
-import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,9 +26,6 @@ public class UserController {
 	@Autowired
 	private SecurityUtil securityUtil;
 
-	@Autowired
-	private TokenStore tokenStore;
-
 	@RequestMapping(value = "/user", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public User create(@RequestBody User userData) {
 		LOGGER.info("Api received to create user");
@@ -53,20 +45,4 @@ public class UserController {
 		userService.updatePassword(user.getEmail(), passwordData);
 	}
 
-	@RequestMapping(value = "/oauth/revoke-token", method = RequestMethod.GET)
-	public void logout(HttpServletRequest request) {
-		String authHeader = request.getHeader("Authorization");
-		LOGGER.info("authHeader : " + authHeader);
-		if (authHeader != null) {
-			String tokenValue = authHeader.replace("Bearer", "").trim();
-			LOGGER.info("tokenValue : " + tokenValue);
-			OAuth2AccessToken accessToken = tokenStore.readAccessToken(tokenValue);
-			LOGGER.info("access token : " + accessToken);
-			tokenStore.removeAccessToken(accessToken);
-
-			OAuth2RefreshToken refreshToken = accessToken.getRefreshToken();
-			LOGGER.info("refresh token : " + refreshToken);
-			tokenStore.removeRefreshToken(refreshToken);
-		}
-	}
 }

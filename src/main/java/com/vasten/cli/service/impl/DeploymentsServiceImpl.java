@@ -244,8 +244,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			e1.printStackTrace();
 		}
 
-		String[] cmd = { applyShellPath, fileName };
-
+		String[] cmd = { applyShellPath, fileName, provisionData.getName() };
 		ProcessBuilder pb = new ProcessBuilder(cmd);
 
 		executorService.execute(new Runnable() {
@@ -384,7 +383,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		deploymentsRepository.save(dbDeployment);
 
-		String[] cmdarr = { destroyShellPath, propertyFile };
+		String[] cmdarr = { destroyShellPath, propertyFile, deploymentName };
 
 		executorService.execute(new Runnable() {
 
@@ -516,7 +515,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		String propertyFile = dbDeployment.getFileName();
 
-		String[] cmd = { applyRemoteShellPath, propertyFile };
+		String[] cmd = { applyRemoteShellPath, propertyFile, deploymentName };
 
 		executorService.execute(new Runnable() {
 

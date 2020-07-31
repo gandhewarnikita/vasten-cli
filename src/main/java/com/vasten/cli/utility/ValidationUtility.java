@@ -484,6 +484,7 @@ public class ValidationUtility {
 				LOGGER.error("User already exists");
 				validationErrorList.add(new ValidationError("email", "User already exists"));
 			}
+
 		} else {
 			// if not a valid email address
 			validationErrorList.add(new ValidationError("email", "Email is not a valid address"));
@@ -492,20 +493,23 @@ public class ValidationUtility {
 		if (userData.getPassword() == null || userData.getPassword().isEmpty()) {
 			LOGGER.error("Password is mandatory");
 			validationErrorList.add(new ValidationError("password", "Password is mandatory"));
-			
-		} else {
-			String regex = "^(?=.*[0-9])" + "(?=.*[a-z])(?=.*[A-Z])" + "(?=.*[@#$%^&+=_])" + "(?=\\S+$).{8}$";
 
-			String password = userData.getPassword().trim();
+		} else if (!userData.getPassword().equals("abcd@123")) {
+//			String regex = "^(?=.*[0-9])" + "(?=.*[a-z])(?=.*[A-Z])" + "(?=.*[@#$%^&+=_])" + "(?=\\S+$).{8}$";
+//
+//			String password = userData.getPassword().trim();
+//
+//			Pattern pat = Pattern.compile(regex);
+//
+//			if (pat.matcher(password).matches()) {
+//				LOGGER.info("Valid password");
+//			} else {
+//				LOGGER.error("Invalid password");
+//				validationErrorList.add(new ValidationError("password", "Invalid password"));
+//			}
 
-			Pattern pat = Pattern.compile(regex);
-
-			if (pat.matcher(password).matches()) {
-				LOGGER.info("Valid password");
-			} else {
-				LOGGER.error("Invalid password");
-				validationErrorList.add(new ValidationError("password", "Invalid password"));
-			}
+			LOGGER.error("Invalid default password");
+			validationErrorList.add(new ValidationError("password", "Invalid default password"));
 		}
 
 		if (userData.getClients() == null || userData.getClients().getId() == null) {

@@ -51,6 +51,9 @@ public class User {
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Deployments> deployments;
 
+	@Column(name = "role")
+	private String role;
+
 	public Integer getId() {
 		return id;
 	}
@@ -107,6 +110,14 @@ public class User {
 
 	public void setDeployments(List<Deployments> deployments) {
 		this.deployments = deployments;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 
 //	@Override

@@ -244,27 +244,27 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			e1.printStackTrace();
 		}
 
-		String[] cmd = { applyShellPath, fileName, provisionData.getName() };
-		ProcessBuilder pb = new ProcessBuilder(cmd);
-
-		executorService.execute(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					Process process = pb.start();
-					int exitCode = process.waitFor();
-					LOGGER.info("exit code : " + exitCode);
-					LOGGER.info("end of script execution");
-				} catch (IOException e) {
-					LOGGER.error("error");
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-
-			}
-		});
+//		String[] cmd = { applyShellPath, fileName, deploymentName };
+//		ProcessBuilder pb = new ProcessBuilder(cmd);
+//
+//		executorService.execute(new Runnable() {
+//
+//			@Override
+//			public void run() {
+//				try {
+//					Process process = pb.start();
+//					int exitCode = process.waitFor();
+//					LOGGER.info("exit code : " + exitCode);
+//					LOGGER.info("end of script execution");
+//				} catch (IOException e) {
+//					LOGGER.error("error");
+//					e.printStackTrace();
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
+//
+//			}
+//		});
 
 		return newDeployment;
 	}
@@ -377,34 +377,37 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		int deploymentId = deployment.getId();
 
 		Deployments dbDeployment = deploymentsRepository.findByUserAndIdAndIsDeletedFalse(dbUser, deploymentId);
-		String propertyFile = dbDeployment.getFileName();
 
-		dbDeployment.setDeleted(true);
+		if (dbDeployment != null) {
+			String propertyFile = dbDeployment.getFileName();
 
-		deploymentsRepository.save(dbDeployment);
+			dbDeployment.setDeleted(true);
 
-		String[] cmdarr = { destroyShellPath, propertyFile, deploymentName };
+			deploymentsRepository.save(dbDeployment);
 
-		executorService.execute(new Runnable() {
-
-			@Override
-			public void run() {
-				ProcessBuilder pbs = new ProcessBuilder(cmdarr);
-
-				try {
-					Process process = pbs.start();
-					int exitCode = process.waitFor();
-					LOGGER.info("exit code : " + exitCode);
-					LOGGER.info("end of script execution");
-				} catch (IOException e) {
-					LOGGER.error("error");
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-
-			}
-		});
+//		String[] cmdarr = { destroyShellPath, propertyFile, deploymentName };
+//
+//		executorService.execute(new Runnable() {
+//
+//			@Override
+//			public void run() {
+//				ProcessBuilder pbs = new ProcessBuilder(cmdarr);
+//
+//				try {
+//					Process process = pbs.start();
+//					int exitCode = process.waitFor();
+//					LOGGER.info("exit code : " + exitCode);
+//					LOGGER.info("end of script execution");
+//				} catch (IOException e) {
+//					LOGGER.error("error");
+//					e.printStackTrace();
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
+//
+//			}
+//		});
+		}
 
 	}
 

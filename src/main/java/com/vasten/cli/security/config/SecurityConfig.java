@@ -4,11 +4,9 @@ import javax.annotation.Resource;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,10 +27,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	private DataSource dataSource;
-
-//	@Autowired
-//    @Qualifier("authenticationManagerBean")
-//    private AuthenticationManager authenticationManager;
 
 	@Override
 	@Bean
@@ -60,21 +54,4 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	public BCryptPasswordEncoder encoder() {
 		return new BCryptPasswordEncoder();
 	}
-
-//	@Override
-//	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//		System.out.println("in the configure(AuthenticationManagerBuilder auth) method");
-//		auth.parentAuthenticationManager(authenticationManagerBean()).userDetailsService(userDetailsService);
-//	}
-
-	/*
-	 * @Bean public FilterRegistrationBean corsFilter() {
-	 * UrlBasedCorsConfigurationSource source = new
-	 * UrlBasedCorsConfigurationSource(); CorsConfiguration config = new
-	 * CorsConfiguration(); config.setAllowCredentials(true);
-	 * config.addAllowedOrigin("*"); config.addAllowedHeader("*");
-	 * config.addAllowedMethod("*"); source.registerCorsConfiguration("/**",
-	 * config); FilterRegistrationBean bean = new FilterRegistrationBean(new
-	 * CorsFilter(source)); bean.setOrder(0); return bean; }
-	 */
 }

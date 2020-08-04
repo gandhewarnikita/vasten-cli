@@ -357,9 +357,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 					}
 				}
 			}
-		}
 
-		statusMap.put(deploymentName, statusCliList);
+			statusMap.put(deploymentName, statusCliList);
+		}
 
 		return statusMap;
 	}
@@ -390,28 +390,28 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 			deploymentsRepository.save(dbDeployment);
 
-		String[] cmdarr = { destroyShellPath, propertyFile, deploymentName };
+			String[] cmdarr = { destroyShellPath, propertyFile, deploymentName };
 
-		executorService.execute(new Runnable() {
+			executorService.execute(new Runnable() {
 
-			@Override
-			public void run() {
-				ProcessBuilder pbs = new ProcessBuilder(cmdarr);
+				@Override
+				public void run() {
+					ProcessBuilder pbs = new ProcessBuilder(cmdarr);
 
-				try {
-					Process process = pbs.start();
-					int exitCode = process.waitFor();
-					LOGGER.info("exit code : " + exitCode);
-					LOGGER.info("end of script execution");
-				} catch (IOException e) {
-					LOGGER.error("error");
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+					try {
+						Process process = pbs.start();
+						int exitCode = process.waitFor();
+						LOGGER.info("exit code : " + exitCode);
+						LOGGER.info("end of script execution");
+					} catch (IOException e) {
+						LOGGER.error("error");
+						e.printStackTrace();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+
 				}
-
-			}
-		});
+			});
 		}
 
 	}

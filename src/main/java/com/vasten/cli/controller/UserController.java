@@ -36,11 +36,13 @@ public class UserController {
 		return newUser;
 	}
 
+	@RolesAllowed("ROLE_ADMIN")
 	@RequestMapping(value = "/api/loggedIn", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public User getLoggedInUser() {
 		return securityUtil.getLoggedInUser();
 	}
 
+	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 	@RequestMapping(value = "/api/updatepassword", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public void updatePassword(@RequestBody Map<String, String> passwordData) {
 		LOGGER.info("Api received to update password");

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.security.RolesAllowed;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,7 @@ public class DeploymentsController {
 	 * @param provisionData
 	 * @return
 	 */
+	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 	@RequestMapping(value = "/provision", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public Deployments create(@RequestBody Deployments provisionData) {
 		LOGGER.info("Api receives to create deployments");
@@ -65,6 +68,7 @@ public class DeploymentsController {
 	 * @param clientId
 	 * @return
 	 */
+	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 	@RequestMapping(value = "/profile", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public List<Deployments> getAllDeployments(@RequestParam(value = "name", required = false) String name) {
 		LOGGER.info("Api received to get all deployments of user");
@@ -82,6 +86,7 @@ public class DeploymentsController {
 	 * @param name
 	 * @return
 	 */
+	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 	@RequestMapping(value = "/status/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, List<StatusCli>> getStatus(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to get status of deployment");
@@ -98,11 +103,12 @@ public class DeploymentsController {
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
+	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 	@RequestMapping(value = "/cost/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, CostCli> getCost(@PathVariable String deploymentName,
 			@RequestParam(value = "startDate", required = false) String startDate)
 			throws FileNotFoundException, IOException {
-		
+
 		LOGGER.info("Api received to get cost of deployment");
 		User user = securityUtil.getLoggedInUser();
 		Map<String, CostCli> deploymentCostList = deploymentsService.getCost(user.getId(), deploymentName, startDate);
@@ -114,6 +120,7 @@ public class DeploymentsController {
 	 * 
 	 * @param name
 	 */
+	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 	@RequestMapping(value = "/deploymentName/{deploymentName}", method = RequestMethod.DELETE)
 	public void deProvision(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to delete deployment");
@@ -128,6 +135,7 @@ public class DeploymentsController {
 	 * 
 	 * @param deploymentName
 	 */
+	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 	@RequestMapping(value = "/mount/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public void mountNfs(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to mount nfs");
@@ -140,6 +148,7 @@ public class DeploymentsController {
 	 * 
 	 * @param deploymentName
 	 */
+	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 	@RequestMapping(value = "/deleteMount/deploymentName/{deploymentname}", method = RequestMethod.DELETE)
 	public void deProvisionRemote(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to delete mounted nfs");
@@ -152,6 +161,7 @@ public class DeploymentsController {
 	 * 
 	 * @param deploymentName
 	 */
+	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 	@RequestMapping(value = "/run/deploymentName/{deploymentName}/filename/{filename}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public void runTool(@PathVariable String deploymentName,
 			@RequestParam(value = "clusternodes", required = false) Integer clusternodes,

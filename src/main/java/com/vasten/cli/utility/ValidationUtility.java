@@ -494,22 +494,19 @@ public class ValidationUtility {
 			LOGGER.error("Password is mandatory");
 			validationErrorList.add(new ValidationError("password", "Password is mandatory"));
 
-		} else if (!userData.getPassword().equals("abcd@123")) {
-//			String regex = "^(?=.*[0-9])" + "(?=.*[a-z])(?=.*[A-Z])" + "(?=.*[@#$%^&+=_])" + "(?=\\S+$).{8}$";
-//
-//			String password = userData.getPassword().trim();
-//
-//			Pattern pat = Pattern.compile(regex);
-//
-//			if (pat.matcher(password).matches()) {
-//				LOGGER.info("Valid password");
-//			} else {
-//				LOGGER.error("Invalid password");
-//				validationErrorList.add(new ValidationError("password", "Invalid password"));
-//			}
+		} else {
+			String regex = "^(?=.*[0-9])" + "(?=.*[a-z])(?=.*[A-Z])" + "(?=.*[@#$%^&+=_])" + "(?=\\S+$).{8}$";
 
-			LOGGER.error("Invalid default password");
-			validationErrorList.add(new ValidationError("password", "Invalid default password"));
+			String password = userData.getPassword().trim();
+
+			Pattern pat = Pattern.compile(regex);
+
+			if (pat.matcher(password).matches()) {
+				LOGGER.info("Valid password");
+			} else {
+				LOGGER.error("Invalid password");
+				validationErrorList.add(new ValidationError("password", "Invalid password"));
+			}
 		}
 
 		if (userData.getClients() == null || userData.getClients().getId() == null) {

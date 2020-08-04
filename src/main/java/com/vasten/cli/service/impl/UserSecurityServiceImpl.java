@@ -11,10 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.vasten.cli.controller.UserController;
-import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.User;
-import com.vasten.cli.repository.ClientsRepository;
 import com.vasten.cli.repository.UserRepository;
 
 @Service(value = "userService")
@@ -33,10 +30,6 @@ public class UserSecurityServiceImpl implements UserDetailsService {
 		return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(),
 				Arrays.asList(new SimpleGrantedAuthority(user.getRole())));
 	}
-
-//	private List<SimpleGrantedAuthority> getAuthority() {
-//		return Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN"));
-//	}
 
 	public List<User> findAll() {
 		List<User> list = new ArrayList<>();

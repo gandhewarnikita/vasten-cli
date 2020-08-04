@@ -39,21 +39,26 @@ public interface DeploymentsService {
 	/**
 	 * Get status of cluster, instances and file store of a deployment
 	 * 
+	 * @param userId
+	 * 
 	 * @param deploymentName
 	 * @return
 	 */
-	public Map<String, List<StatusCli>> getStatus(String deploymentName);
+	public Map<String, List<StatusCli>> getStatus(Integer userId, String deploymentName);
 
 	/**
 	 * Get cost of a deployment
 	 * 
+	 * @param userId
+	 * 
 	 * @param deploymentName
-	 * @param startDate 
+	 * @param startDate
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public Map<String, CostCli> getCost(String deploymentName, String startDate) throws FileNotFoundException, IOException;
+	public Map<String, CostCli> getCost(Integer userId, String deploymentName, String startDate)
+			throws FileNotFoundException, IOException;
 
 	/**
 	 * Delete a deployment of user
@@ -85,9 +90,9 @@ public interface DeploymentsService {
 	 * 
 	 * @param id
 	 * @param deploymentName
-	 * @param filename 
-	 * @param iplist 
-	 * @param clusternodes 
+	 * @param filename
+	 * @param iplist
+	 * @param clusternodes
 	 */
 	public void runTool(Integer id, String deploymentName, Integer clusternodes, List<String> iplist, String filename);
 

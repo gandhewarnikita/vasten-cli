@@ -85,7 +85,8 @@ public class DeploymentsController {
 	@RequestMapping(value = "/status/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, List<StatusCli>> getStatus(@PathVariable String deploymentName) {
 		LOGGER.info("Api received to get status of deployment");
-		Map<String, List<StatusCli>> deploymentStatus = deploymentsService.getStatus(deploymentName);
+		User user = securityUtil.getLoggedInUser();
+		Map<String, List<StatusCli>> deploymentStatus = deploymentsService.getStatus(user.getId(), deploymentName);
 		return deploymentStatus;
 	}
 
@@ -101,8 +102,10 @@ public class DeploymentsController {
 	public Map<String, CostCli> getCost(@PathVariable String deploymentName,
 			@RequestParam(value = "startDate", required = false) String startDate)
 			throws FileNotFoundException, IOException {
+		
 		LOGGER.info("Api received to get cost of deployment");
-		Map<String, CostCli> deploymentCostList = deploymentsService.getCost(deploymentName, startDate);
+		User user = securityUtil.getLoggedInUser();
+		Map<String, CostCli> deploymentCostList = deploymentsService.getCost(user.getId(), deploymentName, startDate);
 		return deploymentCostList;
 	}
 

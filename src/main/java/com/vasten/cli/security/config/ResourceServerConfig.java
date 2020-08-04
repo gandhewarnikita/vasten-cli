@@ -25,10 +25,10 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 		System.out.println("in resource configure 2 http");
 		http.anonymous().disable()
 		.authorizeRequests()
-		.antMatchers(HttpMethod.GET, "/api/**").hasRole("ADMIN")
-		.antMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
-		.antMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
-		.antMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+		.antMatchers(HttpMethod.GET, "/api/**").hasAnyRole("USER", "ADMIN")
+		.antMatchers(HttpMethod.POST, "/api/**").hasAnyRole("USER", "ADMIN")
+		.antMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("USER", "ADMIN")
+		.antMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("USER", "ADMIN")
 //		.antMatchers(HttpMethod.POST, "**/user").hasRole("ADMIN")
 //		.antMatchers(HttpMethod.POST, "**/client").hasRole("ADMIN")
 		.and().exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());

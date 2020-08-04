@@ -29,7 +29,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	private DataSource dataSource;
-	
+
 //	@Autowired
 //    @Qualifier("authenticationManagerBean")
 //    private AuthenticationManager authenticationManager;
@@ -60,12 +60,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	public BCryptPasswordEncoder encoder() {
 		return new BCryptPasswordEncoder();
 	}
-	
+
 //	@Override
-//	protected void configure(AuthenticationManagerBuilder auth) throws Exception 
-//	{
-//	    auth.parentAuthenticationManager(authenticationManagerBean())
-//	        .userDetailsService(userDetailsService);
+//	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//		System.out.println("in the configure(AuthenticationManagerBuilder auth) method");
+//		auth.parentAuthenticationManager(authenticationManagerBean()).userDetailsService(userDetailsService);
 //	}
 
 	/*

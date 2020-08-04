@@ -244,27 +244,27 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			e1.printStackTrace();
 		}
 
-//		String[] cmd = { applyShellPath, fileName, deploymentName };
-//		ProcessBuilder pb = new ProcessBuilder(cmd);
-//
-//		executorService.execute(new Runnable() {
-//
-//			@Override
-//			public void run() {
-//				try {
-//					Process process = pb.start();
-//					int exitCode = process.waitFor();
-//					LOGGER.info("exit code : " + exitCode);
-//					LOGGER.info("end of script execution");
-//				} catch (IOException e) {
-//					LOGGER.error("error");
-//					e.printStackTrace();
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
-//
-//			}
-//		});
+		String[] cmd = { applyShellPath, fileName, deploymentName };
+		ProcessBuilder pb = new ProcessBuilder(cmd);
+
+		executorService.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					Process process = pb.start();
+					int exitCode = process.waitFor();
+					LOGGER.info("exit code : " + exitCode);
+					LOGGER.info("end of script execution");
+				} catch (IOException e) {
+					LOGGER.error("error");
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+			}
+		});
 
 		return newDeployment;
 	}
@@ -321,7 +321,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	 * @see com.vasten.cli.service.DeploymentsService#getStatus(int)
 	 */
 	@Override
-	public Map<String, List<StatusCli>> getStatus(String deploymentName) {
+	public Map<String, List<StatusCli>> getStatus(Integer userId, String deploymentName) {
 		LOGGER.info("Getting status of a deployment");
 
 		validationUtility.validateDeploymentName(deploymentName);
@@ -329,27 +329,32 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		String deployName = "";
 		Map<String, List<StatusCli>> statusMap = new HashMap<String, List<StatusCli>>();
 		List<StatusCli> statusCliList = new ArrayList<StatusCli>();
+		User dbUser = userRepository.findOneById(userId);
 
-		Deployments dbDeployment = deploymentsRepository.findOneByNameAndIsDeletedFalse(deploymentName);
-		deployName = dbDeployment.getName().toLowerCase();
+		Deployments dbDeployment = deploymentsRepository.findOneByUserAndNameAndIsDeletedFalse(dbUser, deploymentName);
 
-		List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
+		if (dbDeployment != null) {
+			deployName = dbDeployment.getName().toLowerCase();
 
-		if (deployStatusList != null || !deployStatusList.isEmpty()) {
+			List<DeployStatus> deployStatusList = deployStatusRepository.findAllByDeploymentId(dbDeployment);
 
-			for (DeployStatus deployStatusObj : deployStatusList) {
-				StatusCli statusCli = new StatusCli();
+			if (deployStatusList != null || !deployStatusList.isEmpty()) {
 
-				if (deployStatusObj.getDeploymentTypeName() != null && deployStatusObj.getStatus().toString() != null
-						&& deployStatusObj.getType().toString() != null) {
+				for (DeployStatus deployStatusObj : deployStatusList) {
+					StatusCli statusCli = new StatusCli();
 
-					statusCli.setDeploymentTypeName(deployStatusObj.getDeploymentTypeName());
-					statusCli.setExternalIp(deployStatusObj.getExternalIp());
-					statusCli.setStatus(deployStatusObj.getStatus().toString());
-					statusCli.setType(deployStatusObj.getType().toString());
-					statusCli.setPrivateIp(deployStatusObj.getPrivateIp());
+					if (deployStatusObj.getDeploymentTypeName() != null
+							&& deployStatusObj.getStatus().toString() != null
+							&& deployStatusObj.getType().toString() != null) {
 
-					statusCliList.add(statusCli);
+						statusCli.setDeploymentTypeName(deployStatusObj.getDeploymentTypeName());
+						statusCli.setExternalIp(deployStatusObj.getExternalIp());
+						statusCli.setStatus(deployStatusObj.getStatus().toString());
+						statusCli.setType(deployStatusObj.getType().toString());
+						statusCli.setPrivateIp(deployStatusObj.getPrivateIp());
+
+						statusCliList.add(statusCli);
+					}
 				}
 			}
 		}
@@ -385,28 +390,28 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 			deploymentsRepository.save(dbDeployment);
 
-//		String[] cmdarr = { destroyShellPath, propertyFile, deploymentName };
-//
-//		executorService.execute(new Runnable() {
-//
-//			@Override
-//			public void run() {
-//				ProcessBuilder pbs = new ProcessBuilder(cmdarr);
-//
-//				try {
-//					Process process = pbs.start();
-//					int exitCode = process.waitFor();
-//					LOGGER.info("exit code : " + exitCode);
-//					LOGGER.info("end of script execution");
-//				} catch (IOException e) {
-//					LOGGER.error("error");
-//					e.printStackTrace();
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
-//
-//			}
-//		});
+		String[] cmdarr = { destroyShellPath, propertyFile, deploymentName };
+
+		executorService.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				ProcessBuilder pbs = new ProcessBuilder(cmdarr);
+
+				try {
+					Process process = pbs.start();
+					int exitCode = process.waitFor();
+					LOGGER.info("exit code : " + exitCode);
+					LOGGER.info("end of script execution");
+				} catch (IOException e) {
+					LOGGER.error("error");
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+			}
+		});
 		}
 
 	}
@@ -417,12 +422,14 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	 * @see com.vasten.cli.service.DeploymentsService#getCost(int)
 	 */
 	@Override
-	public Map<String, CostCli> getCost(String deploymentName, String startDate)
+	public Map<String, CostCli> getCost(Integer userId, String deploymentName, String startDate)
 			throws FileNotFoundException, IOException {
 		LOGGER.info("Getting the cost of deployment");
 
 		validationUtility.validateDeploymentNameForCost(deploymentName);
-		Deployments deployment = deploymentsRepository.findOneByName(deploymentName);
+
+		User dbUser = userRepository.findOneById(userId);
+		Deployments deployment = deploymentsRepository.findOneByUserAndName(dbUser, deploymentName);
 
 		LOGGER.info("start date : " + startDate);
 
@@ -430,71 +437,73 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		List<Double> totalCostList = new ArrayList<Double>();
 		Double totalCost = 0.0;
 
-		if (startDate != null && !startDate.isEmpty()) {
-			LOGGER.info("start date is present");
+		if (deployment != null) {
+			if (startDate != null && !startDate.isEmpty()) {
+				LOGGER.info("start date is present");
 
-			validationUtility.validateStartDateFormat(startDate);
+				validationUtility.validateStartDateFormat(startDate);
 
-			validationUtility.validateStartDate(startDate);
+				validationUtility.validateStartDate(startDate);
 
-			DeploymentCost dbCost = null;
+				DeploymentCost dbCost = null;
 
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			LocalDate localStartDate = LocalDate.parse(startDate, formatter);
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+				LocalDate localStartDate = LocalDate.parse(startDate, formatter);
 
-			LocalDate date = LocalDate.now();
+				LocalDate date = LocalDate.now();
 
-			List<DeploymentCost> dbCostList = deploymentCostRepository.findByDeploymentIdAndUsageDateBetween(deployment,
-					localStartDate, date);
+				List<DeploymentCost> dbCostList = deploymentCostRepository
+						.findByDeploymentIdAndUsageDateBetween(deployment, localStartDate, date);
 
-			if (dbCostList != null && !dbCostList.isEmpty()) {
-				int index = dbCostList.size() - 1;
-				dbCost = dbCostList.get(index);
+				if (dbCostList != null && !dbCostList.isEmpty()) {
+					int index = dbCostList.size() - 1;
+					dbCost = dbCostList.get(index);
 
-				for (DeploymentCost deploymentCost : dbCostList) {
-					totalCostList.add(deploymentCost.getTotalCost());
+					for (DeploymentCost deploymentCost : dbCostList) {
+						totalCostList.add(deploymentCost.getTotalCost());
+					}
+
 				}
 
-			}
-
-			for (Double cost : totalCostList) {
-				totalCost += cost;
-			}
-
-			CostCli costCli = new CostCli();
-
-			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
-			costCli.setTotalCost(totalCost);
-
-			costCliMap.put(deployment.getName(), costCli);
-
-		} else {
-
-			LOGGER.info("start date is not present");
-
-			List<DeploymentCost> dbCostList = deploymentCostRepository.findByDeploymentId(deployment);
-			DeploymentCost dbCost = null;
-
-			if (dbCostList != null && !dbCostList.isEmpty()) {
-				int index = dbCostList.size() - 1;
-				dbCost = dbCostList.get(index);
-
-				for (DeploymentCost deploymentCost : dbCostList) {
-					totalCostList.add(deploymentCost.getTotalCost());
+				for (Double cost : totalCostList) {
+					totalCost += cost;
 				}
+
+				CostCli costCli = new CostCli();
+
+				costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
+				costCli.setTotalCost(totalCost);
+
+				costCliMap.put(deployment.getName(), costCli);
+
+			} else {
+
+				LOGGER.info("start date is not present");
+
+				List<DeploymentCost> dbCostList = deploymentCostRepository.findByDeploymentId(deployment);
+				DeploymentCost dbCost = null;
+
+				if (dbCostList != null && !dbCostList.isEmpty()) {
+					int index = dbCostList.size() - 1;
+					dbCost = dbCostList.get(index);
+
+					for (DeploymentCost deploymentCost : dbCostList) {
+						totalCostList.add(deploymentCost.getTotalCost());
+					}
+				}
+
+				for (Double cost : totalCostList) {
+					totalCost += cost;
+				}
+
+				CostCli costCli = new CostCli();
+
+				costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
+				costCli.setTotalCost(totalCost);
+
+				costCliMap.put(deployment.getName(), costCli);
+
 			}
-
-			for (Double cost : totalCostList) {
-				totalCost += cost;
-			}
-
-			CostCli costCli = new CostCli();
-
-			costCli.setCostLastUpdated(dbCost.getCostLastUpdated());
-			costCli.setTotalCost(totalCost);
-
-			costCliMap.put(deployment.getName(), costCli);
-
 		}
 
 		return costCliMap;

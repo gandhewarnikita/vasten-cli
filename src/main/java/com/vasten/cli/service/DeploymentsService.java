@@ -97,6 +97,6 @@ public interface DeploymentsService {
 	 */
 	public void runTool(Integer id, String deploymentName, Integer clusternodes, List<String> iplist, String filename);
 
-	public Map<String, ClientCostDetails> getClientCost(Integer id, Integer clientId);
+	public Map<String, ClientCostDetails> getClientCost(Integer id, Integer clientId, String startDate);
 
 }

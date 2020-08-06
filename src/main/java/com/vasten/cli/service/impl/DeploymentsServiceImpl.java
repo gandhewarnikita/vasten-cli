@@ -740,62 +740,83 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public Map<String, ClientCostDetails> getClientCost(Integer id, Integer clientId) {
+	public Map<String, ClientCostDetails> getClientCost(Integer id, Integer clientId, String startDate) {
 		LOGGER.info("Getting cost of all deployments of all user of a client");
 
 		validationUtility.validateClientAndUserDetails(id, clientId);
 
+		LOGGER.info("start date : " + startDate);
+
 		Clients dbClient = clientsRepository.findOneById(clientId);
 
 		Map<String, ClientCostDetails> clientCostMap = new HashMap<String, ClientCostDetails>();
-		List<User> userList = new ArrayList<User>();
-		List<Deployments> deploymentList = new ArrayList<Deployments>();
 		List<DeploymentCost> deploymentCostList = new ArrayList<DeploymentCost>();
 		List<Double> totalCostList = new ArrayList<Double>();
 		Date costLastUpdated = null;
 		Double totalCost = 0.0;
 
-		userList = userRepository.findAllByClients(dbClient);
+		if (startDate != null && !startDate.isEmpty()) {
+			LOGGER.info("start date is present");
 
-		if (userList != null && !userList.isEmpty()) {
+			validationUtility.validateStartDateFormat(startDate);
 
-			for (User userObj : userList) {
+			validationUtility.validateStartDate(startDate);
 
-				deploymentList = deploymentsRepository.findAllByUser(userObj);
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			LocalDate localStartDate = LocalDate.parse(startDate, formatter);
 
-				if (deploymentList != null && !deploymentList.isEmpty()) {
+			LocalDate date = LocalDate.now();
 
-					for (Deployments deploymentObj : deploymentList) {
+			deploymentCostList = deploymentCostRepository
+					.findAllByClientIdAndUsageDateBetweenOrderByCostLastUpdatedDesc(dbClient, localStartDate, date);
 
-						deploymentCostList = deploymentCostRepository
-								.findByDeploymentIdOrderByCostLastUpdatedDesc(deploymentObj);
-					}
+			if (deploymentCostList != null && !deploymentCostList.isEmpty()) {
 
-					if (deploymentCostList != null && !deploymentCostList.isEmpty()) {
+				DeploymentCost deploymentCost = deploymentCostList.get(0);
+				costLastUpdated = deploymentCost.getCostLastUpdated();
 
-						DeploymentCost deploymentCost = deploymentCostList.get(0);
-						costLastUpdated = deploymentCost.getCostLastUpdated();
-
-						for (DeploymentCost deploymentCostObj : deploymentCostList) {
-							totalCostList.add(deploymentCostObj.getTotalCost());
-						}
-
-						if (totalCostList != null && !totalCostList.isEmpty()) {
-							for (Double cost : totalCostList) {
-								totalCost += cost;
-							}
-						}
-					}
+				for (DeploymentCost deploymentCostObj : deploymentCostList) {
+					totalCostList.add(deploymentCostObj.getTotalCost());
 				}
 
+				if (totalCostList != null && !totalCostList.isEmpty()) {
+					for (Double cost : totalCostList) {
+						totalCost += cost;
+					}
+				}
 			}
+
+			ClientCostDetails clientCostDetails = new ClientCostDetails();
+			clientCostDetails.setTotalCost(totalCost);
+			clientCostDetails.setCostLastUpdated(costLastUpdated);
+
+			clientCostMap.put(dbClient.getName(), clientCostDetails);
+			
+		} else {
+			deploymentCostList = deploymentCostRepository.findAllByClientIdOrderByCostLastUpdatedDesc(dbClient);
+
+			if (deploymentCostList != null && !deploymentCostList.isEmpty()) {
+
+				DeploymentCost deploymentCost = deploymentCostList.get(0);
+				costLastUpdated = deploymentCost.getCostLastUpdated();
+
+				for (DeploymentCost deploymentCostObj : deploymentCostList) {
+					totalCostList.add(deploymentCostObj.getTotalCost());
+				}
+
+				if (totalCostList != null && !totalCostList.isEmpty()) {
+					for (Double cost : totalCostList) {
+						totalCost += cost;
+					}
+				}
+			}
+
+			ClientCostDetails clientCostDetails = new ClientCostDetails();
+			clientCostDetails.setTotalCost(totalCost);
+			clientCostDetails.setCostLastUpdated(costLastUpdated);
+
+			clientCostMap.put(dbClient.getName(), clientCostDetails);
 		}
-
-		ClientCostDetails clientCostDetails = new ClientCostDetails();
-		clientCostDetails.setTotalCost(totalCost);
-		clientCostDetails.setCostLastUpdated(costLastUpdated);
-
-		clientCostMap.put(dbClient.getName(), clientCostDetails);
 
 		return clientCostMap;
 	}

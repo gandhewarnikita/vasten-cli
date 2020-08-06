@@ -176,11 +176,13 @@ public class DeploymentsController {
 //	@RolesAllowed("ROLE_USER")
 	@RolesAllowed({ "ROLE_CLIENT_ADMIN", "ROLE_ADMIN" })
 	@RequestMapping(value = "/getcost/clientId/{clientId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Map<String, ClientCostDetails> getCostClient(@PathVariable Integer clientId) {
+	public Map<String, ClientCostDetails> getCostClient(@PathVariable Integer clientId,
+			@RequestParam(value = "startDate", required = false) String startDate) {
 
 		LOGGER.info("Api received to get total cost of all deployments of all users of a client");
 		User user = securityUtil.getLoggedInUser();
-		Map<String, ClientCostDetails> costClientList = deploymentsService.getClientCost(user.getId(), clientId);
+		Map<String, ClientCostDetails> costClientList = deploymentsService.getClientCost(user.getId(), clientId,
+				startDate);
 		return costClientList;
 
 	}

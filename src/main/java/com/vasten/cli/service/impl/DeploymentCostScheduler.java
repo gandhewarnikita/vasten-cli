@@ -30,11 +30,15 @@ import com.google.cloud.bigquery.JobException;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.QueryParameterValue;
 import com.google.cloud.bigquery.TableResult;
+import com.vasten.cli.entity.Clients;
 import com.vasten.cli.entity.DeploymentCost;
 import com.vasten.cli.entity.DeploymentType;
 import com.vasten.cli.entity.Deployments;
+import com.vasten.cli.entity.User;
+import com.vasten.cli.repository.ClientsRepository;
 import com.vasten.cli.repository.DeploymentCostRepository;
 import com.vasten.cli.repository.DeploymentsRepository;
+import com.vasten.cli.repository.UserRepository;
 
 @Component
 public class DeploymentCostScheduler {
@@ -51,6 +55,12 @@ public class DeploymentCostScheduler {
 
 	@Autowired
 	private DeploymentCostRepository deploymentCostRepository;
+
+	@Autowired
+	private UserRepository userRepository;
+
+	@Autowired
+	private ClientsRepository clientsRepository;
 
 	@Scheduled(cron = "0 0/5 * * * *")
 //	@Scheduled(cron = "10 * * * * *")
@@ -127,6 +137,16 @@ public class DeploymentCostScheduler {
 			Double totalCost = Double.valueOf(cost);
 			LOGGER.info("totalCost : " + totalCost);
 
+			User dbUser = null;
+			Clients dbClient = null;
+
+			Deployments dbDeployment = deploymentsRepository.findOneByName(deploymentName);
+			dbUser = userRepository.findOneById(dbDeployment.getUser().getId());
+
+			if (dbUser != null) {
+				dbClient = clientsRepository.findOneById(dbUser.getClients().getId());
+			}
+
 			dbDeploymentCost = deploymentCostRepository
 					.findOneByDeploymentTypeNameAndDeploymentIdAndUsageDate(deploymentName, deployment, date);
 
@@ -141,6 +161,10 @@ public class DeploymentCostScheduler {
 				dbDeploymentCost.setTotalCost(totalCost);
 				dbDeploymentCost.setCostLastUpdated(new Date());
 				dbDeploymentCost.setUsageDate(date);
+
+				if (dbClient != null) {
+					dbDeploymentCost.setClientId(dbClient);
+				}
 
 			} else {
 				dbDeploymentCost.setTotalCost(totalCost);

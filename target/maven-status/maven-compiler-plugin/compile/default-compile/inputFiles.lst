@@ -21,6 +21,7 @@
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/controller/DeploymentsController.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/entity/DeploymentStatus.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/service/impl/DeploymentStatusScheduler.java
+/home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/entity/ClientCostDetails.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/service/impl/ClientsServiceImpl.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/config/CorsFilter.java
 /home/scriptuit/Projects/vasten-cli/codebase/src/main/java/com/vasten/cli/error/ValidationError.java

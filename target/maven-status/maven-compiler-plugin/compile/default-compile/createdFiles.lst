@@ -5,6 +5,7 @@ com/vasten/cli/controller/UserController.class
 com/vasten/cli/repository/DeployStatusRepository.class
 com/vasten/cli/security/config/ResourceServerConfig.class
 com/vasten/cli/controller/DeploymentsController.class
+com/vasten/cli/service/impl/DeploymentsServiceImpl$5.class
 com/vasten/cli/repository/DeploymentsRepository.class
 com/vasten/cli/security/config/SecurityConfig.class
 com/vasten/cli/service/impl/DeploymentsServiceImpl.class
@@ -22,6 +23,7 @@ com/vasten/cli/error/ValidationError.class
 com/vasten/cli/entity/Deployments.class
 com/vasten/cli/entity/User.class
 com/vasten/cli/repository/DeploymentCostRepository.class
+com/vasten/cli/service/impl/DeploymentsServiceImpl$6.class
 com/vasten/cli/security/config/SecurityUtil.class
 com/vasten/cli/service/impl/DeploymentsServiceImpl$1.class
 com/vasten/cli/service/impl/DeploymentsServiceImpl$4.class
@@ -33,6 +35,7 @@ com/vasten/cli/utility/ValidationUtility.class
 com/vasten/cli/entity/OauthRefreshToken.class
 com/vasten/cli/service/DeploymentsService.class
 com/vasten/cli/controller/ClientsController.class
+com/vasten/cli/entity/ClientCostDetails.class
 com/vasten/cli/service/UserService.class
 com/vasten/cli/service/impl/ClientsServiceImpl.class
 com/vasten/cli/service/ClientsService.class

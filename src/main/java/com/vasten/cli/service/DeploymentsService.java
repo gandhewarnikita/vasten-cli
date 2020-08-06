@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.vasten.cli.entity.ClientCostDetails;
 import com.vasten.cli.entity.CostCli;
 import com.vasten.cli.entity.DeploymentCost;
 import com.vasten.cli.entity.Deployments;
@@ -95,5 +96,7 @@ public interface DeploymentsService {
 	 * @param clusternodes
 	 */
 	public void runTool(Integer id, String deploymentName, Integer clusternodes, List<String> iplist, String filename);
+
+	public Map<String, ClientCostDetails> getClientCost(Integer id, Integer clientId);
 
 }

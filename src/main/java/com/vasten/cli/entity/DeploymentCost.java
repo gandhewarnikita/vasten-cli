@@ -45,6 +45,10 @@ public class DeploymentCost {
 	@Column(name = "usage_date")
 	private LocalDate usageDate;
 
+	@ManyToOne
+	@JoinColumn(name = "client_id")
+	private Clients clientId;
+
 	public Integer getId() {
 		return id;
 	}
@@ -93,11 +97,19 @@ public class DeploymentCost {
 		this.usageDate = usageDate;
 	}
 
+	public Clients getClientId() {
+		return clientId;
+	}
+
+	public void setClientId(Clients clientId) {
+		this.clientId = clientId;
+	}
+
 	@Override
 	public String toString() {
 		return "DeploymentCost [id=" + id + ", deploymentId=" + deploymentId + ", totalCost=" + totalCost
 				+ ", costLastUpdated=" + costLastUpdated + ", deploymentTypeName=" + deploymentTypeName + ", usageDate="
-				+ usageDate + "]";
+				+ usageDate + ", clientId=" + clientId + "]";
 	}
 
 }

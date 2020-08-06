@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vasten.cli.entity.ClientCostDetails;
 import com.vasten.cli.entity.CostCli;
 import com.vasten.cli.entity.DeploymentCost;
 import com.vasten.cli.entity.Deployments;
@@ -170,5 +171,17 @@ public class DeploymentsController {
 		LOGGER.info("Api received to run tool");
 		User user = securityUtil.getLoggedInUser();
 		deploymentsService.runTool(user.getId(), deploymentName, clusternodes, iplist, filename);
+	}
+
+//	@RolesAllowed("ROLE_USER")
+	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
+	@RequestMapping(value = "/getcost/clientId/{clientId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public Map<String, ClientCostDetails> getCostClient(@PathVariable Integer clientId) {
+
+		LOGGER.info("Api received to get total cost of all deployments of all users of a client");
+		User user = securityUtil.getLoggedInUser();
+		Map<String, ClientCostDetails> costClientList = deploymentsService.getClientCost(user.getId(), clientId);
+		return costClientList;
+
 	}
 }

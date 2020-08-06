@@ -522,6 +522,15 @@ public class ValidationUtility {
 			}
 		}
 
+		if (userData.getRole() == null || userData.getRole().isEmpty()) {
+			LOGGER.error("Role is mandatory");
+			validationErrorList.add(new ValidationError("role", "Role is mandatory"));
+
+		} else if (!userData.getRole().equals("CLIENT_ADMIN") && !userData.getRole().equals("ROLE_USER")) {
+			LOGGER.error("Invalid role = " + userData.getRole());
+			validationErrorList.add(new ValidationError("role", "Invalid role"));
+		}
+
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {
 			throw new CliBadRequestException("Bad Request", validationErrorList);
 		}
@@ -565,6 +574,42 @@ public class ValidationUtility {
 				LOGGER.error("Invalid password");
 				validationErrorList.add(new ValidationError("password", "Invalid password"));
 			}
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
+	}
+
+	public void validateClientAdmin(User dbUser, Clients clients) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		if (!dbUser.getClients().equals(clients)) {
+			LOGGER.error("Logged in client does not have permission to create other client's user");
+			validationErrorList.add(new ValidationError("client",
+					"Logged in client does not have permission to create other client's user"));
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
+	}
+
+	public void validateClientAndUserDetails(Integer id, Integer clientId) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		Clients dbClient = clientsRepository.findOneById(clientId);
+		User dbUser = userRepository.findOneById(id);
+
+		if (dbClient == null) {
+			LOGGER.error("Client does not exist");
+			validationErrorList.add(new ValidationError("client", "Client does not exist"));
+
+		} else if (!dbUser.getClients().equals(dbClient)) {
+			LOGGER.error("User does not belong to the client");
+			validationErrorList.add(new ValidationError("client", "User does not belong to the client"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {

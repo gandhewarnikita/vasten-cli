@@ -35,4 +35,8 @@ public interface DeploymentCostRepository extends JpaRepository<DeploymentCost, 
 	public DeploymentCost findOneByDeploymentTypeNameAndDeploymentIdAndUsageDate(String deploymentName,
 			Deployments deployment, LocalDate date);
 
+	public List<DeploymentCost> findByDeploymentIdOrderByUsageDateDesc(Deployments deploymentObj);
+
+	public List<DeploymentCost> findByDeploymentIdOrderByCostLastUpdatedDesc(Deployments deploymentObj);
+
 }

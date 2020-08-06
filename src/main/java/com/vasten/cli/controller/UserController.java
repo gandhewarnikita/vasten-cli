@@ -28,15 +28,26 @@ public class UserController {
 	@Autowired
 	private SecurityUtil securityUtil;
 
-	@RolesAllowed("ROLE_ADMIN")
+	@RolesAllowed({ "ROLE_ADMIN", "CLIENT_ADMIN" })
 	@RequestMapping(value = "/user", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public User create(@RequestBody User userData) {
 		LOGGER.info("Api received to create user");
+		User user = securityUtil.getLoggedInUser();
+		LOGGER.info("logged in user email = " + user.getEmail());
 		User newUser = userService.create(userData);
 		return newUser;
 	}
 
-	@RolesAllowed("ROLE_ADMIN")
+//	@RolesAllowed("ROLE_ADMIN")
+//	@RequestMapping(value = "/user", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+//	public User create(@RequestBody User userData) {
+//		LOGGER.info("Api received to create user");
+//		User newUser = userService.create(userData);
+//		return newUser;
+//	}
+
+//	@RolesAllowed("ROLE_ADMIN")
+	@RolesAllowed({ "ROLE_ADMIN", "CLIENT_ADMIN" })
 	@RequestMapping(value = "/api/loggedIn", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public User getLoggedInUser() {
 		return securityUtil.getLoggedInUser();

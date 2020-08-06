@@ -6,7 +6,7 @@ import com.vasten.cli.entity.User;
 
 public interface UserService {
 
-	public User create(User userData);
+	public User create(Integer userId, User userData);
 
 	void updatePassword(String email, Map<String, String> passwordData);
 

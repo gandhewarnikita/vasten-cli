@@ -46,23 +46,48 @@ public class UserServiceImpl implements UserService {
 	private TokenStore tokenStore;
 
 	@Override
-	public User create(User userData) {
+	public User create(Integer userId, User userData) {
 		LOGGER.info("Creating user");
 
-		validationUtility.validateUserData(userData);
+		User dbUser = userRepository.findOneById(userId);
+		User newUser = null;
 
-		User newUser = new User();
+		if (dbUser.getRole().equals("ROLE_CLIENT_ADMIN")) {
+			LOGGER.info("Logged in user role is : " + dbUser.getRole());
 
-		newUser.setCreatedDate(new Date());
-		newUser.setUpdatedDate(new Date());
-		newUser.setEmail(userData.getEmail());
-		newUser.setClients(userData.getClients());
-		newUser.setRole(userData.getRole());
+			validationUtility.validateClientAdminData(dbUser, userData);
 
-		BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-		String password = bCryptPasswordEncoder.encode(userData.getPassword());
+			newUser = new User();
 
-		newUser.setPassword(password);
+			newUser.setCreatedDate(new Date());
+			newUser.setUpdatedDate(new Date());
+			newUser.setEmail(userData.getEmail());
+			newUser.setClients(userData.getClients());
+			newUser.setRole(userData.getRole());
+
+			BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+			String password = bCryptPasswordEncoder.encode(userData.getPassword());
+
+			newUser.setPassword(password);
+
+		} else {
+			LOGGER.info("Logged in user role is : " + dbUser.getRole());
+
+			validationUtility.validateUserData(userData);
+
+			newUser = new User();
+
+			newUser.setCreatedDate(new Date());
+			newUser.setUpdatedDate(new Date());
+			newUser.setEmail(userData.getEmail());
+			newUser.setClients(userData.getClients());
+			newUser.setRole(userData.getRole());
+
+			BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+			String password = bCryptPasswordEncoder.encode(userData.getPassword());
+
+			newUser.setPassword(password);
+		}
 
 		return userRepository.save(newUser);
 	}

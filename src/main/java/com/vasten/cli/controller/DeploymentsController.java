@@ -174,7 +174,7 @@ public class DeploymentsController {
 	}
 
 //	@RolesAllowed("ROLE_USER")
-	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
+	@RolesAllowed({ "ROLE_CLIENT_ADMIN", "ROLE_ADMIN" })
 	@RequestMapping(value = "/getcost/clientId/{clientId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, ClientCostDetails> getCostClient(@PathVariable Integer clientId) {
 

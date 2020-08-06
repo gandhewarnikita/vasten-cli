@@ -758,92 +758,38 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		userList = userRepository.findAllByClients(dbClient);
 
 		if (userList != null && !userList.isEmpty()) {
-			LOGGER.info("1");
+
 			for (User userObj : userList) {
-				LOGGER.info("2 : " + userObj.getEmail());
+
 				deploymentList = deploymentsRepository.findAllByUser(userObj);
 
 				if (deploymentList != null && !deploymentList.isEmpty()) {
-					LOGGER.info("3");
+
 					for (Deployments deploymentObj : deploymentList) {
-						LOGGER.info("4 : " + deploymentObj.getUser().getId());
+
 						deploymentCostList = deploymentCostRepository
 								.findByDeploymentIdOrderByCostLastUpdatedDesc(deploymentObj);
 					}
 
 					if (deploymentCostList != null && !deploymentCostList.isEmpty()) {
-						LOGGER.info("5");
-						// int index = deploymentCostList.size() - 1;
+
 						DeploymentCost deploymentCost = deploymentCostList.get(0);
 						costLastUpdated = deploymentCost.getCostLastUpdated();
-						LOGGER.info("cost last updated : " + costLastUpdated);
-						for (DeploymentCost deploymentCostObj : deploymentCostList) {
 
-							LOGGER.info("6 : " + deploymentCostObj.getDeploymentId().getId());
-							// costLastUpdated = deploymentCostObj.getCostLastUpdated();
-							// LOGGER.info("cost last updated : " + costLastUpdated);
+						for (DeploymentCost deploymentCostObj : deploymentCostList) {
 							totalCostList.add(deploymentCostObj.getTotalCost());
 						}
 
 						if (totalCostList != null && !totalCostList.isEmpty()) {
-							LOGGER.info("7");
 							for (Double cost : totalCostList) {
-								LOGGER.info("8");
 								totalCost += cost;
-								LOGGER.info("total cost : " + totalCost);
 							}
 						}
 					}
 				}
 
-//				if (deploymentCostList != null && !deploymentCostList.isEmpty()) {
-//					LOGGER.info("5");
-//					for (DeploymentCost deploymentCostObj : deploymentCostList) {
-//						LOGGER.info("6 : " + deploymentCostObj.getDeploymentId().getId());
-//						costLastUpdated = deploymentCostObj.getCostLastUpdated();
-//						LOGGER.info("cost last updated : " + costLastUpdated);
-//						totalCostList.add(deploymentCostObj.getTotalCost());
-//					}
-//				}
-
-//				if (totalCostList != null && !totalCostList.isEmpty()) {
-//					LOGGER.info("7");
-//					for (Double cost : totalCostList) {
-//						LOGGER.info("8");
-//						totalCost += cost;
-//						LOGGER.info("total cost : " + totalCost);
-//					}
-//				}
-
 			}
 		}
-
-//		if (deploymentList != null && !deploymentList.isEmpty()) {
-//			LOGGER.info("3");
-//			for (Deployments deploymentObj : deploymentList) {
-//				LOGGER.info("4");
-//				deploymentCostList = deploymentCostRepository.findByDeploymentIdOrderByUsageDateDesc(deploymentObj);
-//			}
-//		}
-
-//		if (deploymentCostList != null && !deploymentCostList.isEmpty()) {
-//			LOGGER.info("5");
-//			for (DeploymentCost deploymentCostObj : deploymentCostList) {
-//				LOGGER.info("6");
-//				costLastUpdated = deploymentCostObj.getCostLastUpdated();
-//				LOGGER.info("cost last updated : " + costLastUpdated);
-//				totalCostList.add(deploymentCostObj.getTotalCost());
-//			}
-//		}
-
-//		if (totalCostList != null && !totalCostList.isEmpty()) {
-//			LOGGER.info("7");
-//			for (Double cost : totalCostList) {
-//				LOGGER.info("8");
-//				totalCost += cost;
-//				LOGGER.info("total cost : " + totalCost);
-//			}
-//		}
 
 		ClientCostDetails clientCostDetails = new ClientCostDetails();
 		clientCostDetails.setTotalCost(totalCost);

@@ -526,7 +526,7 @@ public class ValidationUtility {
 			LOGGER.error("Role is mandatory");
 			validationErrorList.add(new ValidationError("role", "Role is mandatory"));
 
-		} else if (!userData.getRole().equals("CLIENT_ADMIN") && !userData.getRole().equals("ROLE_USER")) {
+		} else if (!userData.getRole().equals("ROLE_CLIENT_ADMIN") && !userData.getRole().equals("ROLE_USER")) {
 			LOGGER.error("Invalid role = " + userData.getRole());
 			validationErrorList.add(new ValidationError("role", "Invalid role"));
 		}
@@ -582,21 +582,6 @@ public class ValidationUtility {
 
 	}
 
-	public void validateClientAdmin(User dbUser, Clients clients) {
-		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
-
-		if (!dbUser.getClients().equals(clients)) {
-			LOGGER.error("Logged in client does not have permission to create other client's user");
-			validationErrorList.add(new ValidationError("client",
-					"Logged in client does not have permission to create other client's user"));
-		}
-
-		if (validationErrorList != null && !validationErrorList.isEmpty()) {
-			throw new CliBadRequestException("Bad Request", validationErrorList);
-		}
-
-	}
-
 	public void validateClientAndUserDetails(Integer id, Integer clientId) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
@@ -607,9 +592,85 @@ public class ValidationUtility {
 			LOGGER.error("Client does not exist");
 			validationErrorList.add(new ValidationError("client", "Client does not exist"));
 
-		} else if (!dbUser.getClients().equals(dbClient)) {
-			LOGGER.error("User does not belong to the client");
-			validationErrorList.add(new ValidationError("client", "User does not belong to the client"));
+		} else if (dbUser.getRole().equals("ROLE_CLIENT_ADMIN")) {
+
+			if (!dbUser.getClients().equals(dbClient)) {
+
+				LOGGER.error("User does not belong to the client");
+				validationErrorList.add(new ValidationError("client", "User does not belong to the client"));
+			}
+		}
+
+		if (validationErrorList != null && !validationErrorList.isEmpty()) {
+			throw new CliBadRequestException("Bad Request", validationErrorList);
+		}
+
+	}
+
+	public void validateClientAdminData(User dbUser, User userData) {
+		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
+
+		if (userData.getEmail() == null || userData.getEmail().isEmpty()) {
+			LOGGER.error("Email is mandatory");
+			validationErrorList.add(new ValidationError("email", "Email is mandatory"));
+
+		} else if (testEmail(userData.getEmail())) {
+			User user = userRepository.findOneByEmail(userData.getEmail());
+
+			if (user != null) {
+				LOGGER.error("User already exists");
+				validationErrorList.add(new ValidationError("email", "User already exists"));
+			}
+
+		} else {
+			// if not a valid email address
+			validationErrorList.add(new ValidationError("email", "Email is not a valid address"));
+		}
+
+		if (userData.getPassword() == null || userData.getPassword().isEmpty()) {
+			LOGGER.error("Password is mandatory");
+			validationErrorList.add(new ValidationError("password", "Password is mandatory"));
+
+		} else {
+			String regex = "^(?=.*[0-9])" + "(?=.*[a-z])(?=.*[A-Z])" + "(?=.*[@#$%^&+=_])" + "(?=\\S+$).{8}$";
+
+			String password = userData.getPassword().trim();
+
+			Pattern pat = Pattern.compile(regex);
+
+			if (pat.matcher(password).matches()) {
+				LOGGER.info("Valid password");
+			} else {
+				LOGGER.error("Invalid password");
+				validationErrorList.add(new ValidationError("password", "Invalid password"));
+			}
+		}
+
+		if (userData.getClients() == null || userData.getClients().getId() == null) {
+			LOGGER.error("Client id is mandatory");
+			validationErrorList.add(new ValidationError("clientId", "Client id is mandatory"));
+
+		} else {
+			Clients dbClient = clientsRepository.findOneById(userData.getClients().getId());
+
+			if (dbClient == null) {
+				LOGGER.error("Client does not exist");
+				validationErrorList.add(new ValidationError("clientId", "Client does not exist"));
+
+			} else if (!dbUser.getClients().equals(dbClient)) {
+				LOGGER.error("Logged in user does not have permission to create other client's user");
+				validationErrorList.add(new ValidationError("client",
+						"Logged in user does not have permission to create other client's user"));
+			}
+		}
+
+		if (userData.getRole() == null || userData.getRole().isEmpty()) {
+			LOGGER.error("Role is mandatory");
+			validationErrorList.add(new ValidationError("role", "Role is mandatory"));
+
+		} else if (!userData.getRole().equals("ROLE_USER")) {
+			LOGGER.error("Invalid role = " + userData.getRole());
+			validationErrorList.add(new ValidationError("role", "Invalid role"));
 		}
 
 		if (validationErrorList != null && !validationErrorList.isEmpty()) {

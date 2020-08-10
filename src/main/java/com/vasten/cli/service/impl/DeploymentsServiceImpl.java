@@ -740,14 +740,14 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 	}
 
 	@Override
-	public Map<String, ClientCostDetails> getClientCost(Integer id, Integer clientId, String startDate) {
+	public Map<String, ClientCostDetails> getClientCost(Integer id, String clientName, String startDate) {
 		LOGGER.info("Getting cost of all deployments of all user of a client");
 
-		validationUtility.validateClientAndUserDetails(id, clientId);
+		validationUtility.validateClientAndUserDetails(id, clientName);
 
 		LOGGER.info("start date : " + startDate);
 
-		Clients dbClient = clientsRepository.findOneById(clientId);
+		Clients dbClient = clientsRepository.findByName(clientName);
 
 		Map<String, ClientCostDetails> clientCostMap = new HashMap<String, ClientCostDetails>();
 		List<DeploymentCost> deploymentCostList = new ArrayList<DeploymentCost>();
@@ -768,7 +768,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			LocalDate date = LocalDate.now();
 
 			deploymentCostList = deploymentCostRepository
-					.findAllByClientIdAndUsageDateBetweenOrderByCostLastUpdatedDesc(dbClient, localStartDate, date);
+					.findAllByClientNameAndUsageDateBetweenOrderByCostLastUpdatedDesc(dbClient, localStartDate, date);
 
 			if (deploymentCostList != null && !deploymentCostList.isEmpty()) {
 
@@ -791,9 +791,9 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 			clientCostDetails.setCostLastUpdated(costLastUpdated);
 
 			clientCostMap.put(dbClient.getName(), clientCostDetails);
-			
+
 		} else {
-			deploymentCostList = deploymentCostRepository.findAllByClientIdOrderByCostLastUpdatedDesc(dbClient);
+			deploymentCostList = deploymentCostRepository.findAllByClientNameOrderByCostLastUpdatedDesc(dbClient);
 
 			if (deploymentCostList != null && !deploymentCostList.isEmpty()) {
 

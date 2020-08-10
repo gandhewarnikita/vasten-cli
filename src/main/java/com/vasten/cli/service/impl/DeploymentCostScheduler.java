@@ -163,7 +163,7 @@ public class DeploymentCostScheduler {
 				dbDeploymentCost.setUsageDate(date);
 
 				if (dbClient != null) {
-					dbDeploymentCost.setClientId(dbClient);
+					dbDeploymentCost.setClientName(dbClient);
 				}
 
 			} else {

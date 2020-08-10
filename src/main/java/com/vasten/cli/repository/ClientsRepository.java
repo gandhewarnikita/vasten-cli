@@ -18,4 +18,6 @@ public interface ClientsRepository extends JpaRepository<Clients, Integer> {
 
 	public Clients findByName(String name);
 
+	public Clients findOneByName(String clientName);
+
 }

@@ -40,9 +40,9 @@ public interface DeploymentCostRepository extends JpaRepository<DeploymentCost, 
 
 	public List<DeploymentCost> findByDeploymentIdOrderByCostLastUpdatedDesc(Deployments deploymentObj);
 
-	public List<DeploymentCost> findAllByClientIdOrderByCostLastUpdatedDesc(Clients dbClient);
+	public List<DeploymentCost> findAllByClientNameOrderByCostLastUpdatedDesc(Clients dbClient);
 
-	public List<DeploymentCost> findAllByClientIdAndUsageDateBetweenOrderByCostLastUpdatedDesc(Clients dbClient,
+	public List<DeploymentCost> findAllByClientNameAndUsageDateBetweenOrderByCostLastUpdatedDesc(Clients dbClient,
 			LocalDate localStartDate, LocalDate date);
 
 }

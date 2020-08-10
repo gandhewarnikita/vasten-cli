@@ -46,8 +46,8 @@ public class DeploymentCost {
 	private LocalDate usageDate;
 
 	@ManyToOne
-	@JoinColumn(name = "client_id")
-	private Clients clientId;
+	@JoinColumn(name = "client_name")
+	private Clients clientName;
 
 	public Integer getId() {
 		return id;
@@ -97,19 +97,19 @@ public class DeploymentCost {
 		this.usageDate = usageDate;
 	}
 
-	public Clients getClientId() {
-		return clientId;
+	public Clients getClientName() {
+		return clientName;
 	}
 
-	public void setClientId(Clients clientId) {
-		this.clientId = clientId;
+	public void setClientName(Clients clientName) {
+		this.clientName = clientName;
 	}
 
 	@Override
 	public String toString() {
 		return "DeploymentCost [id=" + id + ", deploymentId=" + deploymentId + ", totalCost=" + totalCost
 				+ ", costLastUpdated=" + costLastUpdated + ", deploymentTypeName=" + deploymentTypeName + ", usageDate="
-				+ usageDate + ", clientId=" + clientId + "]";
+				+ usageDate + ", clientName=" + clientName + "]";
 	}
 
 }

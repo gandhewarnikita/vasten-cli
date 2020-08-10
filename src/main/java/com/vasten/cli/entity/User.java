@@ -32,7 +32,7 @@ public class User {
 	private Integer id;
 
 	@ManyToOne
-	@JoinColumn(name = "client_id")
+	@JoinColumn(name = "client_name")
 	private Clients clients;
 
 	@Column(name = "email")

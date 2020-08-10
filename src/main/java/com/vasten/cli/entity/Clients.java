@@ -23,15 +23,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Table(name = "clients")
 public class Clients {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+//	@Id
+//	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer id;
 
+	@Id
 	@Column(name = "name")
 	private String name;
-	
+
 	@JsonIgnore
-	@OneToMany(mappedBy = "clientId", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "clientName", fetch = FetchType.LAZY)
 	private List<DeploymentCost> deploymentcost;
 
 	public Integer getId() {

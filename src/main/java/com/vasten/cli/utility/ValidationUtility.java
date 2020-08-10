@@ -509,12 +509,12 @@ public class ValidationUtility {
 			}
 		}
 
-		if (userData.getClients() == null || userData.getClients().getId() == null) {
+		if (userData.getClients() == null || userData.getClients().getName() == null) {
 			LOGGER.error("Client id is mandatory");
 			validationErrorList.add(new ValidationError("clientId", "Client id is mandatory"));
 
 		} else {
-			Clients dbClient = clientsRepository.findOneById(userData.getClients().getId());
+			Clients dbClient = clientsRepository.findOneByName(userData.getClients().getName());
 
 			if (dbClient == null) {
 				LOGGER.error("Client does not exist");
@@ -582,10 +582,10 @@ public class ValidationUtility {
 
 	}
 
-	public void validateClientAndUserDetails(Integer id, Integer clientId) {
+	public void validateClientAndUserDetails(Integer id, String clientName) {
 		List<ValidationError> validationErrorList = new ArrayList<ValidationError>();
 
-		Clients dbClient = clientsRepository.findOneById(clientId);
+		Clients dbClient = clientsRepository.findOneByName(clientName);
 		User dbUser = userRepository.findOneById(id);
 
 		if (dbClient == null) {
@@ -646,12 +646,12 @@ public class ValidationUtility {
 			}
 		}
 
-		if (userData.getClients() == null || userData.getClients().getId() == null) {
+		if (userData.getClients() == null || userData.getClients().getName() == null) {
 			LOGGER.error("Client id is mandatory");
 			validationErrorList.add(new ValidationError("clientId", "Client id is mandatory"));
 
 		} else {
-			Clients dbClient = clientsRepository.findOneById(userData.getClients().getId());
+			Clients dbClient = clientsRepository.findOneByName(userData.getClients().getName());
 
 			if (dbClient == null) {
 				LOGGER.error("Client does not exist");

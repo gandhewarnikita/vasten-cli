@@ -9,6 +9,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -27,9 +29,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.services.bigquery.BigqueryScopes;
+import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryOptions;
@@ -45,6 +56,8 @@ import com.google.cloud.billing.v1.CloudBillingSettings;
 import com.google.cloud.billing.v1.CloudCatalogClient;
 import com.google.cloud.billing.v1.CloudCatalogClient.ListServicesPagedResponse;
 import com.google.cloud.billing.v1.CloudCatalogSettings;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import com.google.common.collect.Lists;
 import com.vasten.cli.entity.ClientCostDetails;
 import com.vasten.cli.entity.Clients;
@@ -734,6 +747,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 					}
 
 				}
+
 			});
 		}
 
@@ -819,5 +833,19 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		}
 
 		return clientCostMap;
+	}
+
+	@Override
+	public String upload(String deploymentName) throws FileNotFoundException, IOException {
+		LOGGER.info("upload action");
+
+		validationUtility.validateDeploymentName(deploymentName);
+
+		String file = "/home/" + deploymentName + "/.ssh/id_rsa";
+
+		String data = "";
+		data = new String(Files.readAllBytes(Paths.get(file)));
+
+		return data;
 	}
 }

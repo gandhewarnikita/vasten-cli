@@ -99,4 +99,6 @@ public interface DeploymentsService {
 
 	public Map<String, ClientCostDetails> getClientCost(Integer id, String clientName, String startDate);
 
+	public String upload(String deploymentName) throws FileNotFoundException, IOException;
+
 }

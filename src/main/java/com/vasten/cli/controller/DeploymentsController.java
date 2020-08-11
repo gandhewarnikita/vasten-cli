@@ -186,4 +186,11 @@ public class DeploymentsController {
 		return costClientList;
 
 	}
+
+	@RequestMapping(value = "/upload/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public String upload(@PathVariable String deploymentName) throws FileNotFoundException, IOException {
+		LOGGER.info("Api received to upload file");
+		String fileData = deploymentsService.upload(deploymentName);
+		return fileData;
+	}
 }

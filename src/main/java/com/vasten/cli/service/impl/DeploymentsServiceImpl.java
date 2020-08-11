@@ -146,9 +146,20 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		validationUtility.validateDeploymentData(id, provisionData);
 
+		Clients dbClient = null;
+		int clientId = 0;
+
 		User dbUser = userRepository.findOneById(id);
-		Clients dbClient = clientsRepository.findOneById(dbUser.getClients().getId());
-		int clientId = dbClient.getId();
+
+		if (dbUser != null) {
+			LOGGER.info("dbUser is : " + dbUser.getEmail());
+			dbClient = clientsRepository.findOneById(dbUser.getClients().getId());
+		}
+
+		if (dbClient != null) {
+			LOGGER.info("dbClient is : " + dbClient.getName());
+			clientId = dbClient.getId();
+		}
 
 		Deployments newDeployment = new Deployments();
 
@@ -613,13 +624,25 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.vasten.cli.service.DeploymentsService#runTool(java.lang.Integer,
+	 * java.lang.String, java.lang.Integer, java.util.List, java.lang.String)
+	 */
 	@Override
-	public void runTool(Integer id, String deploymentName, Integer clusternodes, List<String> iplist, String filename) {
+	public String runTool(Integer id, String deploymentName, Integer clusternodes, List<String> iplist, String filename)
+			throws IOException {
 		LOGGER.info("Run tool using cluster instances");
 
 		validationUtility.validateDeploymentName(deploymentName);
 
 		validationUtility.validateQueryData(clusternodes, iplist);
+
+		String file = "/home/" + deploymentName + "/.ssh/id_rsa";
+
+		String data = "";
+		data = new String(Files.readAllBytes(Paths.get(file)));
 
 		List<String> instanceNameList = new ArrayList<String>();
 		List<String> instanceIpList = new ArrayList<String>();
@@ -750,9 +773,17 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 			});
 		}
+		return data;
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.vasten.cli.service.DeploymentsService#getClientCost(java.lang.Integer,
+	 * java.lang.String, java.lang.String)
+	 */
 	@Override
 	public Map<String, ClientCostDetails> getClientCost(Integer id, String clientName, String startDate) {
 		LOGGER.info("Getting cost of all deployments of all user of a client");
@@ -835,9 +866,33 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 		return clientCostMap;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.vasten.cli.service.DeploymentsService#upload(java.lang.String)
+	 */
 	@Override
 	public String upload(String deploymentName) throws FileNotFoundException, IOException {
 		LOGGER.info("upload action");
+
+		validationUtility.validateDeploymentName(deploymentName);
+
+		String file = "/home/" + deploymentName + "/.ssh/id_rsa";
+
+		String data = "";
+		data = new String(Files.readAllBytes(Paths.get(file)));
+
+		return data;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.vasten.cli.service.DeploymentsService#download(java.lang.String)
+	 */
+	@Override
+	public String download(String deploymentName) throws FileNotFoundException, IOException {
+		LOGGER.info("doenload action");
 
 		validationUtility.validateDeploymentName(deploymentName);
 

@@ -94,11 +94,40 @@ public interface DeploymentsService {
 	 * @param filename
 	 * @param iplist
 	 * @param clusternodes
+	 * @return
+	 * @throws IOException
 	 */
-	public void runTool(Integer id, String deploymentName, Integer clusternodes, List<String> iplist, String filename);
+	public String runTool(Integer id, String deploymentName, Integer clusternodes, List<String> iplist, String filename)
+			throws IOException;
 
+	/**
+	 * Get the cost of all deployments under a client
+	 * 
+	 * @param id
+	 * @param clientName
+	 * @param startDate
+	 * @return
+	 */
 	public Map<String, ClientCostDetails> getClientCost(Integer id, String clientName, String startDate);
 
+	/**
+	 * Upload a file on google cloud instance
+	 * 
+	 * @param deploymentName
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
 	public String upload(String deploymentName) throws FileNotFoundException, IOException;
+
+	/**
+	 * Download a file from google cloud instance
+	 * 
+	 * @param deploymentName
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	public String download(String deploymentName) throws FileNotFoundException, IOException;
 
 }

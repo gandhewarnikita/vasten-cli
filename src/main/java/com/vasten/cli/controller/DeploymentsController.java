@@ -161,19 +161,28 @@ public class DeploymentsController {
 	 * Run tool for a deployment
 	 * 
 	 * @param deploymentName
+	 * @throws IOException
 	 */
 	@RolesAllowed({ "ROLE_USER", "ROLE_ADMIN" })
 	@RequestMapping(value = "/run/deploymentName/{deploymentName}/filename/{filename}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public void runTool(@PathVariable String deploymentName,
+	public String runTool(@PathVariable String deploymentName,
 			@RequestParam(value = "clusternodes", required = false) Integer clusternodes,
-			@RequestParam(value = "iplist", required = false) List<String> iplist, @PathVariable String filename) {
+			@RequestParam(value = "iplist", required = false) List<String> iplist, @PathVariable String filename)
+			throws IOException {
 
 		LOGGER.info("Api received to run tool");
 		User user = securityUtil.getLoggedInUser();
-		deploymentsService.runTool(user.getId(), deploymentName, clusternodes, iplist, filename);
+		String fileData = deploymentsService.runTool(user.getId(), deploymentName, clusternodes, iplist, filename);
+		return fileData;
 	}
 
-//	@RolesAllowed("ROLE_USER")
+	/**
+	 * Get the cost of all deployments under a client
+	 * 
+	 * @param clientName
+	 * @param startDate
+	 * @return
+	 */
 	@RolesAllowed({ "ROLE_CLIENT_ADMIN", "ROLE_ADMIN" })
 	@RequestMapping(value = "/getcost/clientName/{clientName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, ClientCostDetails> getCostClient(@PathVariable String clientName,
@@ -187,11 +196,35 @@ public class DeploymentsController {
 
 	}
 
+	/**
+	 * Upload a file on google cloud instance
+	 * 
+	 * @param deploymentName
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
 	@RolesAllowed({ "ROLE_CLIENT_ADMIN", "ROLE_ADMIN", "ROLE_USER" })
 	@RequestMapping(value = "/upload/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public String upload(@PathVariable String deploymentName) throws FileNotFoundException, IOException {
 		LOGGER.info("Api received to upload file");
 		String fileData = deploymentsService.upload(deploymentName);
+		return fileData;
+	}
+
+	/**
+	 * Download a file from google cloud instance
+	 * 
+	 * @param deploymentName
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	@RolesAllowed({ "ROLE_CLIENT_ADMIN", "ROLE_ADMIN", "ROLE_USER" })
+	@RequestMapping(value = "/download/deploymentName/{deploymentName}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public String download(@PathVariable String deploymentName) throws FileNotFoundException, IOException {
+		LOGGER.info("Api received to download file");
+		String fileData = deploymentsService.download(deploymentName);
 		return fileData;
 	}
 }

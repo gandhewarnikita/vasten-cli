@@ -153,7 +153,7 @@ public class DeploymentsServiceImpl implements DeploymentsService {
 
 		if (dbUser != null) {
 			LOGGER.info("dbUser is : " + dbUser.getEmail());
-			dbClient = clientsRepository.findOneById(dbUser.getClients().getId());
+			dbClient = clientsRepository.findOneByName(dbUser.getClients().getName());
 		}
 
 		if (dbClient != null) {
